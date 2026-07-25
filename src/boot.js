@@ -11,6 +11,12 @@
   window.addEventListener('DOMContentLoaded', () => {
     try {
       const hud = new BA.Hud();
+      // decorate the title screen with a few of the pixel icons
+      const strip = document.getElementById('iconStrip');
+      if (strip) {
+        strip.innerHTML = ['spikes', 'rocket', 'saw', 'flame', 'minigun', 'tesla', 'mine', 'slam', 'gas']
+          .map((id) => BA.icons.img(id, 38)).join('');
+      }
       const game = new BA.Game(document.getElementById('gl'), document.getElementById('ov'), hud);
       window.GAME = game;
       hud.setScreen('title');

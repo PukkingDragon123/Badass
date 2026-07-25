@@ -5,54 +5,55 @@
 
   const WEAPONS = [
     {
-      id: 'spikes', name: 'RAM SPIKES', icon: '🔱', max: 5, color: '#c9d4e2',
+      id: 'spikes', name: 'RAM SPIKES', icon: 'spikes', max: 5, color: '#c9d4e2',
       desc: (l) => l === 0 ? 'Weld spikes to the bumper. Ramming hurts a LOT more.' : `+45% ram damage, longer spikes (Lv${l + 1})`,
     },
     {
-      id: 'rocket', name: 'ROCKET LAUNCHER', icon: '🚀', max: 5, color: '#ff8a3d',
+      id: 'rocket', name: 'ROCKET LAUNCHER', icon: 'rocket', max: 5, color: '#ff8a3d',
       desc: (l) => l === 0 ? 'Roof pod auto-fires homing rockets. Big boom.' : `Faster reload, +damage, more rockets (Lv${l + 1})`,
     },
     {
-      id: 'saw', name: 'BUZZ SPIN', icon: '⚙️', max: 5, color: '#9ad6ff',
+      id: 'saw', name: 'BUZZ SPIN', icon: 'saw', max: 5, color: '#9ad6ff',
       desc: (l) => l === 0 ? 'Saw blades orbit the car and shred anything close.' : `+1 blade, wider orbit, +damage (Lv${l + 1})`,
     },
     {
-      id: 'flame', name: 'FLAME EXHAUST', icon: '🔥', max: 5, color: '#ff5a2b',
+      id: 'flame', name: 'FLAME EXHAUST', icon: 'flame', max: 5, color: '#ff5a2b',
       desc: (l) => l === 0 ? 'Leave a burning trail behind you. Cook the horde.' : `Bigger, hotter, longer-lasting fire (Lv${l + 1})`,
     },
     {
-      id: 'minigun', name: 'ROOF MINIGUN', icon: '🔫', max: 5, color: '#ffd75e',
+      id: 'minigun', name: 'ROOF MINIGUN', icon: 'minigun', max: 5, color: '#ffd75e',
       desc: (l) => l === 0 ? 'Auto-tracking minigun. Never stops chewing.' : `Faster fire rate, +damage, +barrel (Lv${l + 1})`,
     },
     {
-      id: 'tesla', name: 'TESLA COIL', icon: '⚡', max: 5, color: '#7fd4ff',
+      id: 'tesla', name: 'TESLA COIL', icon: 'tesla', max: 5, color: '#7fd4ff',
       desc: (l) => l === 0 ? 'Chain lightning that jumps between corpses-to-be.' : `+1 chain, +damage, slows targets (Lv${l + 1})`,
     },
     {
-      id: 'mine', name: 'DROP MINES', icon: '💣', max: 5, color: '#ff6b6b',
+      id: 'mine', name: 'DROP MINES', icon: 'mine', max: 5, color: '#ff6b6b',
       desc: (l) => l === 0 ? 'Drop proximity mines out the back. Rude.' : `Faster drops, bigger blast (Lv${l + 1})`,
     },
     {
-      id: 'slam', name: 'SHOCK SLAM', icon: '💥', max: 5, color: '#c68bff',
+      id: 'slam', name: 'SHOCK SLAM', icon: 'slam', max: 5, color: '#c68bff',
       desc: (l) => l === 0 ? 'Landing from a jump detonates a shockwave. Auto-pulses too.' : `Bigger wave, more damage, faster pulse (Lv${l + 1})`,
     },
   ];
 
   const PASSIVES = [
-    { id: 'engine', name: 'V8 ENGINE', icon: '🏎️', max: 5, color: '#ff4d4d', desc: () => '+12% top speed' },
-    { id: 'turbo', name: 'TURBOCHARGER', icon: '🌀', max: 5, color: '#4dd2ff', desc: () => '+18% acceleration, +12% drift boost' },
-    { id: 'grip', name: 'RACING TIRES', icon: '🛞', max: 5, color: '#b0b6c2', desc: () => '+16% grip, +8% steering' },
-    { id: 'armor', name: 'ARMOR PLATING', icon: '🛡️', max: 5, color: '#8fd18f', desc: () => '+28 max HP, +6% damage resist, repairs 20' },
-    { id: 'magnet', name: 'SCRAP MAGNET', icon: '🧲', max: 5, color: '#ff9ad5', desc: () => '+50% pickup range' },
-    { id: 'overdrive', name: 'OVERDRIVE', icon: '☠️', max: 5, color: '#ffcf3d', desc: () => '+18% weapon damage' },
-    { id: 'coolant', name: 'COOLANT TANK', icon: '❄️', max: 5, color: '#9fe8ff', desc: () => '+16% fire rate' },
-    { id: 'lucky', name: 'LUCKY DICE', icon: '🎲', max: 5, color: '#d2a6ff', desc: () => '+25% scrap gained' },
-    { id: 'hydraulics', name: 'HYDRAULICS', icon: '🦿', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
-    { id: 'ramplate', name: 'RAM PLATE', icon: '🪓', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
+    { id: 'engine', name: 'V8 ENGINE', icon: 'engine', max: 5, color: '#ff4d4d', desc: () => '+12% top speed' },
+    { id: 'turbo', name: 'TURBOCHARGER', icon: 'turbo', max: 5, color: '#4dd2ff', desc: () => '+18% acceleration, +12% drift boost' },
+    { id: 'grip', name: 'RACING TIRES', icon: 'grip', max: 5, color: '#b0b6c2', desc: () => '+16% grip, +8% steering' },
+    { id: 'armor', name: 'ARMOR PLATING', icon: 'armor', max: 5, color: '#8fd18f', desc: () => '+28 max HP, +6% damage resist, repairs 20' },
+    { id: 'magnet', name: 'SCRAP MAGNET', icon: 'magnet', max: 5, color: '#ff9ad5', desc: () => '+50% pickup range' },
+    { id: 'overdrive', name: 'OVERDRIVE', icon: 'overdrive', max: 5, color: '#ffcf3d', desc: () => '+18% weapon damage' },
+    { id: 'coolant', name: 'COOLANT TANK', icon: 'coolant', max: 5, color: '#9fe8ff', desc: () => '+16% fire rate' },
+    { id: 'lucky', name: 'LUCKY DICE', icon: 'lucky', max: 5, color: '#d2a6ff', desc: () => '+25% scrap gained' },
+    { id: 'hydraulics', name: 'HYDRAULICS', icon: 'hydraulics', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
+    { id: 'ramplate', name: 'RAM PLATE', icon: 'ramplate', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
+    { id: 'tank', name: 'BIG TANK', icon: 'gas', max: 5, color: '#ffb03a', desc: () => '+22% gas capacity, +35% refill, nitrous burns slower' },
   ];
 
   const HEAL = {
-    id: 'repair', name: 'FIELD REPAIR', icon: '🔧', max: Infinity, color: '#7dffa0',
+    id: 'repair', name: 'FIELD REPAIR', icon: 'repair', max: Infinity, color: '#7dffa0',
     desc: () => 'Patch the wreck. Restore 45 HP right now.',
   };
 

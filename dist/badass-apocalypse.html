@@ -66,7 +66,7 @@
   #weapons{position:absolute;left:20px;bottom:20px;display:flex;gap:9px;flex-wrap:wrap-reverse;max-width:52vw}
   .wchip{width:52px;padding:6px 0 4px;border-radius:10px;text-align:center;background:var(--panel);
     border:2px solid rgba(255,255,255,.14);box-shadow:0 4px 0 rgba(0,0,0,.4)}
-  .wchip .ic{font-size:21px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}
+  .wchip .ic{height:26px;display:grid;place-items:center}
   .wchip .pips{display:flex;gap:2px;justify-content:center;margin-top:5px}
   .wchip .pip{width:5px;height:5px;border-radius:1px;background:rgba(255,255,255,.22)}
   .wchip .pip.f{background:var(--hazard);box-shadow:0 0 6px var(--hazard)}
@@ -110,6 +110,7 @@
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 7px 0 #4a0703) drop-shadow(0 0 34px rgba(255,90,30,.55));
     transform:skewX(-6deg)}
+  #iconStrip{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;opacity:.95}
   #titleSub{margin-top:14px;font-size:clamp(11px,2.1vw,17px);letter-spacing:.5em;color:#ffd9a0}
   .keys{margin:26px auto 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:760px}
   .key{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.16);border-radius:9px;
@@ -131,7 +132,7 @@
   .card .num{position:absolute;top:-15px;left:-13px;width:34px;height:34px;border-radius:9px;
     background:var(--c,#fff);color:#140b0d;display:grid;place-items:center;font-size:17px;
     box-shadow:0 4px 0 rgba(0,0,0,.5)}
-  .card .cic{font-size:52px;line-height:1;filter:drop-shadow(0 4px 3px rgba(0,0,0,.8))}
+  .card .cic{height:56px;display:grid;place-items:center}
   .card .cnm{margin-top:11px;font-size:19px;color:var(--c,#fff)}
   .card .clv{margin-top:5px;font-size:11px;letter-spacing:.22em;color:#c9bdbf}
   .card .cds{margin-top:11px;font-size:12.5px;line-height:1.55;color:#e6dcde;font-weight:700;letter-spacing:0}
@@ -153,10 +154,95 @@
 
   #fatal{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:30px;
     background:#120a0c;z-index:9;font-size:15px;line-height:1.7}
+
+  /* ------------------------------------------------------ touch controls */
+  #touch{position:absolute;inset:0;display:none;pointer-events:none;
+    z-index:3;transition:opacity .25s}
+  #touch.on{display:block}
+  #touch.hide{opacity:0;pointer-events:none}
+  #touch.hide *{pointer-events:none!important}
+
+  #twheel{position:absolute;left:max(14px,2.4vw);bottom:max(14px,2.4vh);
+    width:min(190px,40vw,52vh);aspect-ratio:1;border-radius:50%;pointer-events:auto;
+    touch-action:none;will-change:transform;filter:drop-shadow(0 8px 0 rgba(0,0,0,.45))}
+  #twheel .rim{position:absolute;inset:0;border-radius:50%;
+    border:min(22px,4.6vw) solid #24282f;
+    background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.16),transparent 55%);
+    box-shadow:inset 0 0 0 3px #0d1013,inset 0 0 26px rgba(0,0,0,.8),0 0 0 3px #0d1013}
+  #twheel .spoke{position:absolute;left:50%;top:50%;width:min(15px,3.2vw);height:44%;
+    background:linear-gradient(180deg,#2f343d,#1a1d23);border:2px solid #0d1013;border-radius:4px;
+    transform-origin:50% 0}
+  #twheel .s1{transform:translate(-50%,0) rotate(180deg)}
+  #twheel .s2{transform:translate(-50%,0) rotate(-60deg)}
+  #twheel .s3{transform:translate(-50%,0) rotate(60deg)}
+  #twheel .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:34%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+    background:linear-gradient(160deg,#ff5b45,#a41407);border:3px solid #0d1013;
+    font-size:min(15px,3.2vw);color:#fff4e6;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+  #twheel .grip{position:absolute;top:50%;width:min(26px,5.4vw);height:min(52px,11vw);
+    background:#3a4049;border:2px solid #0d1013;border-radius:7px;transform:translateY(-50%)}
+  #twheel .gl{left:-4%}
+  #twheel .gr{right:-4%}
+
+  #tright{position:absolute;right:max(16px,2.6vw);bottom:max(14px,2.4vh);
+    display:flex;flex-direction:column;align-items:flex-end;gap:min(10px,1.8vh)}
+  .trow{display:flex;gap:min(10px,2vw);align-items:flex-end}
+  .tbtn{pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;
+    border:3px solid rgba(255,255,255,.22);border-radius:50%;color:#fff;
+    font-family:inherit;font-weight:900;letter-spacing:.06em;
+    display:grid;place-items:center;box-shadow:0 6px 0 rgba(0,0,0,.5);
+    transition:transform .06s,box-shadow .06s,filter .1s;
+    background:linear-gradient(180deg,#3d434e,#20242b)}
+  .tbtn span{pointer-events:none;font-size:min(13px,2.7vw)}
+  .tbtn.small{width:min(70px,15vw);aspect-ratio:1}
+  .tbtn.gas{width:min(112px,23vw);aspect-ratio:1;
+    background:linear-gradient(180deg,#7bd85f,#227a2c);border-color:rgba(255,255,255,.3)}
+  .tbtn.gas span{font-size:min(18px,3.6vw)}
+  .tbtn.brake{width:min(84px,18vw);aspect-ratio:1;
+    background:linear-gradient(180deg,#ff6a5e,#a2160c)}
+  .tbtn.nitro{width:min(84px,18vw);aspect-ratio:1;
+    background:linear-gradient(180deg,#5fd8ff,#0d6f9c)}
+  .tbtn.nitro.empty{filter:grayscale(.85) brightness(.6)}
+  .tbtn.down{transform:translateY(5px) scale(.96);box-shadow:0 1px 0 rgba(0,0,0,.5);
+    filter:brightness(1.35)}
+
+  /* pixel icons keep their hard edges at every size */
+  .pxi{image-rendering:pixelated;image-rendering:crisp-edges;display:block;margin:0 auto;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.65))}
+
+  #fuelwrap{position:absolute;right:26px;bottom:76px;width:150px;text-align:right}
+  #fuelouter{height:14px;border-radius:7px;background:rgba(0,0,0,.6);overflow:hidden;
+    border:2px solid rgba(255,255,255,.16)}
+  #fuelbar{height:100%;width:100%;background:linear-gradient(90deg,#ff8a1e,#ffd23a);
+    transition:width .1s linear}
+  #fuellbl{font-size:11px;letter-spacing:.2em;color:#ffce8a;margin-bottom:5px}
+  #fuelwrap.low #fuelbar{background:#ff4d3d}
+
+  /* with the on-screen pad up, the meters and chips move clear of the thumbs */
+  body.touchmode #boostwrap{right:auto;left:50%;transform:translateX(-50%);
+    bottom:auto;top:98px;width:min(200px,34vw);text-align:center}
+  body.touchmode #fuelwrap{right:auto;left:50%;transform:translateX(-50%);
+    bottom:auto;top:140px;width:min(200px,34vw);text-align:center}
+  body.touchmode #weapons{left:auto;right:max(14px,2.4vw);bottom:auto;top:8px;
+    max-width:46vw;justify-content:flex-end;flex-wrap:wrap;gap:5px}
+  body.touchmode .wchip{width:38px;padding:4px 0 3px;border-width:2px}
+  body.touchmode .wchip .ic{height:20px}
+  body.touchmode .wchip .ic img{width:20px;height:20px}
+  body.touchmode .wchip .pip{width:4px;height:4px}
+  body.touchmode #combo{top:auto;bottom:max(18px,3vh);right:auto;
+    left:50%;transform:translateX(-50%);text-align:center}
+  body.touchmode #combo.on{transform:translateX(-50%)}
+  body.touchmode #combon{font-size:38px}
+  body.touchmode #bosswrap{top:182px;width:min(420px,60vw)}
+  body.touchmode #toast{bottom:auto;top:182px}
+
   @media (max-width:820px){
     #hpouter{width:180px}#topleft{top:16px;left:14px}#clock{font-size:28px}
     #combon{font-size:38px}#weapons{max-width:64vw;gap:6px}.wchip{width:42px}
-    #boostwrap{width:110px}
+    #boostwrap{width:110px;right:auto;left:14px;bottom:96px;text-align:left}
+    #fuelwrap{width:110px;right:auto;left:14px;bottom:140px;text-align:left}
+    #weapons{max-width:44vw;bottom:auto;top:120px}
+    #combo{top:150px;right:14px}
   }
 </style>
 </head>
@@ -195,6 +281,11 @@
 
     <div id="weapons"></div>
 
+    <div id="fuelwrap">
+      <div id="fuellbl" class="sh">GAS</div>
+      <div id="fuelouter"><div id="fuelbar"></div></div>
+    </div>
+
     <div id="boostwrap">
       <div id="boostlbl" class="sh">DRIFT CHARGE</div>
       <div id="boostouter"><div id="boostbar"></div></div>
@@ -209,15 +300,18 @@
     <div class="box">
       <div id="titleWord">BADASS<br>APOCALYPSE</div>
       <div id="titleSub">DRIVE · RAM · UPGRADE · REPEAT</div>
+      <div id="iconStrip"></div>
       <div class="keys">
         <div class="key"><b>W / ↑</b> THROTTLE</div>
         <div class="key"><b>A D / ← →</b> STEER</div>
         <div class="key"><b>S / ↓</b> BRAKE</div>
         <div class="key"><b>SHIFT</b> DRIFT → TURBO</div>
         <div class="key"><b>SPACE</b> JUMP / SLAM</div>
+        <div class="key"><b>X / CTRL</b> NITRO (BURNS GAS)</div>
         <div class="key"><b>1 2 3</b> PICK UPGRADE</div>
         <div class="key"><b>P</b> PAUSE</div>
         <div class="key"><b>M</b> MUTE</div>
+        <div class="key"><b>T</b> TOUCH PAD</div>
       </div>
       <div class="cta" id="startCta">PRESS SPACE TO FLOOR IT</div>
     </div>
@@ -632,6 +726,495 @@
   }
 
   BA.geo = { box, sphere, cylinder, cone, disc, ring, plane, saw };
+})();
+
+</script>
+<script>
+/* ---- src/pixelart.js ---- */
+/* BADASS APOCALYPSE - hand-drawn pixel art icons, rasterised at runtime.
+   Each icon is a 16x16 character grid plus a per-icon palette. Rows shorter
+   than 16 are padded, so a miscounted row degrades instead of exploding. */
+(function () {
+  'use strict';
+
+  const SIZE = 16;
+  const K = '#140c11';        // shared outline
+  const W = '#ffffff';
+
+  const ICONS = {
+    /* ---------------------------------------------------------- weapons */
+    spikes: {
+      p: { k: K, s: '#e8eef7', S: '#9fb0c6', d: '#5c6a7d', m: '#8a2b22', M: '#c4382c' },
+      g: [
+        '       kk       ',
+        '      ksSk      ',
+        '  kk  ksSk  kk  ',
+        ' ksSk ksSk ksSk ',
+        ' ksSk ksSk ksSk ',
+        'ksSSk ksSk ksSSk',
+        'ksSSk ksSk ksSSk',
+        'ksSSkkksSkkksSSk',
+        'kkkkkkkkkkkkkkkk',
+        'kMMMMMMMMMMMMMMk',
+        'kMmmMmmMmmMmmMMk',
+        'kMMMMMMMMMMMMMMk',
+        'kkkkkkkkkkkkkkkk',
+        '  kdk      kdk  ',
+        '  kdk      kdk  ',
+        '  kkk      kkk  ',
+      ],
+    },
+    rocket: {
+      p: { k: K, r: '#e8492f', R: '#ff8a5c', w: W, g: '#b9c6d8', f: '#ffd23a', o: '#ff8a1e' },
+      g: [
+        '       kk       ',
+        '      kwwk      ',
+        '      kwwk      ',
+        '     krRRk      ',
+        '     krRRk      ',
+        '     krRRk      ',
+        '    kkrRRkk     ',
+        '   kggkRRkggk   ',
+        '  kgggkRRkgggk  ',
+        '  kggkkRRkkggk  ',
+        '  kkk krrk kkk  ',
+        '      kkkk      ',
+        '      kffk      ',
+        '     kfoofk     ',
+        '     kfoofk     ',
+        '      koak      ',
+      ],
+    },
+    saw: {
+      p: { k: K, s: '#dbe4f0', S: '#95a5bb', d: '#4c586a', r: '#b8202a' },
+      g: [
+        '   k        k   ',
+        '  kSk  kk  kSk  ',
+        '  kSkkksskkkSk  ',
+        ' kkSssssssssSkk ',
+        ' kssssSSSSssssk ',
+        'kkssSSddddSSsskk',
+        'ksssSdd  ddSsssk',
+        'ksssSd    dSsssk',
+        'ksssSd    dSsssk',
+        'ksssSdd  ddSsssk',
+        'kkssSSddddSSsskk',
+        ' kssssSSSSssssk ',
+        ' kkSssssssssSkk ',
+        '  kSkkksskkkSk  ',
+        '  kSk  kk  kSk  ',
+        '   k   rr   k   ',
+      ],
+    },
+    flame: {
+      p: { k: K, y: '#ffe45c', o: '#ff9c1e', r: '#ef4423', d: '#8f1a10' },
+      g: [
+        '       kk       ',
+        '      krrk      ',
+        '     krrrrk     ',
+        '  k  krorrk  k  ',
+        ' krk krorrk krk ',
+        ' krrkkroorkkrrk ',
+        'krorrkroyorkrrok',
+        'kroorkryyyrkroor',
+        'krooorryyyrrooor',
+        'kroooooyyyooooor',
+        'kdooooyyyyyoooodk',
+        ' kdoooyywyyooodk',
+        ' kkdooyywyyoodkk',
+        '  kkdoooyoooddk ',
+        '    kkdoooodkk  ',
+        '      kkddkk    ',
+      ],
+    },
+    minigun: {
+      p: { k: K, g: '#8d99ab', G: '#c3ceda', d: '#464f5d', y: '#ffd23a', o: '#ff8a1e' },
+      g: [
+        '                ',
+        '            kkkk',
+        '        kkkkgGGk',
+        '     kkkgggggGGk',
+        'y   kdGGGGGGGGGk',
+        'yo kkdGGkkkkkkkk',
+        'yookdGGkkkkkkkk ',
+        ' okdGGGGGGGGGk  ',
+        '  kdGGkkkkkkk   ',
+        '  kdGGk kkkk    ',
+        '  kkdGGGGGGk    ',
+        '   kkddGGddk    ',
+        '     kkdddk     ',
+        '      kddk      ',
+        '     kkddkk     ',
+        '     kkkkkk     ',
+      ],
+    },
+    tesla: {
+      p: { k: K, b: '#63d3ff', B: '#bff0ff', w: W, d: '#1b6f9c' },
+      g: [
+        '        kk      ',
+        '       kBBk     ',
+        '      kBBbk     ',
+        '     kBBbdk     ',
+        '    kBBbbdk     ',
+        '   kBBbbddk     ',
+        '  kBBbbdddk     ',
+        ' kBBbbkkkkkkkk  ',
+        ' kbbkkkkbbBBBk  ',
+        ' kkk   kbbBBk   ',
+        '      kbbBBk    ',
+        '     kbbBBk     ',
+        '    kbbBBk      ',
+        '   kbbBBk       ',
+        '   kbBBk        ',
+        '   kkkk         ',
+      ],
+    },
+    mine: {
+      p: { k: K, d: '#2b2f38', g: '#525a68', w: W, o: '#ff8a1e', y: '#ffe45c' },
+      g: [
+        '            kyk ',
+        '           kyok ',
+        '          kokk  ',
+        '     kkk kok    ',
+        '   kkgggkkk     ',
+        '  kgggggggk     ',
+        ' kggwwggggkk    ',
+        ' kgwwgggggdk    ',
+        'kggwggggggddk   ',
+        'kgggggggggddk   ',
+        'kggggggggdddk   ',
+        'kgggggggdddkk   ',
+        ' kggggddddk     ',
+        ' kkgdddddkk     ',
+        '  kkddddkk      ',
+        '    kkkk        ',
+      ],
+    },
+    slam: {
+      p: { k: K, p: '#c68bff', P: '#e9d3ff', b: '#7a4bd0', w: W },
+      g: [
+        '   k   kk   k   ',
+        '   kp  kPk  pk  ',
+        '    kp kPk pk   ',
+        ' k   kpkPkpk   k',
+        ' kp   kPPPk   pk',
+        '  kpp kPwPk ppk ',
+        '   kppkPwPkppk  ',
+        'kkkkkppkwkppkkkk',
+        'kPPPPPwwwwwPPPPk',
+        'kkkkkppkwkppkkkk',
+        '   kppkPwPkppk  ',
+        '  kpp kPwPk ppk ',
+        ' kp   kPPPk   pk',
+        ' k   kpkPkpk   k',
+        '    kp kPk pk   ',
+        '   k   kPk   k  ',
+      ],
+    },
+
+    /* --------------------------------------------------------- passives */
+    engine: {
+      p: { k: K, r: '#e8382c', R: '#ff7a5c', d: '#7a1a12', g: '#98a4b5', y: '#ffd23a' },
+      g: [
+        '                ',
+        '   kk      kk   ',
+        '  kggk    kggk  ',
+        '  kggkkkkkggk   ',
+        ' kkRRRRRRRRRkk  ',
+        'kRRRRRRRRRRRRRk ',
+        'kRRkyykRRkyykRk ',
+        'kRRkyykRRkyykRk ',
+        'krrrrrrrrrrrrrk ',
+        'krrddrrrrddrrrk ',
+        'kkrrrrrrrrrrrkk ',
+        ' kkdddddddddkk  ',
+        '  kkgkkkkkgkk   ',
+        '   kggk  kggk   ',
+        '   kkkk  kkkk   ',
+        '                ',
+      ],
+    },
+    turbo: {
+      p: { k: K, b: '#4dd2ff', B: '#c2f0ff', d: '#1c6f96', g: '#9aa7b8' },
+      g: [
+        '     kkkkkk     ',
+        '   kkBBBBBBkk   ',
+        '  kBBbbbbbbBBk  ',
+        ' kBBbbddddbbBBk ',
+        ' kBbbdd  ddbbBk ',
+        'kBBbd  kk  dbBBk',
+        'kBbbd kBBk dbbBk',
+        'kBbd  kBBk  dbBk',
+        'kBbd  kBBk  dbBk',
+        'kBbbd kBBk dbbBk',
+        'kBBbd  kk  dbBBk',
+        ' kBbbdd  ddbbBk ',
+        ' kBBbbddddbbBBk ',
+        '  kBBbbbbbbBBk  ',
+        '   kkBBBBBBkk   ',
+        '     kkkkkk     ',
+      ],
+    },
+    grip: {
+      p: { k: K, d: '#22262e', g: '#3b4250', s: '#c8d2e0', S: '#8d99ab' },
+      g: [
+        '    kkkkkkkk    ',
+        '  kkddddddddkk  ',
+        ' kdgdgdgdgdgddk ',
+        'kddddddddddddddk',
+        'kdgdkkkkkkkkgddk',
+        'kddkkSSSSSSkkddk',
+        'kdgkSSsssSSSkgdk',
+        'kddkSsskkssSkddk',
+        'kddkSsskkssSkddk',
+        'kdgkSSsssSSSkgdk',
+        'kddkkSSSSSSkkddk',
+        'kdgdkkkkkkkkgddk',
+        'kddddddddddddddk',
+        ' kdgdgdgdgdgddk ',
+        '  kkddddddddkk  ',
+        '    kkkkkkkk    ',
+      ],
+    },
+    armor: {
+      p: { k: K, g: '#7fd18f', G: '#c8f0d0', d: '#2f7a45', s: '#dbe4f0' },
+      g: [
+        '    kkkkkkkk    ',
+        '  kkGGGGGGGGkk  ',
+        ' kGGGggggggGGGk ',
+        'kGGgggggggggggGk',
+        'kGgggggddgggggGk',
+        'kGggggdddgggggGk',
+        'kgggddddddddgggk',
+        'kgggddddddddgggk',
+        'kgggggdddgggggkk',
+        'kdggggdddgggggk ',
+        'kddgggddgggggdk ',
+        ' kddggggggggdk  ',
+        '  kddggggggdk   ',
+        '   kkddggddk    ',
+        '     kkddkk     ',
+        '       kk       ',
+      ],
+    },
+    magnet: {
+      p: { k: K, r: '#ff5c7a', R: '#ffb0c0', s: '#dbe4f0', S: '#95a5bb', b: '#63d3ff' },
+      g: [
+        '     kkkkkk     ',
+        '   kkRRRRRRkk   ',
+        '  kRRrrrrrrRRk  ',
+        ' kRRrrkkkkrrRRk ',
+        ' kRrrk    krrRk ',
+        'kRRrk      krRRk',
+        'kRrrk      krrRk',
+        'kRrrk      krrRk',
+        'kRrrk      krrRk',
+        'kRrrk      krrRk',
+        'kSSSk      kSSSk',
+        'kssSk      kSssk',
+        'kssSk      kSssk',
+        'kkkkk      kkkkk',
+        '  b          b  ',
+        ' b b        b b ',
+      ],
+    },
+    overdrive: {
+      p: { k: K, w: W, s: '#d8dee8', d: '#8a93a3', r: '#ff3b30' },
+      g: [
+        '    kkkkkkkk    ',
+        '  kkwwwwwwwwkk  ',
+        ' kwwwwwwwwwwwwk ',
+        'kwwwwwwwwwwwwwwk',
+        'kwwkkkwwwkkkwwwk',
+        'kwkrrrkwkrrrkwwk',
+        'kwkrrrkwkrrrkwwk',
+        'kwwkkkwwwkkkwwsk',
+        'kwwwwwkkkwwwwwsk',
+        'kswwwwwwwwwwwssk',
+        ' kswwkwkwkwwssk ',
+        '  kkswwwwwwskk  ',
+        '   kkskwkwkkk   ',
+        '    kkdkdkdk    ',
+        '      kkkk      ',
+        '                ',
+      ],
+    },
+    coolant: {
+      p: { k: K, b: '#9fe8ff', B: '#e6faff', d: '#2f8fb8', w: W },
+      g: [
+        '       kk       ',
+        '   k  kBBk  k   ',
+        '   kb kBBk bk   ',
+        '    kbkBBkbk    ',
+        '  kkkbbBBbbkkk  ',
+        '   kkbbBBbbkk   ',
+        '  kbbbbBBbbbbk  ',
+        'kkbbbbbwwbbbbbkk',
+        'kBBBBBwwwwBBBBBk',
+        'kkbbbbbwwbbbbbkk',
+        '  kbbbbBBbbbbk  ',
+        '   kkbbBBbbkk   ',
+        '  kkkbbBBbbkkk  ',
+        '    kbkBBkbk    ',
+        '   kb kBBk bk   ',
+        '   k  kkkk  k   ',
+      ],
+    },
+    lucky: {
+      p: { k: K, w: W, s: '#cfd6e2', d: '#7b8494', r: '#d2a6ff', b: '#2a2f38' },
+      g: [
+        '                ',
+        '    kkkkkkkk    ',
+        '   kwwwwwwwwk   ',
+        '  kwwbwwwwbwwk  ',
+        ' kwwwbwwwwbwwwk ',
+        ' kwwwwwbbwwwwwk ',
+        ' kwwwwwbbwwwwwk ',
+        ' kwwbwwwwwwbwwk ',
+        ' kwwbwwwwwwbwsk ',
+        ' kwwwwwwwwwwssk ',
+        ' kswwwwwwwwsssk ',
+        '  kssswwwsssdk  ',
+        '   kkssssssdk   ',
+        '    kkddddkk    ',
+        '  r   kkkk   r  ',
+        ' r r        r r ',
+      ],
+    },
+    hydraulics: {
+      p: { k: K, g: '#9aa7b8', G: '#dbe4f0', d: '#4a5462', t: '#7fffd4' },
+      g: [
+        '   kkkkkkkkkk   ',
+        '   kGGGGGGGGk   ',
+        '   kkdddddddk   ',
+        '     kgGGgk     ',
+        '   kkkgGGgkkk   ',
+        '  kGGgggggggGk  ',
+        '  kkkkgGGgkkkk  ',
+        '   kkkgGGgkkk   ',
+        '  kGGgggggggGk  ',
+        '  kkkkgGGgkkkk  ',
+        '   kkkgGGgkkk   ',
+        '  kGGgggggggGk  ',
+        '   kkkgGGgkkk   ',
+        '   kkdddddddk   ',
+        '   kGGGGGGGGk   ',
+        '   kkkkkkkkkk   ',
+      ],
+    },
+    ramplate: {
+      p: { k: K, o: '#e0a06a', O: '#ffd0a0', d: '#8a5a30', s: '#c8d2e0' },
+      g: [
+        '                ',
+        '  kkkkkkkkkkkk  ',
+        ' kOOOOOOOOOOOOk ',
+        ' kOooooooooooOk ',
+        ' kOodoooooodoOk ',
+        ' kOoooooooooOk  ',
+        ' kkOooooooooOk  ',
+        '  kkOoooooooOk  ',
+        '   kkOooooooOk  ',
+        '    kkOoooooOk  ',
+        '     kkOooooOk  ',
+        '      kkOoooOk  ',
+        '   kss kkOooOk  ',
+        '   kss  kkOoOk  ',
+        '   kss   kkOkk  ',
+        '   kkk    kkk   ',
+      ],
+    },
+    repair: {
+      p: { k: K, s: '#d8dee8', S: '#98a4b5', g: '#7dffa0', d: '#4a5462' },
+      g: [
+        '        kkkk    ',
+        '       kssskk   ',
+        '      kssk kk   ',
+        '      ksk       ',
+        '      kssk  kk  ',
+        '   kk  ksskssk  ',
+        '  kSSk  ksssk   ',
+        '  kSSSk  kkk    ',
+        '   kSSSk        ',
+        '    kSSSk       ',
+        '     kSSSk      ',
+        '      kSSSk     ',
+        '       kSSSk    ',
+        '  g     kSSk    ',
+        ' g g     kkk    ',
+        '  g             ',
+      ],
+    },
+    gas: {
+      p: { k: K, r: '#e8492f', R: '#ff8a5c', d: '#8f1a10', y: '#ffd23a', s: '#c8d2e0' },
+      g: [
+        '     kkkk       ',
+        '    ksskk       ',
+        '  kkkkkkkkkkk   ',
+        ' kRRRRRRRRRRRk  ',
+        'kkRRRRRRRRRRRkk ',
+        'krRRRRRRRRRRRrk ',
+        'krRRkyyyykRRRrkk',
+        'krRRkyyyykRRRrrk',
+        'krRRRkyykRRRRrrk',
+        'krRRRRkkRRRRRrrk',
+        'krrRRRRRRRRRrrkk',
+        'kdrrRRRRRRRrrdk ',
+        'kddrrrrrrrrrddk ',
+        'kkddddddddddkkk ',
+        ' kkkkkkkkkkkk   ',
+        '                ',
+      ],
+    },
+  };
+
+  const cache = new Map();
+
+  function render(id, scale) {
+    const key = id + '@' + scale;
+    if (cache.has(key)) return cache.get(key);
+    const def = ICONS[id];
+    if (!def) return '';
+
+    const src = document.createElement('canvas');
+    src.width = src.height = SIZE;
+    const sctx = src.getContext('2d');
+    const img = sctx.createImageData(SIZE, SIZE);
+
+    for (let y = 0; y < SIZE; y++) {
+      const row = def.g[y] || '';
+      for (let x = 0; x < SIZE; x++) {
+        const ch = row[x] || ' ';
+        const hex = def.p[ch];
+        const o = (y * SIZE + x) * 4;
+        if (!hex) { img.data[o + 3] = 0; continue; }
+        img.data[o] = parseInt(hex.slice(1, 3), 16);
+        img.data[o + 1] = parseInt(hex.slice(3, 5), 16);
+        img.data[o + 2] = parseInt(hex.slice(5, 7), 16);
+        img.data[o + 3] = 255;
+      }
+    }
+    sctx.putImageData(img, 0, 0);
+
+    const out = document.createElement('canvas');
+    out.width = out.height = SIZE * scale;
+    const octx = out.getContext('2d');
+    octx.imageSmoothingEnabled = false;
+    octx.drawImage(src, 0, 0, out.width, out.height);
+    const url = out.toDataURL('image/png');
+    cache.set(key, url);
+    return url;
+  }
+
+  BA.icons = {
+    url: (id, scale) => render(id, scale || 4),
+    img: (id, px, cls) => {
+      const url = render(id, 4);
+      if (!url) return '';
+      return `<img class="pxi${cls ? ' ' + cls : ''}" src="${url}" width="${px}" height="${px}" alt="">`;
+    },
+    has: (id) => !!ICONS[id],
+    ids: () => Object.keys(ICONS),
+  };
 })();
 
 </script>
@@ -1716,8 +2299,12 @@ void main(){
       this.pressed = Object.create(null);
       this.steer = 0; this.throttle = 0; this.brake = 0;
       this.handbrake = false; this.jump = false; this.jumpPressed = false;
-      this.touch = { active: false, steer: 0, throttle: 0, drift: false, jump: false };
+      this.nitro = false;
       this.anyPress = false;
+      this.touchSeen = false;
+
+      // written by the on-screen controls (src/mobile.js)
+      this.virtual = { steer: 0, throttle: 0, brake: 0, drift: false, jump: false, nitro: false, active: false };
 
       const down = (e) => {
         const k = e.code;
@@ -1731,32 +2318,13 @@ void main(){
       window.addEventListener('keyup', up);
       window.addEventListener('blur', () => { this.keys = Object.create(null); });
 
-      // ---- touch: left half steers, right half is gas; two-finger = drift
-      const zone = el;
-      const pointers = new Map();
-      const onDown = (e) => {
-        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now() });
+      window.addEventListener('pointerdown', (e) => {
         this.anyPress = true;
-        if (e.pointerType === 'touch') this.touch.active = true;
-      };
-      const onMove = (e) => {
-        const p = pointers.get(e.pointerId);
-        if (p) { p.x = e.clientX; p.y = e.clientY; }
-      };
-      const onUp = (e) => {
-        const p = pointers.get(e.pointerId);
-        if (p && e.pointerType === 'touch') {
-          const dt = performance.now() - p.t;
-          const moved = Math.hypot(p.x - p.sx, p.y - p.sy);
-          if (dt < 260 && moved < 22 && p.sx > window.innerWidth * 0.5) this.touch.jump = true;
-        }
-        pointers.delete(e.pointerId);
-      };
-      zone.addEventListener('pointerdown', onDown);
-      zone.addEventListener('pointermove', onMove);
-      zone.addEventListener('pointerup', onUp);
-      zone.addEventListener('pointercancel', onUp);
-      this.pointers = pointers;
+        if (e.pointerType === 'touch') this.touchSeen = true;
+      }, true);
+      window.addEventListener('contextmenu', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#touch')) e.preventDefault();
+      });
     }
 
     consume(code) {
@@ -1773,39 +2341,32 @@ void main(){
       if (k.KeyS || k.ArrowDown) brake += 1;
       let hb = !!(k.ShiftLeft || k.ShiftRight);
       let jump = !!k.Space;
+      let nitro = !!(k.KeyX || k.ControlLeft || k.ControlRight);
 
-      // ---- gamepad
+      /* ---- gamepad ---- */
       const pads = navigator.getGamepads ? navigator.getGamepads() : [];
       for (const p of pads) {
         if (!p) continue;
         const ax = p.axes[0] || 0;
         if (Math.abs(ax) > 0.14) steer += ax;
-        const rt = p.buttons[7] ? p.buttons[7].value : 0;
-        const lt = p.buttons[6] ? p.buttons[6].value : 0;
-        thr += rt;
-        brake += lt;
+        thr += p.buttons[7] ? p.buttons[7].value : 0;
+        brake += p.buttons[6] ? p.buttons[6].value : 0;
         if (p.buttons[0] && p.buttons[0].pressed) jump = true;
         if ((p.buttons[1] && p.buttons[1].pressed) || (p.buttons[5] && p.buttons[5].pressed)) hb = true;
+        if ((p.buttons[2] && p.buttons[2].pressed) || (p.buttons[4] && p.buttons[4].pressed)) nitro = true;
         if (p.buttons.some((b) => b && b.pressed)) this.anyPress = true;
         break;
       }
 
-      // ---- touch
-      if (this.touch.active) {
-        let steerTouch = 0, gas = 0, drift = false;
-        let n = 0;
-        for (const p of this.pointers.values()) {
-          if (p.sx < window.innerWidth * 0.5) {
-            steerTouch = clamp((p.x - p.sx) / 70, -1, 1);
-          } else {
-            gas = 1; n++;
-          }
-        }
-        if (n >= 2) drift = true;
-        steer += steerTouch;
-        thr += gas;
-        if (drift) hb = true;
-        if (this.touch.jump) { jump = true; this.touch.jump = false; }
+      /* ---- on-screen controls ---- */
+      const v = this.virtual;
+      if (v.active) {
+        steer += v.steer;
+        thr += v.throttle;
+        brake += v.brake;
+        if (v.drift) hb = true;
+        if (v.jump) jump = true;
+        if (v.nitro) nitro = true;
       }
 
       const prevJump = this.jump;
@@ -1815,6 +2376,7 @@ void main(){
       this.handbrake = hb;
       this.jump = jump;
       this.jumpPressed = jump && !prevJump;
+      this.nitro = nitro;
     }
   }
 
@@ -1829,7 +2391,7 @@ void main(){
   'use strict';
   const { rand, randSign, clamp, clamp01, lerp, TAU } = BA;
 
-  const MAX_P = 2200;
+  const MAX_P = 3000;
 
   class FX {
     constructor() {
@@ -2111,6 +2673,298 @@ void main(){
 
 </script>
 <script>
+/* ---- src/ragdoll.js ---- */
+/* BADASS APOCALYPSE - verlet ragdolls, dismemberment and gore */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, rand, randSign, TAU } = BA;
+
+  const MAX_DOLLS = 34;
+  const GRAV = 42;
+
+  // bone layout, in local metres for a scale-1 zombie
+  //  0 head   1 chest   2 hip   3 handL   4 handR   5 footL   6 footR
+  const REST = [
+    [0, 1, 0.42],   // neck
+    [1, 2, 0.62],   // spine
+    [1, 3, 0.86],   // arm L
+    [1, 4, 0.86],   // arm R
+    [2, 5, 0.88],   // leg L
+    [2, 6, 0.88],   // leg R
+    [3, 4, 1.05],   // shoulder brace
+    [5, 6, 0.55],   // hip brace
+  ];
+  const START = [
+    [0, 1.86, 0.05], [0, 1.30, 0], [0, 0.72, 0],
+    [-0.52, 1.24, 0.42], [0.52, 1.24, 0.42],
+    [-0.24, 0.02, 0], [0.24, 0.02, 0],
+  ];
+
+  class Ragdolls {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.list = [];
+      this.pool = [];
+    }
+
+    reset() {
+      while (this.list.length) this.pool.push(this.list.pop());
+    }
+
+    alloc() {
+      if (this.list.length >= MAX_DOLLS) {
+        const old = this.list.shift();
+        this.retire(old, true);
+        this.pool.push(old);
+      }
+      let d = this.pool.pop();
+      if (!d) {
+        d = { p: [], sticks: [] };
+        for (let i = 0; i < 7; i++) d.p.push({ x: 0, y: 0, z: 0, px: 0, py: 0, pz: 0, r: 0.2, cut: false });
+        for (const s of REST) d.sticks.push({ a: s[0], b: s[1], len: s[2], broken: false });
+      }
+      this.list.push(d);
+      return d;
+    }
+
+    /* spawn a corpse. dir is the impulse direction, power its magnitude */
+    spawn(e, dirX, dirY, dirZ, power, gore) {
+      const d = this.alloc();
+      const s = e.scale;
+      d.scale = s;
+      d.col = e.col;
+      d.tint = e.tint || 1;
+      d.variant = e.variant || 0;
+      d.skin = e.skin || [0.55, 0.62, 0.44];
+      d.shirt = e.shirt || e.col;
+      d.pants = e.pants || [0.2, 0.2, 0.24];
+      d.boss = e.type === 'boss' || e.type === 'brute';
+      d.life = d.max = d.boss ? 20 : 15;
+      d.bleed = 0.9;
+      d.settled = 0;
+      d.pooled = false;
+
+      const kick = clamp(power, 2, 26);
+      for (let i = 0; i < 7; i++) {
+        const p = d.p[i];
+        const L = START[i];
+        p.x = e.x + L[0] * s + rand(-0.05, 0.05);
+        p.y = L[1] * s;
+        p.z = e.z + L[2] * s;
+        p.r = (i === 0 ? 0.30 : i >= 5 ? 0.2 : 0.24) * s;
+        p.cut = false;
+        // upper body takes more of the hit, so they fold over the bumper
+        const w = i === 0 ? 1.35 : i <= 2 ? 1.0 : 0.75;
+        const vx = dirX * kick * w + rand(-2.5, 2.5);
+        const vy = (dirY * 0.5 + 1) * kick * 0.42 * w + rand(0, 3);
+        const vz = dirZ * kick * w + rand(-2.5, 2.5);
+        p.px = p.x - vx * (1 / 60);
+        p.py = p.y - vy * (1 / 60);
+        p.pz = p.z - vz * (1 / 60);
+      }
+      for (const st of d.sticks) st.broken = false;
+
+      // dismemberment on a hard enough hit
+      const goreLevel = gore === undefined ? clamp01((power - 14) / 22) : gore;
+      if (goreLevel > 0.02 && !d.boss) {
+        const limbs = [2, 3, 4, 5];          // arms and legs, never the spine
+        for (const li of limbs) {
+          if (Math.random() < goreLevel * 0.32) {
+            d.sticks[li].broken = true;
+            const idx = REST[li][1];
+            d.p[idx].cut = true;
+            this.fx.blood(d.p[idx].x, d.p[idx].y, d.p[idx].z, dirX, 0.8, dirZ, 4, 7);
+          }
+        }
+        if (goreLevel > 0.8 && Math.random() < 0.22) {
+          d.sticks[0].broken = true;         // decapitation
+          d.p[0].cut = true;
+          this.fx.blood(d.p[1].x, d.p[1].y + 0.3, d.p[1].z, 0, 1, 0, 7, 10);
+          // one callout at a time, or a big pile-up turns into a wall of text
+          const now = performance.now();
+          if (now - (this.lastGoreShout || 0) > 2600) {
+            this.lastGoreShout = now;
+            this.fx.text(e.x, 2.8 * s, e.z, 'DECAPITATED!', '#ff4d3d', 22, 'big');
+          }
+        }
+      }
+      return d;
+    }
+
+    /* shove every nearby corpse - explosions should throw bodies around */
+    blast(x, z, radius, power) {
+      for (const d of this.list) {
+        for (const p of d.p) {
+          const dx = p.x - x, dz = p.z - z;
+          const dist = Math.hypot(dx, dz);
+          if (dist > radius) continue;
+          const f = (1 - dist / radius) * power;
+          const nx = dist > 0.01 ? dx / dist : rand(-1, 1);
+          const nz = dist > 0.01 ? dz / dist : rand(-1, 1);
+          p.px -= nx * f * (1 / 60);
+          p.py -= (f * 0.75) * (1 / 60);
+          p.pz -= nz * f * (1 / 60);
+        }
+        d.settled = 0;
+        d.bleed = Math.max(d.bleed, 0.4);
+      }
+    }
+
+    update(dt, groundAt, car) {
+      const step = Math.min(dt, 1 / 45);
+      for (let i = this.list.length - 1; i >= 0; i--) {
+        const d = this.list[i];
+        d.life -= dt;
+        if (d.life <= 0) {
+          this.retire(d, false);
+          this.list.splice(i, 1);
+          this.pool.push(d);
+          continue;
+        }
+
+        let moving = 0;
+        for (const p of d.p) {
+          const vx = (p.x - p.px) * 0.995;
+          const vy = (p.y - p.py) * 0.995;
+          const vz = (p.z - p.pz) * 0.995;
+          p.px = p.x; p.py = p.y; p.pz = p.z;
+          p.x += vx; p.z += vz;
+          p.y += vy - GRAV * step * step;
+          moving += Math.abs(vx) + Math.abs(vy) + Math.abs(vz);
+
+          const gy = groundAt ? groundAt(p.x, p.z) : 0;
+          if (p.y < gy + p.r) {
+            p.y = gy + p.r;
+            const bounce = 0.22;
+            if (p.py > p.y) p.py = p.y + (p.py - p.y) * bounce;
+            // ground friction
+            p.px = p.x - (p.x - p.px) * 0.62;
+            p.pz = p.z - (p.z - p.pz) * 0.62;
+          }
+        }
+
+        // constraint solve
+        for (let it = 0; it < 3; it++) {
+          for (const st of d.sticks) {
+            if (st.broken) continue;
+            const a = d.p[st.a], b = d.p[st.b];
+            const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+            const dist = Math.hypot(dx, dy, dz) || 0.0001;
+            const rest = st.len * d.scale;
+            const diff = (dist - rest) / dist * 0.5;
+            const cx = dx * diff, cy = dy * diff, cz = dz * diff;
+            a.x += cx; a.y += cy; a.z += cz;
+            b.x -= cx; b.y -= cy; b.z -= cz;
+          }
+        }
+
+        // the truck can punt corpses around
+        if (car) {
+          const cr = 3.2;
+          for (const p of d.p) {
+            const dx = p.x - car.x, dz = p.z - car.z;
+            const dist = Math.hypot(dx, dz);
+            if (dist < cr && p.y < 2.4 && car.speed > 4) {
+              const nx = dist > 0.01 ? dx / dist : 1, nz = dist > 0.01 ? dz / dist : 0;
+              const push = (cr - dist) * 0.35 + car.speed * 0.02;
+              p.px -= nx * push * step * 12;
+              p.pz -= nz * push * step * 12;
+              p.py -= 0.14;
+              d.settled = 0;
+              d.bleed = Math.max(d.bleed, 0.35);
+            }
+          }
+        }
+
+        d.speed = moving / (step * 7);
+        if (d.speed < 0.9) d.settled += dt; else d.settled = 0;
+
+        // blood trail while the body is still being dragged
+        if (d.bleed > 0) {
+          d.bleed -= dt * 0.35;
+          if (d.speed > 2.5 && Math.random() < dt * 13) {
+            const p = d.p[1];
+            this.fx.blood(p.x, p.y, p.z, rand(-1, 1), 0.4, rand(-1, 1), 1, 3);
+            if (Math.random() < 0.35) this.fx.splat(p.x, p.z, rand(0.5, 1.1) * d.scale, 0.30, 0.03, 0.05, 0.55);
+          }
+        }
+        if (!d.pooled && d.settled > 0.55) {
+          d.pooled = true;
+          const p = d.p[1];
+          this.fx.splat(p.x, p.z, rand(1.5, 2.4) * d.scale, 0.26, 0.02, 0.04, 0.72);
+          for (const q of d.p) {
+            if (q.cut) this.fx.splat(q.x, q.z, rand(0.8, 1.4) * d.scale, 0.30, 0.03, 0.05, 0.6);
+          }
+        }
+      }
+    }
+
+    retire(d, violent) {
+      const p = d.p[1];
+      if (violent) this.fx.splat(p.x, p.z, 2.0 * d.scale, 0.22, 0.02, 0.03, 0.6);
+    }
+
+    draw(R, camX, camZ) {
+      for (const d of this.list) {
+        const p = d.p;
+        if ((p[1].x - camX) ** 2 + (p[1].z - camZ) ** 2 > 190 * 190) continue;
+        const fade = clamp01(d.life / 2.2);          // sink into the dirt at the end
+        const s = d.scale * lerp(0.55, 1, fade);
+        const sink = (1 - fade) * 0.5 * d.scale;
+
+        const shirt = d.shirt, pants = d.pants, skin = d.skin;
+        const dim = lerp(0.55, 1, fade);
+        const C = (c, m) => [c[0] * dim * (m || 1), c[1] * dim * (m || 1), c[2] * dim * (m || 1)];
+
+        const bone = (ia, ib, w, col, stick) => {
+          if (stick !== undefined && d.sticks[stick].broken) return;
+          const a = p[ia], b = p[ib];
+          const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+          const len = Math.hypot(dx, dy, dz) || 0.001;
+          const yaw = Math.atan2(dx, dz);
+          const pitch = -Math.asin(clamp(dy / len, -1, 1));
+          R.push('box', 'opaque',
+            (a.x + b.x) / 2, (a.y + b.y) / 2 - sink, (a.z + b.z) / 2,
+            yaw, pitch, 0, w * s, w * s, len, col[0], col[1], col[2], 0);
+        };
+
+        // torso as a slab between chest and hip
+        bone(1, 2, 0.78, C(shirt), 1);
+        bone(1, 3, 0.26, C(skin, 0.95), 2);
+        bone(1, 4, 0.26, C(skin, 0.95), 3);
+        bone(2, 5, 0.30, C(pants), 4);
+        bone(2, 6, 0.30, C(pants), 5);
+        if (!d.sticks[0].broken) bone(0, 1, 0.30, C(skin, 0.9));
+
+        // head
+        const h = p[0];
+        const neck = d.sticks[0].broken ? 0 : Math.atan2(h.x - p[1].x, h.z - p[1].z);
+        R.push('box', 'opaque', h.x, h.y - sink, h.z, neck, 0, 0,
+          0.55 * s, 0.55 * s, 0.55 * s, ...C(skin, 1.08), 0);
+        // dead eyes keep glowing for a beat
+        if (fade > 0.6) {
+          R.push('box', 'glow', h.x, h.y + 0.06 * s - sink, h.z + 0.16 * s, neck, 0, 0,
+            0.3 * s, 0.08 * s, 0.06 * s, 0.5 * fade, 0.06 * fade, 0.04 * fade, 1);
+        }
+
+        // stumps where limbs came off
+        for (let i = 0; i < 7; i++) {
+          if (!p[i].cut) continue;
+          R.push('sphere', 'opaque', p[i].x, p[i].y - sink, p[i].z, 0, 0, 0,
+            0.36 * s, 0.36 * s, 0.36 * s, 0.42 * dim, 0.04 * dim, 0.06 * dim, 0);
+        }
+
+        R.shadow(p[1].x, p[1].z, 1.8 * s, 0.42 * fade);
+      }
+    }
+  }
+
+  BA.Ragdolls = Ragdolls;
+})();
+
+</script>
+<script>
 /* ---- src/car.js ---- */
 /* BADASS APOCALYPSE - the car: arcade physics, springs, squash & stretch */
 (function () {
@@ -2123,6 +2977,14 @@ void main(){
   const BOOST_POWER = [13, 20, 28];
   const BOOST_TIME = [0.55, 0.95, 1.45];
   const SPARK_COL = [[0.35, 0.75, 1.0], [1.0, 0.55, 0.12], [0.85, 0.32, 1.0]];
+
+  /* monster truck geometry */
+  const WHEEL_R = 1.15;      // tyre radius
+  const WHEEL_W = 0.9;       // tyre width
+  const WHEEL_X = 1.55;      // track half-width
+  const WHEEL_Z = 1.9;       // wheelbase half-length
+  const CHASSIS_Y = 2.05;    // body centre above the ground at rest
+  const SUS_TRAVEL = 0.75;   // how far each corner can droop
 
   class Car {
     constructor(fx, audio) {
@@ -2149,6 +3011,8 @@ void main(){
       this.wheelSpin = 0;
       this.steerVis = 0;
       this.bodyY = 0;
+      this.wheelY = [WHEEL_R, WHEEL_R, WHEEL_R, WHEEL_R];
+      this.wheelVel = [0, 0, 0, 0];
 
       this.drifting = false;
       this.driftDir = 0;
@@ -2159,6 +3023,9 @@ void main(){
       this.boostStage = 0;
 
       this.hp = 100; this.maxHp = 100;
+      this.fuel = 100; this.maxFuel = 100;
+      this.nitroActive = false;
+      this.fuelIdle = 0;
       this.invuln = 0;
       this.hurtFlash = 0;
       this.damageSmoke = 0;
@@ -2167,6 +3034,7 @@ void main(){
         maxSpeed: 44, accel: 34, grip: 14, driftGrip: 2.7, turn: 2.45,
         jump: 14.5, airControl: 2.4, magnet: 5.5, damage: 1, cooldown: 1,
         xpGain: 1, ramDamage: 26, armor: 0, boostMul: 1,
+        nitroPower: 24, fuelBurn: 26, fuelRegen: 4.5, fuelMax: 100,
       };
       this.spikeLevel = 0;
       this.color = [0.90, 0.13, 0.14];
@@ -2176,6 +3044,12 @@ void main(){
     get forwardZ() { return Math.cos(this.yaw); }
     get speed() { return Math.hypot(this.vx, this.vz); }
     get speed01() { return clamp01(this.speed / this.stats.maxSpeed); }
+    get boosting() { return this.boostTime > 0 || this.nitroActive; }
+    get fuel01() { return clamp01(this.fuel / this.maxFuel); }
+
+    refuel(amount) {
+      this.fuel = Math.min(this.maxFuel, this.fuel + amount);
+    }
 
     /* ------------------------------------------------------------ update */
     update(dt, inp, world, game) {
@@ -2187,8 +3061,23 @@ void main(){
       this.vr = this.vx * rx + this.vz * rz;
 
       const prevVf = this.vf;
+
+      /* ---- nitrous: burns gas for a held speed boost ---- */
+      const wantNitro = inp.nitro && this.fuel > 0.4;
+      if (wantNitro && !this.nitroActive) this.audio.boost();
+      this.nitroActive = wantNitro;
+      if (this.nitroActive) {
+        this.fuel = Math.max(0, this.fuel - S.fuelBurn * dt);
+        this.fuelIdle = 0;
+        if (this.fuel <= 0) this.nitroActive = false;
+      } else {
+        this.fuelIdle += dt;
+        if (this.fuelIdle > 0.9) this.fuel = Math.min(this.maxFuel, this.fuel + S.fuelRegen * dt);
+      }
+      const nitro = this.nitroActive ? S.nitroPower * S.boostMul : 0;
+
       const boosting = this.boostTime > 0;
-      const maxSpeed = S.maxSpeed + (boosting ? this.boostPower : 0);
+      const maxSpeed = S.maxSpeed + (boosting ? this.boostPower : 0) + nitro;
 
       /* ---- throttle / brake ---- */
       if (this.grounded) {
@@ -2213,6 +3102,13 @@ void main(){
       if (boosting) {
         this.vf = Math.max(this.vf, S.maxSpeed * 0.85);
         this.vf += this.boostPower * 0.45 * dt;
+      }
+      if (this.nitroActive) {
+        this.vf += nitro * 0.55 * dt;
+        if (Math.random() < dt * 70) {
+          this.fx.sparks(this.x - fx_ * 2.6 + rand(-1, 1), 0.7, this.z - fz * 2.6, 1, 0.35, 0.85, 1.0, 1.1);
+          this.fx.fire(this.x - fx_ * 2.6, 0.6, this.z - fz * 2.6, 1, 0.5, 0.8);
+        }
       }
       this.vf = clamp(this.vf, -16, maxSpeed * 1.25);
 
@@ -2332,23 +3228,25 @@ void main(){
       const accelF = (this.vf - prevVf) / Math.max(dt, 0.0001);
       const latAcc = this.vr * 2.2 + turn * this.vf * 0.9;
 
-      const pitchTarget = clamp(-accelF * 0.0052, -0.20, 0.20) + (this.grounded ? 0 : clamp(this.vy * 0.006, -0.18, 0.16));
-      const rollTarget = clamp(latAcc * 0.011, -0.32, 0.32);
+      const pitchTarget = clamp(-accelF * 0.0072, -0.28, 0.28) + (this.grounded ? 0 : clamp(this.vy * 0.008, -0.24, 0.22));
+      const rollTarget = clamp(latAcc * 0.016, -0.42, 0.42);
       const spring = (val, vel, target, k, d) => {
         vel += (target - val) * k * dt;
         vel *= Math.exp(-d * dt);
         return [val + vel * dt, vel];
       };
-      [this.pitchVis, this.pitchVel] = spring(this.pitchVis, this.pitchVel, pitchTarget, 190, 11);
-      [this.rollVis, this.rollVel] = spring(this.rollVis, this.rollVel, rollTarget, 165, 9.5);
+      // soft springs with low damping: the truck wallows and overshoots
+      [this.pitchVis, this.pitchVel] = spring(this.pitchVis, this.pitchVel, pitchTarget, 150, 6.2);
+      [this.rollVis, this.rollVel] = spring(this.rollVis, this.rollVel, rollTarget, 128, 5.4);
 
-      this.squashVel += (1 - this.squash) * 260 * dt;
-      this.squashVel *= Math.exp(-12 * dt);
+      this.squashVel += (1 - this.squash) * 210 * dt;
+      this.squashVel *= Math.exp(-7.0 * dt);
       this.squash += this.squashVel * dt;
-      this.squash = clamp(this.squash, 0.45, 1.7);
+      this.squash = clamp(this.squash, 0.42, 1.8);
 
-      this.wheelSpin += (this.vf / 0.55) * dt;
-      this.bodyY = damp(this.bodyY, this.grounded ? 0 : 0.06, 8, dt);
+      this.wheelSpin += (this.vf / WHEEL_R) * dt;
+      this.bodyY = damp(this.bodyY, this.grounded ? 0 : 0.10, 8, dt);
+      this.updateSuspension(dt, world);
 
       if (this.invuln > 0) this.invuln -= dt;
       this.hurtFlash = Math.max(0, this.hurtFlash - dt * 2.6);
@@ -2378,6 +3276,31 @@ void main(){
         if (this.damageSmoke > 0.6 && Math.random() < 0.4) this.fx.fire(this.x, 1.0, this.z, 1, 0.35, 0.4);
       }
       this.damageSmoke = clamp01(1 - this.hp / (this.maxHp * 0.55));
+    }
+
+    /* each corner chases the ground under it, so the truck articulates over
+       ramps and debris instead of sliding around as one rigid block */
+    updateSuspension(dt, world) {
+      const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw);
+      const pitch = this.pitchVis, roll = this.rollVis;
+      for (let i = 0; i < 4; i++) {
+        const fwd = i < 2 ? 1 : -1;
+        const side = (i % 2) ? -1 : 1;
+        const lx = side * WHEEL_X, lz = fwd * WHEEL_Z;
+        const wx = this.x + lx * cy + lz * sy;
+        const wz = this.z - lx * sy + lz * cy;
+        // where the hub sits if the suspension were at full droop
+        const hub = this.y + CHASSIS_Y + this.bodyY + (this.squash - 1) * 0.55
+          - lz * Math.sin(pitch) * 0.95 + lx * Math.sin(roll) * 0.7 - 0.55;
+        const gh = world ? world.groundHeight(wx, wz) : 0;
+        let target = Math.max(gh + WHEEL_R, hub - SUS_TRAVEL);
+        target = Math.min(target, hub + SUS_TRAVEL * 0.35);
+        // critically-under-damped chase so the tyres visibly bounce on landing
+        this.wheelVel[i] += (target - this.wheelY[i]) * 320 * dt;
+        this.wheelVel[i] *= Math.exp(-13 * dt);
+        this.wheelY[i] += this.wheelVel[i] * dt;
+        this.wheelY[i] = clamp(this.wheelY[i], gh + WHEEL_R * 0.55, hub + SUS_TRAVEL);
+      }
     }
 
     releaseDrift() {
@@ -2448,119 +3371,196 @@ void main(){
       const pitch = this.pitchVis;
       const roll = this.rollVis;
       const sq = this.squash;
-      const stretch = 1 + (1 - sq) * 0.55;
       const bx = this.x, bz = this.z;
-      const by = this.y + 0.62 * sq + this.bodyY;
+      // chassis rides high on the axles and bobs with the suspension
+      const by = this.y + CHASSIS_Y + this.bodyY + (sq - 1) * 0.55;
 
       const cy = Math.cos(yaw), sy = Math.sin(yaw);
-      // local (right, up, fwd) -> world, ignoring the small pitch/roll for offsets
       const px = (lx, ly, lz) => bx + lx * cy + lz * sy;
       const pz = (lx, ly, lz) => bz - lx * sy + lz * cy;
-      const py = (lx, ly, lz) => by + ly * sq - lz * Math.sin(pitch) * 0.9 + lx * Math.sin(roll) * 0.5;
+      const py = (lx, ly, lz) => by + ly * sq - lz * Math.sin(pitch) * 0.95 + lx * Math.sin(roll) * 0.7;
 
       const put = (lx, ly, lz, sx, sy2, sz, r, g, b, e) => {
         R.push('box', 'opaque', px(lx, ly, lz), py(lx, ly, lz), pz(lx, ly, lz),
-          yaw, pitch, roll, sx, sy2 * sq, sz * stretch, r, g, b, e || 0);
+          yaw, pitch, roll, sx, sy2 * sq, sz, r, g, b, e || 0);
+      };
+      const putM = (mesh, lx, ly, lz, p2, r2, sx, sy2, sz, r, g, b, e) => {
+        R.push(mesh, 'opaque', px(lx, ly, lz), py(lx, ly, lz), pz(lx, ly, lz),
+          yaw, pitch + p2, roll + r2, sx, sy2, sz, r, g, b, e || 0);
       };
 
       const C = this.color;
       const flash = this.hurtFlash;
       const cr = lerp(C[0], 2.2, flash), cg = lerp(C[1], 1.6, flash), cb = lerp(C[2], 1.6, flash);
-      const dark = [cr * 0.42, cg * 0.42, cb * 0.42];
+      const steel = 0.26, steelD = 0.15;
 
-      // chassis
-      put(0, 0, 0, 2.15, 0.72, 4.3, cr, cg, cb, flash * 0.5);
-      // lower skirt / armour
-      put(0, -0.42, -0.1, 2.32, 0.34, 3.9, 0.13, 0.13, 0.15, 0);
-      // bonnet scoop
-      put(0, 0.42, 1.05, 0.95, 0.3, 1.1, 0.10, 0.10, 0.11, 0);
-      put(0, 0.60, 1.05, 0.72, 0.18, 0.86, 0.16, 0.16, 0.18, 0);
-      // cabin
-      put(0, 0.55, -0.55, 1.82, 0.68, 1.95, cr * 0.85, cg * 0.85, cb * 0.85, flash * 0.4);
-      // glass
-      put(0, 0.62, 0.42, 1.62, 0.55, 0.42, 0.10, 0.16, 0.22, 0);
-      put(0, 0.62, -1.52, 1.5, 0.5, 0.3, 0.10, 0.16, 0.22, 0);
-      put(0.92, 0.6, -0.55, 0.06, 0.5, 1.7, 0.10, 0.16, 0.22, 0);
-      put(-0.92, 0.6, -0.55, 0.06, 0.5, 1.7, 0.10, 0.16, 0.22, 0);
-      // roll cage
-      for (const s of [1, -1]) {
-        put(s * 0.86, 0.95, -0.55, 0.12, 0.55, 0.12, 0.2, 0.2, 0.22, 0);
-      }
-      put(0, 1.2, -0.55, 1.9, 0.14, 1.9, 0.22, 0.22, 0.24, 0);
-      // spoiler
-      put(0, 0.75, -2.0, 2.0, 0.14, 0.5, 0.08, 0.08, 0.09, 0);
-      for (const s of [1, -1]) put(s * 0.75, 0.45, -1.95, 0.16, 0.5, 0.16, 0.14, 0.14, 0.16, 0);
-      // bumpers
-      put(0, -0.2, 2.2, 2.3, 0.5, 0.4, 0.20, 0.20, 0.22, 0);
-      put(0, -0.2, -2.2, 2.25, 0.45, 0.35, 0.18, 0.18, 0.20, 0);
-      // headlights
-      for (const s of [1, -1]) {
-        put(s * 0.72, 0.12, 2.16, 0.42, 0.24, 0.14, 1.0, 0.95, 0.72, 1);
-      }
-      // tail lights
-      for (const s of [1, -1]) put(s * 0.72, 0.1, -2.2, 0.36, 0.18, 0.12, 1.0, 0.12, 0.08, 0.9);
+      /* ---- ladder frame + skid plate ---- */
+      for (const s of [1, -1]) put(s * 0.95, -0.62, -0.1, 0.26, 0.3, 4.9, steelD, steelD, 0.17, 0);
+      put(0, -0.72, 0.1, 2.0, 0.16, 3.4, 0.11, 0.11, 0.13, 0);
 
-      // exhausts
-      for (const s of [1, -1]) {
-        R.push('cyl', 'opaque', px(s * 0.55, -0.15, -2.35), py(s * 0.55, -0.15, -2.35), pz(s * 0.55, -0.15, -2.35),
-          yaw, pitch + Math.PI / 2, roll, 0.22, 0.5, 0.22, 0.3, 0.3, 0.32, 0);
+      /* ---- axles + coil-overs, drawn to each wheel's actual height ---- */
+      for (let i = 0; i < 4; i++) {
+        const fwd = i < 2 ? 1 : -1;
+        const side = (i % 2) ? -1 : 1;
+        const lx = side * WHEEL_X, lz = fwd * WHEEL_Z;
+        const wx = bx + lx * cy + lz * sy, wz = bz - lx * sy + lz * cy;
+        const wy = this.wheelY[i];
+        const hubX = px(lx * 0.32, -0.5, lz), hubY = py(lx * 0.32, -0.5, lz), hubZ = pz(lx * 0.32, -0.5, lz);
+        // solid axle tube from the diff out to the hub
+        const ax = wx - hubX, ay = wy - hubY, az = wz - hubZ;
+        const alen = Math.hypot(ax, ay, az) || 0.01;
+        R.push('box', 'opaque', (wx + hubX) / 2, (wy + hubY) / 2, (wz + hubZ) / 2,
+          Math.atan2(ax, az), -Math.asin(clamp(ay / alen, -1, 1)), 0,
+          0.28, 0.28, alen, 0.19, 0.19, 0.21, 0);
+        // coil-over shock
+        const topX = px(lx * 0.8, 0.15, lz), topY = py(lx * 0.8, 0.15, lz), topZ = pz(lx * 0.8, 0.15, lz);
+        const sxv = wx - topX, syv = wy + 0.3 - topY, szv = wz - topZ;
+        const slen = Math.hypot(sxv, syv, szv) || 0.01;
+        R.push('cyl', 'opaque', (wx + topX) / 2, (wy + 0.3 + topY) / 2, (wz + topZ) / 2,
+          Math.atan2(sxv, szv), -Math.asin(clamp(syv / slen, -1, 1)) + Math.PI / 2, 0,
+          0.3, slen, 0.3, 0.85, 0.42, 0.10, 0.10);
+      }
+      // differentials
+      for (const fwd of [1, -1]) {
+        putM('sphere', 0, -0.5, fwd * WHEEL_Z, 0, 0, 0.9, 0.9, 0.9, 0.22, 0.22, 0.24, 0);
       }
 
-      // spikes
+      /* ---- body tub ---- */
+      put(0, 0.05, -0.25, 2.55, 1.0, 4.5, cr, cg, cb, flash * 0.5);
+      put(0, 0.05, -0.25, 2.62, 0.34, 4.2, cr * 0.45, cg * 0.45, cb * 0.45, 0);   // belt line
+      put(0, 0.42, -0.25, 2.58, 0.16, 4.3, 0.86, 0.80, 0.72, 0.06);               // racing stripe
+      for (const s2 of [1, -1]) put(s2 * 1.3, -0.22, 0.6, 0.22, 0.5, 2.6, 0.12, 0.12, 0.14, 0);  // rock sliders
+      // bed rails
+      put(0, 0.62, -1.75, 2.5, 0.36, 1.7, cr * 0.8, cg * 0.8, cb * 0.8, 0);
+      for (const s of [1, -1]) put(s * 1.2, 0.86, -1.75, 0.2, 0.6, 1.7, steel, steel, 0.28, 0);
+      // hood + scoop
+      put(0, 0.5, 1.5, 2.2, 0.34, 1.5, cr * 0.9, cg * 0.9, cb * 0.9, 0);
+      put(0, 0.78, 1.45, 1.0, 0.34, 1.0, 0.10, 0.10, 0.11, 0);
+      put(0, 0.98, 1.45, 0.78, 0.16, 0.8, 0.20, 0.20, 0.22, 0);
+
+      /* ---- cab ---- */
+      put(0, 0.92, 0.05, 2.15, 1.05, 2.2, cr * 0.88, cg * 0.88, cb * 0.88, flash * 0.4);
+      put(0, 1.0, 1.16, 1.95, 0.8, 0.24, 0.09, 0.15, 0.21, 0);        // windscreen
+      put(0, 1.0, -1.06, 1.8, 0.7, 0.2, 0.09, 0.15, 0.21, 0);
+      for (const s of [1, -1]) put(s * 1.09, 0.98, 0.05, 0.16, 0.66, 1.9, 0.09, 0.15, 0.21, 0);
+      // roof
+      put(0, 1.5, 0.05, 2.2, 0.22, 2.3, cr * 0.7, cg * 0.7, cb * 0.7, 0);
+
+      /* ---- roll cage + light bar ---- */
+      for (const s of [1, -1]) {
+        put(s * 1.12, 1.72, -0.95, 0.16, 0.55, 0.16, steel, steel, 0.28, 0);
+        put(s * 1.12, 1.72, 1.0, 0.16, 0.55, 0.16, steel, steel, 0.28, 0);
+      }
+      put(0, 1.96, 0.05, 2.4, 0.16, 2.2, steel, steel, 0.28, 0);
+      put(0, 2.08, 1.0, 2.1, 0.22, 0.34, 0.14, 0.14, 0.16, 0);
+      for (let i = 0; i < 4; i++) {
+        const lx = -0.72 + i * 0.48;
+        put(lx, 2.08, 1.16, 0.36, 0.3, 0.14, 1.15, 1.05, 0.72, 1);
+      }
+
+      /* ---- exhaust stacks ---- */
+      for (const s of [1, -1]) {
+        putM('cyl', s * 1.16, 1.3, -0.9, 0, 0, 0.34, 2.2, 0.34, 0.38, 0.36, 0.34, 0);
+        putM('cyl', s * 1.16, 2.42, -0.9, 0, 0, 0.42, 0.24, 0.42, 0.26, 0.24, 0.22, 0);
+      }
+
+      /* ---- bull bar, bumpers, lights ---- */
+      put(0, -0.15, 2.55, 2.75, 0.55, 0.45, steel, steel, 0.3, 0);
+      put(0, 0.45, 2.5, 0.24, 1.1, 0.24, steel, steel, 0.3, 0);
+      for (const s of [1, -1]) put(s * 0.9, 0.45, 2.5, 0.2, 1.0, 0.2, steel, steel, 0.3, 0);
+      put(0, 0.98, 2.5, 2.6, 0.22, 0.3, steel, steel, 0.3, 0);
+      put(0, -0.25, -2.55, 2.6, 0.5, 0.4, steelD, steelD, 0.18, 0);
+      for (const s of [1, -1]) {
+        put(s * 0.85, 0.2, 2.62, 0.5, 0.34, 0.14, 1.2, 1.1, 0.8, 1);      // headlights
+        put(s * 0.9, 0.25, -2.6, 0.42, 0.24, 0.12, 1.1, 0.12, 0.08, 0.9); // tail lights
+      }
+
+      /* ---- nitrous bottles strapped in the bed, they empty as you burn gas ---- */
+      const fuel01 = clamp01(this.fuel / this.maxFuel);
+      for (const side of [1, -1]) {
+        putM('cyl', side * 0.58, 0.66, -1.9, Math.PI / 2, 0, 0.5, 1.4, 0.5, 0.14, 0.14, 0.16, 0);
+        putM('cyl', side * 0.58, 0.665, -1.9, Math.PI / 2, 0, 0.53, 1.1 * fuel01, 0.53,
+          0.62 * fuel01, 0.24 * fuel01, 0.03 * fuel01, 0.35 * fuel01);
+        put(side * 0.58, 0.66, -1.3, 0.6, 0.6, 0.14, 0.26, 0.25, 0.28, 0);
+      }
+
+      /* ---- ram spikes ---- */
       if (this.spikeLevel > 0) {
         const n = 2 + this.spikeLevel;
-        const len = 0.55 + this.spikeLevel * 0.24;
+        const len = 0.7 + this.spikeLevel * 0.28;
         for (let i = 0; i < n; i++) {
           const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
-          const lx = t * 0.92;
-          R.push('cone', 'opaque', px(lx, -0.1, 2.35), py(lx, -0.1, 2.35), pz(lx, -0.1, 2.35),
-            yaw, pitch + Math.PI / 2, roll, 0.34, len, 0.34, 0.72, 0.74, 0.8, 0.05);
+          putM('cone', t * 1.1, -0.1, 2.7, Math.PI / 2, 0, 0.4, len, 0.4, 0.74, 0.76, 0.82, 0.05);
         }
         for (const s of [1, -1]) {
           for (let i = 0; i < this.spikeLevel; i++) {
-            const lz = -0.9 + i * 0.9;
-            R.push('cone', 'opaque', px(s * 1.12, -0.15, lz), py(s * 1.12, -0.15, lz), pz(s * 1.12, -0.15, lz),
-              yaw, pitch, roll + s * Math.PI / 2, 0.26, 0.5, 0.26, 0.72, 0.74, 0.8, 0.05);
+            putM('cone', s * 1.32, -0.1, -1.1 + i * 1.0, 0, s * Math.PI / 2, 0.3, 0.6, 0.3, 0.74, 0.76, 0.82, 0.05);
           }
         }
       }
 
-      /* wheels: they hug the ground, not the springy body */
-      const steerA = this.steerVis * 0.42 * (this.drifting ? 1.5 : 1);
-      const wheelR = 0.58;
-      for (const fwd of [1, -1]) {
-        for (const s of [1, -1]) {
-          const lx = s * 1.02, lz = fwd * 1.42;
-          const wx = bx + lx * cy + lz * sy;
-          const wz = bz - lx * sy + lz * cy;
-          const comp = clamp((sq - 1) * 0.4, -0.18, 0.18);
-          const wy = this.y + wheelR + comp + (this.grounded ? 0 : 0.08);
-          const wyaw = yaw + (fwd > 0 ? steerA : 0);
-          R.push('cylX', 'opaque', wx, wy, wz, wyaw, 0, this.wheelSpin,
-            0.42, wheelR * 2, wheelR * 2, 0.06, 0.06, 0.07, 0);
-          R.push('cylX', 'opaque', wx + Math.cos(wyaw) * s * 0.16, wy, wz - Math.sin(wyaw) * s * 0.16, wyaw, 0, this.wheelSpin,
-            0.14, wheelR * 1.05, wheelR * 1.05, 0.75, 0.72, 0.2, 0.12);
+      /* ---- wheels: huge, knobby, each on its own suspension ---- */
+      const steerA = this.steerVis * 0.40 * (this.drifting ? 1.5 : 1);
+      for (let i = 0; i < 4; i++) {
+        const fwd = i < 2 ? 1 : -1;
+        const side = (i % 2) ? -1 : 1;
+        const lx = side * WHEEL_X, lz = fwd * WHEEL_Z;
+        const wx = bx + lx * cy + lz * sy;
+        const wz = bz - lx * sy + lz * cy;
+        const wy = this.wheelY[i];
+        const wyaw = yaw + (fwd > 0 ? steerA : 0);
+        const spin = this.wheelSpin;
+        // tyre carcass
+        R.push('cylX', 'opaque', wx, wy, wz, wyaw, 0, spin,
+          WHEEL_W, WHEEL_R * 2, WHEEL_R * 2, 0.055, 0.055, 0.065, 0);
+        // tread blocks around the rim
+        for (let t = 0; t < 8; t++) {
+          const a = spin + (t / 8) * TAU;
+          const tx = wx + Math.sin(wyaw) * 0 + Math.cos(wyaw) * 0;
+          const oy = Math.cos(a) * WHEEL_R * 0.93;
+          const oz = Math.sin(a) * WHEEL_R * 0.93;
+          R.push('box', 'opaque',
+            tx + Math.sin(wyaw) * oz, wy + oy, wz + Math.cos(wyaw) * oz,
+            wyaw, -a + Math.PI / 2, 0,
+            WHEEL_W * 1.06, 0.26, 0.34, 0.10, 0.10, 0.115, 0);
+        }
+        // beadlock rim
+        // beadlock rim, pushed out to the outboard face where it can be seen
+        const rimOff = side * (WHEEL_W * 0.5 + 0.02);
+        const rx2 = wx + Math.cos(wyaw) * rimOff, rz2 = wz - Math.sin(wyaw) * rimOff;
+        R.push('cylX', 'opaque', rx2, wy, rz2, wyaw, 0, spin,
+          0.12, WHEEL_R * 1.24, WHEEL_R * 1.24, 0.78, 0.70, 0.18, 0.12);
+        R.push('cylX', 'opaque', rx2, wy, rz2, wyaw, 0, spin,
+          0.2, WHEEL_R * 0.95, WHEEL_R * 0.95, 0.30, 0.30, 0.34, 0);
+        for (let t = 0; t < 5; t++) {
+          const a = spin + (t / 5) * TAU;
+          const oy = Math.cos(a) * WHEEL_R * 0.5, oz = Math.sin(a) * WHEEL_R * 0.5;
+          R.push('box', 'opaque',
+            rx2 + Math.sin(wyaw) * oz, wy + oy, rz2 + Math.cos(wyaw) * oz,
+            wyaw, -a, 0, 0.14, WHEEL_R * 0.9, 0.22, 0.52, 0.50, 0.54, 0);
         }
       }
 
-      // boost flames
-      if (this.boostTime > 0) {
-        const c = SPARK_COL[this.boostStage];
-        const k = clamp01(this.boostTime / 0.5);
+      /* ---- nitrous / drift boost flames ---- */
+      const boostCol = this.nitroActive ? [0.35, 0.85, 1.0] : (this.boostTime > 0 ? SPARK_COL[this.boostStage] : null);
+      if (boostCol) {
+        const k = this.nitroActive ? 1 : clamp01(this.boostTime / 0.5);
         for (const s of [1, -1]) {
-          const l = 1.1 + Math.random() * 0.9;
-          R.push('cone', 'glow', px(s * 0.55, -0.1, -2.6 - l * 0.3), py(s * 0.55, -0.1, -2.6), pz(s * 0.55, -0.1, -2.6 - l * 0.3),
-            yaw, pitch - Math.PI / 2, roll, 0.5, l, 0.5, c[0] * k, c[1] * k, c[2] * k, 1);
+          const l = 1.4 + Math.random() * 1.2;
+          putM('cone', s * 1.16, 2.5, -0.9, -Math.PI, 0, 0.6, l, 0.6,
+            boostCol[0] * k, boostCol[1] * k, boostCol[2] * k, 1);
+          const l2 = 1.0 + Math.random() * 0.8;
+          putM('cone', s * 0.7, -0.2, -2.7 - l2 * 0.3, -Math.PI / 2, 0, 0.55, l2, 0.55,
+            boostCol[0] * k, boostCol[1] * k, boostCol[2] * k, 1);
         }
       }
 
-      // drift sparks glow under the car
       if (this.drifting && this.driftStage >= 0) {
         const c = SPARK_COL[this.driftStage];
-        R.push('disc', 'glow', bx, 0.06, bz, 0, 0, 0, 5, 1, 5, c[0] * 0.25, c[1] * 0.25, c[2] * 0.25, 1);
+        R.push('disc', 'glow', bx, 0.06, bz, 0, 0, 0, 7, 1, 7, c[0] * 0.22, c[1] * 0.22, c[2] * 0.22, 1);
       }
 
-      R.shadow(bx, bz, 3.0 + clamp(this.y * 0.35, 0, 2.4), clamp01(0.62 - this.y * 0.06), (this.shadowY || 0) + 0.016);
+      R.shadow(bx, bz, 4.0 + clamp(this.y * 0.35, 0, 2.6), clamp01(0.6 - this.y * 0.05), (this.shadowY || 0) + 0.016);
     }
   }
 
@@ -2656,11 +3656,13 @@ void main(){
         if (r < 0.09) {
           const L = 9 + rng() * 5, W = 6 + rng() * 3, H = 3.0 + rng() * 2.2;
           add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
-        } else if (r < 0.42) {
+        } else if (r < 0.36) {
           add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.62) {
+        } else if (r < 0.47) {
+          add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
+        } else if (r < 0.64) {
           add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.74) {
+        } else if (r < 0.75) {
           add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
         } else if (r < 0.86) {
           add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
@@ -2708,6 +3710,7 @@ void main(){
         const nx = d > 0.001 ? dx / d : 1, nz = d > 0.001 ? dz / d : 0;
 
         if (p.type === 'barrel') { this.explodeBarrel(p, game); continue; }
+        if (p.type === 'gascan') { this.grabGas(p, game); continue; }
         if (p.type === 'crate') { this.breakCrate(p, game); continue; }
 
         const impact = speed * (car.vx * -nx + car.vz * -nz > 0 ? 1 : 0.25);
@@ -2766,13 +3769,28 @@ void main(){
       }
     }
 
+    grabGas(p, game) {
+      if (p.dead) return;
+      p.dead = true;
+      const car = game.car;
+      const before = car.fuel;
+      car.refuel(car.maxFuel * 0.4);
+      this.audio.pickup(0.6);
+      this.fx.sparks(p.x, 1.0, p.z, 12, 1.3, 0.85, 0.25, 1.1);
+      this.fx.shard(p.x, 0.8, p.z, 6, 0.62, 0.16, 0.09);
+      this.fx.fire(p.x, 0.7, p.z, 5, 0.5, 0.6);
+      const gained = Math.round(car.fuel - before);
+      if (gained > 0) this.fx.text(p.x, 2.4, p.z, '+' + gained + ' GAS', '#ffd23a', 22, 'big');
+    }
+
     breakCrate(p, game) {
       if (p.dead) return;
       p.dead = true;
       this.audio.squish();
       this.fx.shard(p.x, 0.9, p.z, 12, 0.55, 0.38, 0.18);
       this.fx.smoke(p.x, 0.8, p.z, 4, 0.7, 0.6, 0.5, 0.35, 1);
-      if (p.loot < 0.42) game.dropHealth(p.x, p.z);
+      if (p.loot < 0.32) game.dropHealth(p.x, p.z);
+      else if (p.loot < 0.6) game.dropFuel(p.x, p.z);
       else game.spawnXp(p.x, p.z, 4, 3);
     }
 
@@ -2815,6 +3833,15 @@ void main(){
             R.push('cyl', 'opaque', p.x, 1.25 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
             R.push('cyl', 'opaque', p.x, 0.62 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
             R.shadow(p.x, p.z, 1.5, 0.5);
+            break;
+          }
+          case 'gascan': {
+            const bob = Math.sin(t * 2.4 + p.bob) * 0.05;
+            R.push('box', 'opaque', p.x, 0.75 + bob, p.z, p.yaw, 0, 0, 1.15, 1.5, 0.85, 0.66, 0.15, 0.08, 0.05);
+            R.push('box', 'opaque', p.x, 0.85 + bob, p.z, p.yaw, 0, 0, 1.2, 0.42, 0.9, 1.05, 0.80, 0.14, 0.45);
+            R.push('box', 'opaque', p.x, 1.6 + bob, p.z, p.yaw, 0, 0, 0.45, 0.32, 0.32, 0.28, 0.28, 0.3, 0);
+            R.push('sphere', 'glow', p.x, 0.9 + bob, p.z, 0, 0, 0, 2.4, 2.4, 2.4, 0.16, 0.09, 0.02, 1);
+            R.shadow(p.x, p.z, 1.4, 0.5);
             break;
           }
           case 'wreck': {
@@ -2891,7 +3918,7 @@ void main(){
 /* BADASS APOCALYPSE - the horde */
 (function () {
   'use strict';
-  const { clamp, clamp01, lerp, rand, randInt, TAU, angleDelta } = BA;
+  const { clamp, clamp01, lerp, rand, randInt, randSign, TAU, angleDelta } = BA;
 
   const TYPES = {
     walker: { hp: 20, speed: 4.6, radius: 0.62, scale: 1.0, xp: 1, dmg: 7, mass: 1, col: [0.34, 0.52, 0.26] },
@@ -2900,6 +3927,21 @@ void main(){
     brute: { hp: 190, speed: 3.6, radius: 1.5, scale: 1.95, xp: 8, dmg: 22, mass: 5, col: [0.30, 0.19, 0.21] },
     boss: { hp: 1500, speed: 4.2, radius: 2.7, scale: 3.4, xp: 90, dmg: 34, mass: 22, col: [0.42, 0.10, 0.12] },
   };
+
+  const SKINS = [
+    [0.50, 0.58, 0.41], [0.42, 0.51, 0.37], [0.60, 0.61, 0.49],
+    [0.36, 0.45, 0.33], [0.64, 0.55, 0.45], [0.47, 0.44, 0.40],
+  ];
+  const SHIRTS = [
+    [0.20, 0.27, 0.42], [0.46, 0.17, 0.17], [0.28, 0.30, 0.33], [0.16, 0.35, 0.29],
+    [0.49, 0.42, 0.19], [0.34, 0.21, 0.39], [0.60, 0.56, 0.48], [0.13, 0.16, 0.20],
+  ];
+  const PANTS = [
+    [0.15, 0.17, 0.24], [0.24, 0.20, 0.16], [0.19, 0.21, 0.21],
+    [0.30, 0.28, 0.22], [0.11, 0.12, 0.14],
+  ];
+  // 0 none, 1 cap, 2 hard hat, 3 matted hair, 4 helmet, 5 bandaged head
+  const HEADGEAR = [0, 0, 1, 2, 3, 3, 5, 0];
 
   class Grid {
     constructor(cell) { this.cell = cell; this.map = new Map(); }
@@ -2964,6 +4006,38 @@ void main(){
       e.mass = T.mass;
       e.col = T.col;
       e.tint = rand(0.85, 1.15);
+      // ---- cosmetic variant: nothing gameplay-relevant, everything visual
+      e.variant = randInt(0, 7);
+      e.skin = SKINS[randInt(0, SKINS.length - 1)];
+      e.shirt = SHIRTS[randInt(0, SHIRTS.length - 1)];
+      e.pants = PANTS[randInt(0, PANTS.length - 1)];
+      e.hat = HEADGEAR[e.variant];
+      e.girth = rand(0.85, 1.22);
+      e.stoop = rand(0.08, 0.30);
+      e.armless = Math.random() < 0.13 ? randSign() : 0;
+      e.gore = Math.random() < 0.35;
+      if (type === 'bomber') {
+        e.skin = [0.40, 0.72, 0.26];
+        e.shirt = [0.24, 0.46, 0.16];
+        e.girth = rand(1.25, 1.5);
+        e.hat = 0;
+        e.armless = 0;
+      } else if (type === 'runner') {
+        e.girth = rand(0.72, 0.9);
+        e.stoop = rand(0.3, 0.52);
+      } else if (type === 'brute') {
+        e.shirt = [0.26, 0.24, 0.27];
+        e.pants = [0.17, 0.16, 0.18];
+        e.hat = 4;
+        e.girth = rand(1.15, 1.35);
+        e.armless = 0;
+      } else if (type === 'boss') {
+        e.shirt = [0.30, 0.10, 0.11];
+        e.pants = [0.14, 0.12, 0.13];
+        e.hat = 4;
+        e.girth = 1.35;
+        e.armless = 0;
+      }
       e.phase = rand(TAU);
       e.flash = 0;
       e.stun = 0;
@@ -2985,10 +4059,13 @@ void main(){
       this.pool.push(e);
 
       const s = e.scale;
-      this.fx.blood(e.x, 0.9 * s, e.z, dirX, 0.4, dirZ, 8 + (power * 8) | 0, 5 + power * 8);
-      this.fx.gibs(e.x, 0.6 * s, e.z, dirX, 0.5, dirZ, 4 + (s * 2) | 0, 4 + power * 7, e.col);
+      this.fx.blood(e.x, 0.9 * s, e.z, dirX, 0.4, dirZ, 5 + (power * 6) | 0, 5 + power * 9);
+      this.fx.gibs(e.x, 0.6 * s, e.z, dirX, 0.5, dirZ, 2 + (power * 4) | 0, 4 + power * 7, e.col);
       this.fx.splat(e.x + dirX * 1.2, e.z + dirZ * 1.2, 1.6 * s * rand(0.8, 1.4), 0.32, 0.03, 0.05, 0.8);
       if (!silent) this.audio.squish();
+      if (game.ragdolls) {
+        game.ragdolls.spawn(e, dirX, 0.45, dirZ, 5 + power * 24, clamp01(power * 1.45));
+      }
 
       if (e.type === 'bomber') {
         this.fx.fire(e.x, 1.0, e.z, 18, 1.1, 1.6);
@@ -3043,9 +4120,9 @@ void main(){
       const cyaw = car.yaw;
       const cfx = Math.sin(cyaw), cfz = Math.cos(cyaw);
       const crx = Math.cos(cyaw), crz = -Math.sin(cyaw);
-      const halfL = 2.35 + car.spikeLevel * 0.22;
-      const halfW = 1.25;
-      const carAirborne = car.y > 1.4;
+      const halfL = 2.9 + car.spikeLevel * 0.24;
+      const halfW = 1.62;
+      const carAirborne = car.y > 1.8;
 
       for (let i = this.list.length - 1; i >= 0; i--) {
         const e = this.list[i];
@@ -3134,24 +4211,9 @@ void main(){
             const killed = this.damage(e, dmg, kdirX, kdirZ, 20 + impactSpeed * 1.4, game, car.boostTime > 0);
             if (killed) {
               e.dead = true;
-              game.shake(0.06 + hitPower * 0.16);
-              game.hitstop(0.016 + hitPower * 0.038);
+              game.shake(0.06 + hitPower * 0.18);
+              game.hitstop(0.018 + hitPower * 0.042);
               this.audio.hit(hitPower);
-              // ragdoll launch
-              const lp = this.fx.spawn();
-              if (lp) {
-                lp.x = e.x; lp.y = 0.9; lp.z = e.z;
-                lp.vx = kdirX * (7 + impactSpeed * 0.85) + car.vx * 0.32;
-                lp.vy = 6 + hitPower * 12;
-                lp.vz = kdirZ * (7 + impactSpeed * 0.85) + car.vz * 0.32;
-                lp.rvx = rand(-16, 16); lp.rvy = rand(-10, 10); lp.rvz = rand(-16, 16);
-                lp.rx = 0; lp.ry = e.yaw; lp.rz = 0;
-                lp.sx = 0.75 * e.scale; lp.sy = 1.1 * e.scale; lp.sz = 0.5 * e.scale;
-                lp.r = e.col[0]; lp.g = e.col[1]; lp.b = e.col[2]; lp.e = 0;
-                lp.max = lp.life = 2.4;
-                lp.grav = 30; lp.drag = 0.3; lp.bounce = 0.45;
-                lp.mesh = 'box'; lp.layer = 'opaque'; lp.shrink = 0.1; lp.stretch = 0;
-              }
             } else {
               // heavy things shove back
               const push = (e.mass > 3 ? 1 : 0.25);
@@ -3193,77 +4255,285 @@ void main(){
       for (const e of this.list) {
         if (e.dead) continue;
         const dx = e.x - camX, dz = e.z - camZ;
-        if (dx * dx + dz * dz > 200 * 200) continue;
+        const d2 = dx * dx + dz * dz;
+        if (d2 > 200 * 200) continue;
+        if (e.type === 'boss') { this.drawBoss(R, e); continue; }
+        this.drawZombie(R, e, d2 > 62 * 62);
+      }
+    }
 
-        const s = e.scale;
-        const yaw = e.yaw;
-        const cy = Math.cos(yaw), sy = Math.sin(yaw);
-        const walk = Math.sin(e.phase);
-        const walk2 = Math.cos(e.phase);
-        const bob = Math.abs(walk) * 0.09 * s;
-        const lean = 0.16 + walk2 * 0.05;
-        const base = e.y;
+    drawZombie(R, e, far) {
+      const s = e.scale;
+      const yaw = e.yaw;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
+      const walk = Math.sin(e.phase);
+      const walk2 = Math.cos(e.phase);
+      const bob = Math.abs(walk) * 0.10 * s;
+      const lean = e.stoop + walk2 * 0.05;
+      const base = e.y;
+      const g = e.girth;
 
-        const f = e.flash;
-        const boss = e.type === 'boss';
-        const hurtT = boss ? clamp01(1 - e.hp / e.maxHp) * 0.4 : 0;
-        let r = lerp(e.col[0] * e.tint, 2.4, f);
-        let g = lerp(e.col[1] * e.tint, 2.0, f);
-        let b = lerp(e.col[2] * e.tint, 2.0, f);
-        r = lerp(r, 0.9, hurtT);
-        const em = f * 0.7 + (e.type === 'bomber' ? 0.28 + Math.sin(e.phase * 3) * 0.12 : 0) + (boss ? 0.16 : 0);
+      const f = e.flash;
+      const em = f * 0.8 + (e.type === 'bomber' ? 0.30 + Math.sin(e.phase * 3) * 0.14 : 0);
+      const mix3 = (c, m) => [
+        lerp(c[0] * e.tint * (m || 1), 2.4, f),
+        lerp(c[1] * e.tint * (m || 1), 2.0, f),
+        lerp(c[2] * e.tint * (m || 1), 2.0, f),
+      ];
+      const skin = mix3(e.skin);
+      const shirt = mix3(e.shirt);
+      const pants = mix3(e.pants);
 
-        const P = (lx, ly, lz) => [e.x + lx * cy + lz * sy, base + ly, e.z - lx * sy + lz * cy];
+      // local -> world (yaw only; limb pitch is baked into the offsets)
+      const P = (lx, ly, lz) => [e.x + lx * cy + lz * sy, base + ly, e.z - lx * sy + lz * cy];
+      const B = (lx, ly, lz, sx, sy2, sz, col, pitch, roll, extraYaw) => {
+        const p = P(lx, ly, lz);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw + (extraYaw || 0), pitch || 0, roll || 0,
+          sx, sy2, sz, col[0], col[1], col[2], em);
+      };
 
-        // torso
-        let p = P(0, (1.05 + bob) * s, 0);
-        R.push('box', 'opaque', p[0], p[1], p[2], yaw, lean, walk2 * 0.08, 0.78 * s, 1.05 * s, 0.5 * s, r, g, b, em);
-        // head
-        p = P(0, (1.78 + bob) * s, 0.08 * s);
-        R.push('box', 'opaque', p[0], p[1], p[2], yaw + walk2 * 0.12, lean * 1.6, walk * 0.1,
-          0.56 * s, 0.56 * s, 0.56 * s, r * 1.15, g * 1.1, b * 1.05, em);
-        // jaw
-        p = P(0, (1.62 + bob) * s, 0.3 * s);
-        R.push('box', 'opaque', p[0], p[1], p[2], yaw, lean, 0, 0.34 * s, 0.2 * s, 0.24 * s, 0.75, 0.35, 0.35, em);
-        // eyes
-        for (const side of [1, -1]) {
-          p = P(side * 0.15 * s, (1.85 + bob) * s, 0.3 * s);
-          R.push('box', 'glow', p[0], p[1], p[2], yaw, 0, 0, 0.12 * s, 0.1 * s, 0.06 * s,
-            boss ? 1.6 : 1.0, boss ? 0.2 : 0.55, 0.12, 1);
+      /* ---- torso ---- */
+      const chestY = (1.18 + bob) * s;
+      B(0, chestY, 0, 0.80 * g * s, 0.98 * s, 0.50 * g * s, shirt, lean, walk2 * 0.07);
+      B(0, (1.56 + bob) * s, 0.02 * s, 0.90 * g * s, 0.26 * s, 0.54 * g * s, shirt, lean);   // shoulders
+      B(0, (0.76 + bob) * s, 0, 0.68 * g * s, 0.34 * s, 0.44 * g * s, pants, lean * 0.6);    // hips
+      if (!far) {
+        // ribs poking through / bloodstain on the shirt
+        if (e.gore) {
+          B(0.08 * s, (1.22 + bob) * s, 0.28 * g * s, 0.42 * s, 0.5 * s, 0.06 * s,
+            [0.42, 0.05, 0.07], lean);
+          B(-0.14 * s, (1.34 + bob) * s, 0.28 * g * s, 0.3 * s, 0.1 * s, 0.05 * s, skin, lean);
+          B(-0.14 * s, (1.16 + bob) * s, 0.28 * g * s, 0.3 * s, 0.1 * s, 0.05 * s, skin, lean);
         }
-        // arms reaching forward
-        for (const side of [1, -1]) {
-          const swing = walk * side * 0.25;
-          const hx = side * 0.5 * s, hy = (1.45 + bob) * s;
-          const ang = -1.25 + swing;
-          const ax = Math.sin(ang) * 0 + 0;
-          const cxr = Math.cos(ang), sxr = Math.sin(ang);
-          const lz = -sxr * 0.5 * s, ly = -cxr * 0.5 * s;
-          p = P(hx + ax, hy + ly, lz);
-          R.push('box', 'opaque', p[0], p[1], p[2], yaw, ang, 0, 0.24 * s, 0.95 * s, 0.24 * s, r * 0.92, g * 0.92, b * 0.92, em);
-        }
-        // legs
-        for (const side of [1, -1]) {
-          const ang = walk * side * 0.75;
-          const cxr = Math.cos(ang), sxr = Math.sin(ang);
-          const hx = side * 0.24 * s, hy = 0.62 * s;
-          p = P(hx, hy - cxr * 0.34 * s, -sxr * 0.34 * s);
-          R.push('box', 'opaque', p[0], p[1], p[2], yaw, ang, 0, 0.26 * s, 0.8 * s, 0.26 * s, r * 0.7, g * 0.7, b * 0.72, em * 0.5);
-        }
+      }
 
-        if (boss || e.type === 'brute') {
-          // shoulder armour
-          for (const side of [1, -1]) {
-            p = P(side * 0.62 * s, 1.62 * s, 0);
-            R.push('box', 'opaque', p[0], p[1], p[2], yaw, 0, side * 0.25, 0.5 * s, 0.4 * s, 0.6 * s, 0.24, 0.22, 0.24, em);
+      /* ---- head ---- */
+      const headY = (1.88 + bob) * s;
+      const hyaw = walk2 * 0.14;
+      B(0, headY, 0.06 * s, 0.50 * s, 0.52 * s, 0.48 * s, [skin[0] * 1.1, skin[1] * 1.06, skin[2] * 1.02], lean * 1.5, walk * 0.09, hyaw);
+      B(0, headY - 0.22 * s, 0.26 * s, 0.32 * s, 0.17 * s, 0.22 * s, [0.72, 0.32, 0.32], lean * 1.5, 0, hyaw);  // jaw
+      for (const side of [1, -1]) {
+        const p = P(side * 0.13 * s, headY + 0.06 * s, 0.26 * s);
+        R.push('box', 'glow', p[0], p[1], p[2], yaw + hyaw, 0, 0, 0.11 * s, 0.10 * s, 0.06 * s,
+          1.1, 0.42, 0.14, 1);
+      }
+      if (!far) {
+        switch (e.hat) {
+          case 1:  // cap
+            B(0, headY + 0.30 * s, 0.02 * s, 0.54 * s, 0.13 * s, 0.52 * s, mix3(e.shirt, 0.7), lean * 1.5, 0, hyaw);
+            B(0, headY + 0.25 * s, 0.36 * s, 0.5 * s, 0.06 * s, 0.24 * s, mix3(e.shirt, 0.7), lean * 1.5, 0, hyaw);
+            break;
+          case 2:  // hard hat
+            B(0, headY + 0.32 * s, 0.02 * s, 0.58 * s, 0.24 * s, 0.58 * s, [0.95, 0.72, 0.10], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.22 * s, 0.04 * s, 0.68 * s, 0.08 * s, 0.68 * s, [0.85, 0.62, 0.08], lean * 1.5, 0, hyaw);
+            break;
+          case 3:  // matted hair
+            B(0, headY + 0.27 * s, -0.05 * s, 0.54 * s, 0.20 * s, 0.52 * s, [0.14, 0.11, 0.10], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.02 * s, -0.27 * s, 0.44 * s, 0.44 * s, 0.14 * s, [0.14, 0.11, 0.10], lean * 1.5, 0, hyaw);
+            break;
+          case 4:  // riot helmet
+            B(0, headY + 0.27 * s, 0.02 * s, 0.62 * s, 0.28 * s, 0.62 * s, [0.20, 0.21, 0.24], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.05 * s, 0.27 * s, 0.54 * s, 0.26 * s, 0.09 * s, [0.10, 0.16, 0.20], lean * 1.5, 0, hyaw);
+            break;
+          case 5:  // bandages
+            B(0, headY + 0.14 * s, 0.02 * s, 0.55 * s, 0.19 * s, 0.53 * s, [0.78, 0.75, 0.66], lean * 1.5, 0, hyaw);
+            B(0.09 * s, headY + 0.14 * s, 0.27 * s, 0.21 * s, 0.17 * s, 0.05 * s, [0.55, 0.10, 0.10], lean * 1.5, 0, hyaw);
+            break;
+        }
+      }
+
+      /* ---- arms: shoulder + elbow, reaching forward ---- */
+      for (const side of [1, -1]) {
+        if (e.armless === side) {
+          // ripped-off arm leaves a bloody stump
+          const p = P(side * 0.52 * g * s, (1.42 + bob) * s, 0);
+          R.push('sphere', 'opaque', p[0], p[1], p[2], 0, 0, 0, 0.3 * s, 0.3 * s, 0.3 * s,
+            0.45, 0.05, 0.07, em);
+          continue;
+        }
+        const swing = walk * side * 0.20;
+        const a1 = -1.32 + swing;
+        const a2 = a1 - 0.35 - Math.abs(walk) * 0.2;
+        const shX = side * 0.46 * g * s, shY = (1.46 + bob) * s;
+        const l1 = 0.52 * s, l2 = 0.48 * s;
+        // upper arm
+        const e1x = shX, e1y = shY - Math.cos(a1) * l1, e1z = -Math.sin(a1) * l1;
+        B(shX, (shY + e1y) / 2, e1z / 2, 0.23 * s, l1 + 0.12 * s, 0.23 * s, shirt, a1);
+        if (far) continue;
+        // forearm
+        const e2y = e1y - Math.cos(a2) * l2, e2z = e1z - Math.sin(a2) * l2;
+        B(shX, (e1y + e2y) / 2, (e1z + e2z) / 2, 0.21 * s, l2 + 0.08 * s, 0.21 * s,
+          [skin[0] * 0.98, skin[1] * 0.98, skin[2] * 0.98], a2);
+        // clawed hand
+        B(shX, e2y - 0.14 * s, e2z + 0.08 * s, 0.25 * s, 0.22 * s, 0.3 * s,
+          [skin[0] * 0.85, skin[1] * 0.85, skin[2] * 0.85], a2);
+      }
+
+      /* ---- legs: hip + knee ---- */
+      for (const side of [1, -1]) {
+        const a1 = walk * side * 0.62;
+        const a2 = a1 + Math.max(0, -walk * side) * 0.7;
+        const hX = side * 0.26 * s, hY = 0.72 * s;
+        const l1 = 0.42 * s, l2 = 0.42 * s;
+        const k1y = hY - Math.cos(a1) * l1, k1z = -Math.sin(a1) * l1;
+        B(hX, (hY + k1y) / 2, k1z / 2, 0.28 * s, l1 + 0.1 * s, 0.28 * s, pants, a1);
+        if (far) continue;
+        const k2y = k1y - Math.cos(a2) * l2, k2z = k1z - Math.sin(a2) * l2;
+        B(hX, (k1y + k2y) / 2, (k1z + k2z) / 2, 0.25 * s, l2 + 0.08 * s, 0.25 * s,
+          [pants[0] * 0.85, pants[1] * 0.85, pants[2] * 0.85], a2);
+        B(hX, k2y - 0.06 * s, k2z + 0.08 * s, 0.27 * s, 0.16 * s, 0.42 * s, [0.12, 0.11, 0.11], 0);
+      }
+
+      /* ---- type extras ---- */
+      if (e.type === 'brute') {
+        for (const side of [1, -1]) {
+          B(side * 0.68 * g * s, 1.62 * s, 0, 0.52 * s, 0.42 * s, 0.62 * s, [0.24, 0.22, 0.24], 0, side * 0.25);
+          if (!far) B(side * 0.78 * g * s, 1.82 * s, 0, 0.3 * s, 0.22 * s, 0.3 * s, [0.55, 0.56, 0.6], 0, side * 0.25);
+        }
+        B(0, 1.2 * s, -0.34 * g * s, 0.9 * s, 0.9 * s, 0.16 * s, [0.20, 0.19, 0.21], lean);
+      }
+      if (e.type === 'bomber') {
+        // pulsing sacs
+        const pulse = 0.6 + Math.sin(e.phase * 3.2) * 0.4;
+        for (const o of [[0.34, 1.42, 0.3], [-0.36, 1.18, 0.28], [0.1, 0.96, 0.34]]) {
+          const p = P(o[0] * s, o[1] * s, o[2] * g * s);
+          R.push('sphere', 'glow', p[0], p[1], p[2], 0, 0, 0, 0.42 * s, 0.42 * s, 0.42 * s,
+            0.24 * pulse, 0.7 * pulse, 0.12 * pulse, 1);
+        }
+      }
+
+      R.shadow(e.x, e.z, 1.5 * s * g, clamp01(0.55 - e.y * 0.08));
+    }
+
+    /* ------------------------------------------------------------- boss */
+    drawBoss(R, e) {
+      const s = e.scale;
+      const yaw = e.yaw;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
+      const walk = Math.sin(e.phase * 0.8);
+      const walk2 = Math.cos(e.phase * 0.8);
+      const bob = Math.abs(walk) * 0.12 * s;
+      const base = e.y;
+      const f = e.flash;
+      const hp01 = clamp01(e.hp / e.maxHp);
+      const rage = 1 - hp01;                       // armour blows off, core burns brighter
+      const t = performance.now() * 0.001;
+
+      const P = (lx, ly, lz) => [e.x + lx * cy + lz * sy, base + ly, e.z - lx * sy + lz * cy];
+      const put = (lx, ly, lz, sx, sy2, sz, r, g, b, pitch, roll, em) => {
+        const p = P(lx, ly, lz);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw, pitch || 0, roll || 0, sx, sy2, sz,
+          lerp(r, 2.4, f), lerp(g, 2.0, f), lerp(b, 2.0, f), (em || 0) + f * 0.8);
+      };
+      const glow = (mesh, lx, ly, lz, sx, sy2, sz, r, g, b) => {
+        const p = P(lx, ly, lz);
+        R.push(mesh, 'glow', p[0], p[1], p[2], yaw, 0, 0, sx, sy2, sz, r, g, b, 1);
+      };
+
+      const flesh = [0.40, 0.13, 0.14];
+      const meat = [0.52, 0.16, 0.16];
+      const iron = [0.19, 0.18, 0.20];
+
+      /* legs: thick, splayed */
+      for (const side of [1, -1]) {
+        const a1 = walk * side * 0.42;
+        const hX = side * 0.42 * s, hY = 0.92 * s;
+        const l1 = 0.55 * s;
+        const k1y = hY - Math.cos(a1) * l1, k1z = -Math.sin(a1) * l1;
+        put(hX, (hY + k1y) / 2, k1z / 2, 0.52 * s, l1 + 0.14 * s, 0.5 * s, flesh[0], flesh[1], flesh[2], a1);
+        const a2 = a1 + 0.24;
+        const k2y = k1y - Math.cos(a2) * l1, k2z = k1z - Math.sin(a2) * l1;
+        put(hX, (k1y + k2y) / 2, (k1z + k2z) / 2, 0.46 * s, l1 + 0.1 * s, 0.44 * s, 0.15, 0.14, 0.15, a2);
+        put(hX, k2y - 0.08 * s, k2z + 0.14 * s, 0.5 * s, 0.2 * s, 0.66 * s, 0.11, 0.10, 0.11, 0);
+      }
+
+      /* torso: hunched slab with a cracked-open chest */
+      const chestY = (1.55 + bob) * s;
+      put(0, chestY, 0, 1.5 * s, 1.25 * s, 0.95 * s, meat[0], meat[1], meat[2], 0.14);
+      put(0, (1.0 + bob) * s, 0, 1.25 * s, 0.5 * s, 0.85 * s, flesh[0], flesh[1], flesh[2], 0.1);
+      // ribcage prised open around a burning core
+      for (let i = 0; i < 4; i++) {
+        const ry = chestY + (i - 1.5) * 0.26 * s;
+        for (const side of [1, -1]) {
+          put(side * 0.36 * s, ry, 0.5 * s, 0.28 * s, 0.13 * s, 0.28 * s, 0.78, 0.74, 0.62, 0, side * 0.3);
+        }
+      }
+      const core = 0.5 + rage * 0.9 + Math.sin(t * 6) * 0.12;
+      glow('sphere', 0, chestY, 0.42 * s, 0.95 * s, 1.15 * s, 0.6 * s, 0.95 * core, 0.20 * core, 0.06 * core);
+      glow('disc', 0, 0.06 - base, 0, 13 * s * 0.3, 1, 13 * s * 0.3, 0.30 * core, 0.05, 0.04);
+
+      /* armour plates: they shed as the boss takes damage */
+      const plates = Math.ceil(4 * hp01);
+      for (let i = 0; i < plates; i++) {
+        const ly = (0.9 + i * 0.42) * s + bob;
+        put(0, ly, -0.5 * s, 1.6 * s, 0.36 * s, 0.28 * s, iron[0], iron[1], iron[2], 0.14);
+      }
+      if (plates > 1) put(0, chestY + 0.1 * s, 0.52 * s, 0.55 * s, 0.9 * s, 0.2 * s, 0.24, 0.23, 0.25, 0.1);
+
+      /* spiked shoulders */
+      for (const side of [1, -1]) {
+        put(side * 1.05 * s, (2.05 + bob) * s, 0, 0.78 * s, 0.62 * s, 0.86 * s, iron[0], iron[1], iron[2], 0, side * 0.3);
+        for (let i = 0; i < 3; i++) {
+          const p = P(side * (1.15 + i * 0.06) * s, (2.35 + bob + i * 0.02) * s, (-0.3 + i * 0.3) * s);
+          R.push('cone', 'opaque', p[0], p[1], p[2], yaw, 0, side * 0.5,
+            0.28 * s, 0.7 * s, 0.28 * s, 0.62, 0.63, 0.68, 0.05);
+        }
+      }
+
+      /* arms: one normal, one grotesquely oversized */
+      for (const side of [1, -1]) {
+        const big = side === 1;
+        const m = big ? 1.5 : 1.0;
+        const swing = walk * side * 0.3;
+        const a1 = -0.75 + swing;
+        const l1 = 0.72 * s * m;
+        const shX = side * 1.0 * s, shY = (1.95 + bob) * s;
+        const e1y = shY - Math.cos(a1) * l1, e1z = -Math.sin(a1) * l1;
+        put(shX * (big ? 1.12 : 1), (shY + e1y) / 2, e1z / 2, 0.44 * s * m, l1 + 0.14 * s, 0.44 * s * m,
+          flesh[0], flesh[1], flesh[2], a1);
+        const a2 = a1 - 0.7;
+        const l2 = 0.7 * s * m;
+        const e2y = e1y - Math.cos(a2) * l2, e2z = e1z - Math.sin(a2) * l2;
+        put(shX * (big ? 1.12 : 1), (e1y + e2y) / 2, (e1z + e2z) / 2, 0.40 * s * m, l2 + 0.1 * s, 0.40 * s * m,
+          meat[0], meat[1], meat[2], a2);
+        // fist / claw
+        const p = P(shX * (big ? 1.12 : 1), e2y - 0.2 * s * m, e2z + 0.1 * s);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw, a2, 0, 0.55 * s * m, 0.5 * s * m, 0.6 * s * m,
+          lerp(0.3, 2.4, f), lerp(0.1, 2.0, f), lerp(0.11, 2.0, f), f * 0.8);
+        if (big) {
+          for (let i = 0; i < 3; i++) {
+            const q = P(shX * 1.12 + (i - 1) * 0.24 * s, e2y - 0.34 * s * m, e2z + 0.42 * s);
+            R.push('cone', 'opaque', q[0], q[1], q[2], yaw, Math.PI / 2 + a2, 0,
+              0.16 * s, 0.5 * s, 0.16 * s, 0.7, 0.68, 0.62, 0.05);
           }
         }
-        if (boss) {
-          R.push('disc', 'glow', e.x, 0.06, e.z, 0, 0, 0, 11, 1, 11, 0.35, 0.05, 0.04, 1);
-        }
-
-        R.shadow(e.x, e.z, 1.5 * s, clamp01(0.55 - e.y * 0.08));
       }
+
+      /* head: sunken, helmeted, furnace eyes */
+      const headY = (2.55 + bob) * s;
+      put(0, headY, 0.06 * s, 0.86 * s, 0.8 * s, 0.82 * s, 0.46, 0.15, 0.15, 0.2, walk2 * 0.06);
+      put(0, headY + 0.4 * s, 0, 0.98 * s, 0.34 * s, 0.98 * s, iron[0], iron[1], iron[2], 0.2);
+      put(0, headY - 0.3 * s, 0.36 * s, 0.6 * s, 0.28 * s, 0.34 * s, 0.72, 0.3, 0.3, 0.2);
+      for (let i = 0; i < 4; i++) {
+        const q = P((-0.24 + i * 0.16) * s, headY - 0.28 * s, 0.5 * s);
+        R.push('cone', 'opaque', q[0], q[1], q[2], yaw, Math.PI, 0, 0.1 * s, 0.2 * s, 0.1 * s, 0.85, 0.83, 0.75, 0);
+      }
+      for (const side of [1, -1]) {
+        glow('box', side * 0.22 * s, headY + 0.08 * s, 0.44 * s, 0.2 * s, 0.16 * s, 0.08 * s,
+          1.5, 0.25 * (1 - rage * 0.5), 0.1);
+      }
+
+      /* chains swinging off the shoulders */
+      for (const side of [1, -1]) {
+        for (let i = 0; i < 4; i++) {
+          const sw = Math.sin(t * 3 + i * 0.6 + side) * 0.12 * i;
+          const p = P(side * (1.0 + sw) * s, (1.9 - i * 0.3 + bob) * s, -0.5 * s);
+          R.push('box', 'opaque', p[0], p[1], p[2], yaw, 0, sw * 2,
+            0.16 * s, 0.24 * s, 0.16 * s, 0.3, 0.29, 0.3, 0);
+        }
+      }
+
+      R.shadow(e.x, e.z, 3.2 * s, clamp01(0.6 - e.y * 0.06));
     }
   }
 
@@ -3660,54 +4930,55 @@ void main(){
 
   const WEAPONS = [
     {
-      id: 'spikes', name: 'RAM SPIKES', icon: '🔱', max: 5, color: '#c9d4e2',
+      id: 'spikes', name: 'RAM SPIKES', icon: 'spikes', max: 5, color: '#c9d4e2',
       desc: (l) => l === 0 ? 'Weld spikes to the bumper. Ramming hurts a LOT more.' : `+45% ram damage, longer spikes (Lv${l + 1})`,
     },
     {
-      id: 'rocket', name: 'ROCKET LAUNCHER', icon: '🚀', max: 5, color: '#ff8a3d',
+      id: 'rocket', name: 'ROCKET LAUNCHER', icon: 'rocket', max: 5, color: '#ff8a3d',
       desc: (l) => l === 0 ? 'Roof pod auto-fires homing rockets. Big boom.' : `Faster reload, +damage, more rockets (Lv${l + 1})`,
     },
     {
-      id: 'saw', name: 'BUZZ SPIN', icon: '⚙️', max: 5, color: '#9ad6ff',
+      id: 'saw', name: 'BUZZ SPIN', icon: 'saw', max: 5, color: '#9ad6ff',
       desc: (l) => l === 0 ? 'Saw blades orbit the car and shred anything close.' : `+1 blade, wider orbit, +damage (Lv${l + 1})`,
     },
     {
-      id: 'flame', name: 'FLAME EXHAUST', icon: '🔥', max: 5, color: '#ff5a2b',
+      id: 'flame', name: 'FLAME EXHAUST', icon: 'flame', max: 5, color: '#ff5a2b',
       desc: (l) => l === 0 ? 'Leave a burning trail behind you. Cook the horde.' : `Bigger, hotter, longer-lasting fire (Lv${l + 1})`,
     },
     {
-      id: 'minigun', name: 'ROOF MINIGUN', icon: '🔫', max: 5, color: '#ffd75e',
+      id: 'minigun', name: 'ROOF MINIGUN', icon: 'minigun', max: 5, color: '#ffd75e',
       desc: (l) => l === 0 ? 'Auto-tracking minigun. Never stops chewing.' : `Faster fire rate, +damage, +barrel (Lv${l + 1})`,
     },
     {
-      id: 'tesla', name: 'TESLA COIL', icon: '⚡', max: 5, color: '#7fd4ff',
+      id: 'tesla', name: 'TESLA COIL', icon: 'tesla', max: 5, color: '#7fd4ff',
       desc: (l) => l === 0 ? 'Chain lightning that jumps between corpses-to-be.' : `+1 chain, +damage, slows targets (Lv${l + 1})`,
     },
     {
-      id: 'mine', name: 'DROP MINES', icon: '💣', max: 5, color: '#ff6b6b',
+      id: 'mine', name: 'DROP MINES', icon: 'mine', max: 5, color: '#ff6b6b',
       desc: (l) => l === 0 ? 'Drop proximity mines out the back. Rude.' : `Faster drops, bigger blast (Lv${l + 1})`,
     },
     {
-      id: 'slam', name: 'SHOCK SLAM', icon: '💥', max: 5, color: '#c68bff',
+      id: 'slam', name: 'SHOCK SLAM', icon: 'slam', max: 5, color: '#c68bff',
       desc: (l) => l === 0 ? 'Landing from a jump detonates a shockwave. Auto-pulses too.' : `Bigger wave, more damage, faster pulse (Lv${l + 1})`,
     },
   ];
 
   const PASSIVES = [
-    { id: 'engine', name: 'V8 ENGINE', icon: '🏎️', max: 5, color: '#ff4d4d', desc: () => '+12% top speed' },
-    { id: 'turbo', name: 'TURBOCHARGER', icon: '🌀', max: 5, color: '#4dd2ff', desc: () => '+18% acceleration, +12% drift boost' },
-    { id: 'grip', name: 'RACING TIRES', icon: '🛞', max: 5, color: '#b0b6c2', desc: () => '+16% grip, +8% steering' },
-    { id: 'armor', name: 'ARMOR PLATING', icon: '🛡️', max: 5, color: '#8fd18f', desc: () => '+28 max HP, +6% damage resist, repairs 20' },
-    { id: 'magnet', name: 'SCRAP MAGNET', icon: '🧲', max: 5, color: '#ff9ad5', desc: () => '+50% pickup range' },
-    { id: 'overdrive', name: 'OVERDRIVE', icon: '☠️', max: 5, color: '#ffcf3d', desc: () => '+18% weapon damage' },
-    { id: 'coolant', name: 'COOLANT TANK', icon: '❄️', max: 5, color: '#9fe8ff', desc: () => '+16% fire rate' },
-    { id: 'lucky', name: 'LUCKY DICE', icon: '🎲', max: 5, color: '#d2a6ff', desc: () => '+25% scrap gained' },
-    { id: 'hydraulics', name: 'HYDRAULICS', icon: '🦿', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
-    { id: 'ramplate', name: 'RAM PLATE', icon: '🪓', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
+    { id: 'engine', name: 'V8 ENGINE', icon: 'engine', max: 5, color: '#ff4d4d', desc: () => '+12% top speed' },
+    { id: 'turbo', name: 'TURBOCHARGER', icon: 'turbo', max: 5, color: '#4dd2ff', desc: () => '+18% acceleration, +12% drift boost' },
+    { id: 'grip', name: 'RACING TIRES', icon: 'grip', max: 5, color: '#b0b6c2', desc: () => '+16% grip, +8% steering' },
+    { id: 'armor', name: 'ARMOR PLATING', icon: 'armor', max: 5, color: '#8fd18f', desc: () => '+28 max HP, +6% damage resist, repairs 20' },
+    { id: 'magnet', name: 'SCRAP MAGNET', icon: 'magnet', max: 5, color: '#ff9ad5', desc: () => '+50% pickup range' },
+    { id: 'overdrive', name: 'OVERDRIVE', icon: 'overdrive', max: 5, color: '#ffcf3d', desc: () => '+18% weapon damage' },
+    { id: 'coolant', name: 'COOLANT TANK', icon: 'coolant', max: 5, color: '#9fe8ff', desc: () => '+16% fire rate' },
+    { id: 'lucky', name: 'LUCKY DICE', icon: 'lucky', max: 5, color: '#d2a6ff', desc: () => '+25% scrap gained' },
+    { id: 'hydraulics', name: 'HYDRAULICS', icon: 'hydraulics', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
+    { id: 'ramplate', name: 'RAM PLATE', icon: 'ramplate', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
+    { id: 'tank', name: 'BIG TANK', icon: 'gas', max: 5, color: '#ffb03a', desc: () => '+22% gas capacity, +35% refill, nitrous burns slower' },
   ];
 
   const HEAL = {
-    id: 'repair', name: 'FIELD REPAIR', icon: '🔧', max: Infinity, color: '#7dffa0',
+    id: 'repair', name: 'FIELD REPAIR', icon: 'repair', max: Infinity, color: '#7dffa0',
     desc: () => 'Patch the wreck. Restore 45 HP right now.',
   };
 
@@ -3769,6 +5040,162 @@ void main(){
 
 </script>
 <script>
+/* ---- src/mobile.js ---- */
+/* BADASS APOCALYPSE - on-screen controls: steering wheel, pedals, buttons */
+(function () {
+  'use strict';
+  const { clamp, clamp01, damp } = BA;
+
+  const MAX_WHEEL_DEG = 135;   // lock-to-lock, each way
+  const STEER_DEG = 95;        // wheel angle that equals full steering input
+
+  class TouchControls {
+    constructor(input, audio) {
+      this.input = input;
+      this.audio = audio;
+      this.angle = 0;          // current wheel rotation, degrees
+      this.grab = null;
+      this.enabled = false;
+
+      const root = document.createElement('div');
+      root.id = 'touch';
+      root.innerHTML = `
+        <div id="twheel">
+          <div class="rim"></div>
+          <div class="spoke s1"></div>
+          <div class="spoke s2"></div>
+          <div class="spoke s3"></div>
+          <div class="hub">BA</div>
+          <div class="grip gl"></div>
+          <div class="grip gr"></div>
+        </div>
+        <div id="tright">
+          <div class="trow">
+            <button class="tbtn small" data-act="drift"><span>DRIFT</span></button>
+            <button class="tbtn small" data-act="jump"><span>JUMP</span></button>
+          </div>
+          <div class="trow">
+            <button class="tbtn nitro" data-act="nitro"><span>NOS</span></button>
+          </div>
+          <div class="trow">
+            <button class="tbtn brake" data-act="brake"><span>BRAKE</span></button>
+            <button class="tbtn gas" data-act="gas"><span>GAS</span></button>
+          </div>
+        </div>`;
+      document.getElementById('ui').appendChild(root);
+      this.root = root;
+      this.wheel = root.querySelector('#twheel');
+
+      this.bindWheel();
+      this.bindButtons();
+
+      // auto-show for touch devices, and the moment a real touch happens
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      if (coarse || 'ontouchstart' in window) this.setEnabled(true);
+      window.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch' && !this.enabled) this.setEnabled(true);
+      }, true);
+    }
+
+    setEnabled(on) {
+      this.enabled = on;
+      this.root.classList.toggle('on', on);
+      // let the rest of the HUD get out of the thumbs' way
+      document.body.classList.toggle('touchmode', on);
+      this.input.virtual.active = on;
+      if (!on) {
+        const v = this.input.virtual;
+        v.steer = v.throttle = v.brake = 0;
+        v.drift = v.jump = v.nitro = false;
+      }
+    }
+
+    toggle() { this.setEnabled(!this.enabled); return this.enabled; }
+
+    bindWheel() {
+      const el = this.wheel;
+      const angleAt = (e) => {
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const dx = e.clientX - cx, dy = e.clientY - cy;
+        return { a: Math.atan2(dy, dx) * 180 / Math.PI, d: Math.hypot(dx, dy), cx, w: r.width };
+      };
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (_) { /* capture is a nicety */ }
+        const g = angleAt(e);
+        // grabbing the middle of the wheel is ambiguous to rotate, so those
+        // touches fall back to a straight left/right drag
+        this.grab = { id: e.pointerId, start: g.a, base: this.angle, x: e.clientX, mode: g.d < g.w * 0.22 ? 'drag' : 'turn' };
+      });
+      const move = (e) => {
+        if (!this.grab || this.grab.id !== e.pointerId) return;
+        e.preventDefault();
+        if (this.grab.mode === 'turn') {
+          const g = angleAt(e);
+          let d = g.a - this.grab.start;
+          while (d > 180) d -= 360;
+          while (d < -180) d += 360;
+          this.angle = clamp(this.grab.base + d, -MAX_WHEEL_DEG, MAX_WHEEL_DEG);
+        } else {
+          this.angle = clamp(this.grab.base + (e.clientX - this.grab.x) * 0.85, -MAX_WHEEL_DEG, MAX_WHEEL_DEG);
+        }
+      };
+      el.addEventListener('pointermove', move);
+      const release = (e) => { if (this.grab && this.grab.id === e.pointerId) this.grab = null; };
+      el.addEventListener('pointerup', release);
+      el.addEventListener('pointercancel', release);
+    }
+
+    bindButtons() {
+      const map = { gas: 'throttle', brake: 'brake', drift: 'drift', jump: 'jump', nitro: 'nitro' };
+      for (const btn of this.root.querySelectorAll('.tbtn')) {
+        const act = btn.dataset.act;
+        const field = map[act];
+        const set = (on) => {
+          const v = this.input.virtual;
+          if (field === 'throttle' || field === 'brake') v[field] = on ? 1 : 0;
+          else v[field] = on;
+          btn.classList.toggle('down', on);
+        };
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          try { btn.setPointerCapture(e.pointerId); } catch (_) { /* capture is a nicety */ }
+          set(true);
+          if (this.audio) this.audio.resume();
+        });
+        const off = (e) => { e.preventDefault(); set(false); };
+        btn.addEventListener('pointerup', off);
+        btn.addEventListener('pointercancel', off);
+        btn.addEventListener('pointerleave', (e) => { if (e.buttons === 0) set(false); });
+      }
+    }
+
+    update(dt, game) {
+      if (!this.enabled) return;
+      if (!this.grab) this.angle = damp(this.angle, 0, 9, dt);   // self-centring
+      this.wheel.style.transform = `rotate(${this.angle.toFixed(1)}deg)`;
+      this.input.virtual.steer = clamp(this.angle / STEER_DEG, -1, 1);
+
+      // dim the pad on menus so it never covers a card
+      const playing = game.state === 'playing';
+      this.root.classList.toggle('hide', !playing);
+      if (!playing) {
+        const v = this.input.virtual;
+        v.throttle = v.brake = 0;
+        v.drift = v.jump = v.nitro = false;
+        for (const b of this.root.querySelectorAll('.tbtn.down')) b.classList.remove('down');
+      }
+      const nos = this.root.querySelector('.tbtn.nitro');
+      if (nos) nos.classList.toggle('empty', game.car.fuel < 1);
+    }
+  }
+
+  BA.TouchControls = TouchControls;
+})();
+
+</script>
+<script>
 /* ---- src/hud.js ---- */
 /* BADASS APOCALYPSE - DOM HUD */
 (function () {
@@ -3794,6 +5221,7 @@ void main(){
         bossWrap: $('bosswrap'), bossBar: $('bossbar'),
         banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
         toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
+        fuelWrap: $('fuelwrap'), fuelBar: $('fuelbar'), fuelLbl: $('fuellbl'),
         screens: {
           title: $('scTitle'), levelup: $('scLevel'),
           pause: $('scPause'), over: $('scOver'),
@@ -3846,7 +5274,7 @@ void main(){
         card.innerHTML =
           `<div class="num">${i + 1}</div>` +
           (isNew ? `<div class="tag">NEW</div>` : (u.id !== 'repair' ? `<div class="tag">LV ${lv + 1}</div>` : '')) +
-          `<div class="cic">${u.icon}</div>` +
+          `<div class="cic">${BA.icons.img(u.icon, 56)}</div>` +
           `<div class="cnm">${u.name}</div>` +
           `<div class="clv">${u.id === 'repair' ? 'EMERGENCY' : (isNew ? (game.weaponLevels[u.id] !== undefined ? 'NEW WEAPON' : 'NEW PERK') : 'UPGRADE')}</div>` +
           `<div class="cds">${u.desc(lv)}</div>`;
@@ -3908,6 +5336,13 @@ void main(){
       this.el.boostLbl.textContent = lbl;
       this.el.boostLbl.style.color = col;
 
+      // gas / nitrous
+      const fuel01 = clamp01(car.fuel / car.maxFuel);
+      this.el.fuelBar.style.width = fuel01 * 100 + '%';
+      this.el.fuelWrap.classList.toggle('low', fuel01 < 0.25);
+      this.el.fuelLbl.textContent = car.nitroActive ? 'NITROUS!' : (fuel01 < 0.25 ? 'LOW GAS' : 'GAS');
+      this.el.fuelLbl.style.color = car.nitroActive ? '#9fe8ff' : (fuel01 < 0.25 ? '#ff6b5e' : '#ffce8a');
+
       // boss bar
       const boss = game.bossAlive;
       this.el.bossWrap.classList.toggle('on', !!(boss && !boss.dead));
@@ -3937,7 +5372,7 @@ void main(){
   function chip(u, l) {
     let pips = '';
     for (let i = 0; i < u.max; i++) pips += `<div class="pip${i < l ? ' f' : ''}"></div>`;
-    return `<div class="wchip" title="${u.name}"><div class="ic">${u.icon}</div><div class="pips">${pips}</div></div>`;
+    return `<div class="wchip" title="${u.name}"><div class="ic">${BA.icons.img(u.icon, 26)}</div><div class="pips">${pips}</div></div>`;
   }
 
   BA.Hud = Hud;
@@ -3966,6 +5401,8 @@ void main(){
       this.horde = new BA.Horde(this.fx, this.audio);
       this.car = new BA.Car(this.fx, this.audio);
       this.weapons = new BA.Weapons(this.fx, this.audio);
+      this.ragdolls = new BA.Ragdolls(this.fx, this.audio);
+      this.touch = new BA.TouchControls(this.input, this.audio);
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -4026,6 +5463,7 @@ void main(){
       this.orbs.length = 0;
       this.pickups.length = 0;
       this.fx.clear();
+      this.ragdolls.reset();
       this.horde.reset();
       this.world.reset();
       this.weapons.reset();
@@ -4055,6 +5493,14 @@ void main(){
       S.cooldown = 1 + lv('coolant') * 0.16;
       S.xpGain = 1 + lv('lucky') * 0.25;
       S.armor = lv('armor') * 0.06;
+      S.fuelMax = 100 * (1 + lv('tank') * 0.22);
+      S.fuelRegen = 4.5 * (1 + lv('tank') * 0.35);
+      S.fuelBurn = 26 * (1 - lv('tank') * 0.07);
+      S.nitroPower = 24 * (1 + lv('turbo') * 0.08);
+      const prevFuelMax = this.car.maxFuel;
+      this.car.maxFuel = S.fuelMax;
+      if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
+      this.car.fuel = Math.min(this.car.fuel, this.car.maxFuel);
       const spikes = this.weaponLevels.spikes || 0;
       S.ramDamage = 26 * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
       this.car.spikeLevel = spikes;
@@ -4098,6 +5544,7 @@ void main(){
         e.airborne = true;
         this.horde.damage(e, damage * fall, nx, nz, 42 * fall, this, true);
       }
+      if (this.ragdolls) this.ragdolls.blast(x, z, radius * 1.4, 8 + damage * 0.09);
       // barrels chain off explosions too
       for (const p of this.world.props) {
         if (p.dead || p.type !== 'barrel') continue;
@@ -4158,6 +5605,10 @@ void main(){
 
     dropHealth(x, z) {
       this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'hp', life: 30 });
+    }
+
+    dropFuel(x, z) {
+      this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'gas', life: 34 });
     }
 
     addXp(amount, x, z) {
@@ -4264,6 +5715,9 @@ void main(){
         if (this.state === 'playing') { this.state = 'paused'; this.hud.setScreen('pause'); this.audio.silenceEngine(); }
         else if (this.state === 'paused') { this.state = 'playing'; this.hud.setScreen(null); }
       }
+      if (inp.consume('KeyT')) {
+        this.hud.toast(this.touch.toggle() ? 'TOUCH CONTROLS ON' : 'TOUCH CONTROLS OFF');
+      }
       if (inp.consume('KeyM')) {
         this.audio.muted = !this.audio.muted;
         if (this.audio.muted) this.audio.silenceEngine();
@@ -4277,6 +5731,7 @@ void main(){
         if (pick_ >= 0 && this.choices[pick_]) this.chooseUpgrade(this.choices[pick_]);
         this.updateCamera(dt * 0.25, true);
         this.fx.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z), null);
         return;
       }
 
@@ -4284,6 +5739,7 @@ void main(){
         this.deathTimer += dt;
         this.updateCamera(dt, true);
         this.fx.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z), null);
         this.horde.update(dt * 0.35, this.car, this, this.world);
         if (this.deathTimer > 1.1 && (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyR') || this.hud.startRequested)) {
           this.hud.startRequested = false;
@@ -4309,6 +5765,7 @@ void main(){
       this.spawnWave(dt);
       this.updateOrbs(dt);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
+      this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
 
       if (this.car.hp <= 0) this.die();
@@ -4373,11 +5830,17 @@ void main(){
       for (let i = this.pickups.length - 1; i >= 0; i--) {
         const p = this.pickups[i];
         p.life -= dt; p.t += dt * 3;
-        if (Math.hypot(car.x - p.x, car.z - p.z) < 3.2) {
-          car.hp = Math.min(car.maxHp, car.hp + 32);
-          this.fx.text(p.x, 2.4, p.z, '+32 HP', '#7dffa0', 24, 'big');
+        if (Math.hypot(car.x - p.x, car.z - p.z) < 3.6) {
+          if (p.kind === 'gas') {
+            car.refuel(car.maxFuel * 0.55);
+            this.fx.text(p.x, 2.8, p.z, 'GAS!', '#ffd23a', 24, 'big');
+            this.fx.sparks(p.x, 1, p.z, 14, 1.4, 0.9, 0.3, 1);
+          } else {
+            car.hp = Math.min(car.maxHp, car.hp + 32);
+            this.fx.text(p.x, 2.8, p.z, '+32 HP', '#7dffa0', 24, 'big');
+            this.fx.sparks(p.x, 1, p.z, 14, 0.4, 1.4, 0.6, 1);
+          }
           this.audio.levelUp();
-          this.fx.sparks(p.x, 1, p.z, 14, 0.4, 1.4, 0.6, 1);
           this.pickups.splice(i, 1);
         } else if (p.life <= 0) this.pickups.splice(i, 1);
       }
@@ -4397,14 +5860,14 @@ void main(){
       cam.yaw += angleDelta(cam.yaw, targetYaw) * clamp01(dt * (soft ? 2.2 : 5.4));
 
       const fx_ = Math.sin(cam.yaw), fz = Math.cos(cam.yaw);
-      const boost = car.boostTime > 0 ? 1 : 0;
-      cam.dist = damp(cam.dist, 11.4 + sp * 3.6 + boost * 1.4 + clamp(car.y * 0.3, 0, 3.5), 6, dt);
-      cam.height = damp(cam.height, 4.9 + sp * 1.1 + car.y * 0.5, 6, dt);
+      const boost = car.boosting ? 1 : 0;
+      cam.dist = damp(cam.dist, 12.6 + sp * 3.8 + boost * 1.6 + clamp(car.y * 0.3, 0, 3.5), 6, dt);
+      cam.height = damp(cam.height, 5.7 + sp * 1.2 + car.y * 0.5, 6, dt);
 
       const lookAhead = 4.0 + sp * 5.0;
       const tx = car.x + fx_ * lookAhead + car.vx * 0.06;
       const tz = car.z + fz * lookAhead + car.vz * 0.06;
-      const ty = car.y + 1.9;
+      const ty = car.y + 2.6;
       cam.tx = damp(cam.tx, tx, 12, dt);
       cam.ty = damp(cam.ty, ty, 9, dt);
       cam.tz = damp(cam.tz, tz, 12, dt);
@@ -4462,6 +5925,7 @@ void main(){
       this.world.eyeX = this.cam.x;
       this.world.eyeZ = this.cam.z;
       this.world.draw(R, car.x, car.z);
+      this.ragdolls.draw(R, car.x, car.z);
       this.horde.draw(R, car.x, car.z);
       if (this.state !== 'dead') car.draw(R);
       this.weapons.draw(R, car, this);
@@ -4476,18 +5940,25 @@ void main(){
       for (const p of this.pickups) {
         const b = 1 + Math.sin(p.t) * 0.12;
         const y = p.y + Math.sin(p.t) * 0.18;
-        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.1 * b, 0.34, 0.34, 0.2, 1.5, 0.4, 0.9);
-        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 0.34, 1.1 * b, 0.34, 0.2, 1.5, 0.4, 0.9);
-        R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.2, 2.2, 2.2, 0.05, 0.35, 0.12, 1);
+        if (p.kind === 'gas') {
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.0, 1.3 * b, 0.7, 0.72, 0.16, 0.08, 0.12);
+          R.push('box', 'opaque', p.x, y + 0.8, p.z, p.t * 0.5, 0, 0, 0.4, 0.3, 0.3, 0.3, 0.3, 0.32, 0);
+          R.push('box', 'opaque', p.x, y + 0.1, p.z, p.t * 0.5, 0, 0, 1.04, 0.4, 0.74, 1.1, 0.85, 0.15, 0.5);
+          R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.6, 2.6, 2.6, 0.28, 0.16, 0.03, 1);
+        } else {
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.1 * b, 0.34, 0.34, 0.2, 1.5, 0.4, 0.9);
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 0.34, 1.1 * b, 0.34, 0.2, 1.5, 0.4, 0.9);
+          R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.2, 2.2, 2.2, 0.05, 0.35, 0.12, 1);
+        }
         R.shadow(p.x, p.z, 1.4, 0.35);
       }
 
       const P = R.post;
       const sp = car.speed01;
       P.bloom = 0.72;
-      P.aberration = 0.0006 + sp * 0.0018 + this.trauma * 0.006 + (car.boostTime > 0 ? 0.002 : 0);
+      P.aberration = 0.0006 + sp * 0.0018 + this.trauma * 0.006 + (car.boosting ? 0.0025 : 0);
       P.vignette = 1;
-      P.speedBlur = clamp01((sp - 0.45) / 0.55) * 1.1 + (car.boostTime > 0 ? 0.8 : 0);
+      P.speedBlur = clamp01((sp - 0.45) / 0.55) * 1.1 + (car.boosting ? 0.85 : 0);
       P.flash = this.flashAmt;
       P.flashCol = this.flashCol;
       P.hurt = Math.max(this.hurtFlash, clamp01(1 - car.hp / (car.maxHp * 0.34)) * 0.35);
@@ -4529,6 +6000,7 @@ void main(){
 
       const intensity = clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
       this.audio.updateMusic(realDt, intensity, this.state === 'playing' || this.state === 'levelup');
+      this.touch.update(realDt, this);
       this.hud.update(this, realDt);
     }
   }
@@ -4552,6 +6024,12 @@ void main(){
   window.addEventListener('DOMContentLoaded', () => {
     try {
       const hud = new BA.Hud();
+      // decorate the title screen with a few of the pixel icons
+      const strip = document.getElementById('iconStrip');
+      if (strip) {
+        strip.innerHTML = ['spikes', 'rocket', 'saw', 'flame', 'minigun', 'tesla', 'mine', 'slam', 'gas']
+          .map((id) => BA.icons.img(id, 38)).join('');
+      }
       const game = new BA.Game(document.getElementById('gl'), document.getElementById('ov'), hud);
       window.GAME = game;
       hud.setScreen('title');

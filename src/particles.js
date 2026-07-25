@@ -3,7 +3,7 @@
   'use strict';
   const { rand, randSign, clamp, clamp01, lerp, TAU } = BA;
 
-  const MAX_P = 2200;
+  const MAX_P = 3000;
 
   class FX {
     constructor() {

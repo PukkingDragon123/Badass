@@ -18,6 +18,8 @@
       this.horde = new BA.Horde(this.fx, this.audio);
       this.car = new BA.Car(this.fx, this.audio);
       this.weapons = new BA.Weapons(this.fx, this.audio);
+      this.ragdolls = new BA.Ragdolls(this.fx, this.audio);
+      this.touch = new BA.TouchControls(this.input, this.audio);
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -78,6 +80,7 @@
       this.orbs.length = 0;
       this.pickups.length = 0;
       this.fx.clear();
+      this.ragdolls.reset();
       this.horde.reset();
       this.world.reset();
       this.weapons.reset();
@@ -107,6 +110,14 @@
       S.cooldown = 1 + lv('coolant') * 0.16;
       S.xpGain = 1 + lv('lucky') * 0.25;
       S.armor = lv('armor') * 0.06;
+      S.fuelMax = 100 * (1 + lv('tank') * 0.22);
+      S.fuelRegen = 4.5 * (1 + lv('tank') * 0.35);
+      S.fuelBurn = 26 * (1 - lv('tank') * 0.07);
+      S.nitroPower = 24 * (1 + lv('turbo') * 0.08);
+      const prevFuelMax = this.car.maxFuel;
+      this.car.maxFuel = S.fuelMax;
+      if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
+      this.car.fuel = Math.min(this.car.fuel, this.car.maxFuel);
       const spikes = this.weaponLevels.spikes || 0;
       S.ramDamage = 26 * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
       this.car.spikeLevel = spikes;
@@ -150,6 +161,7 @@
         e.airborne = true;
         this.horde.damage(e, damage * fall, nx, nz, 42 * fall, this, true);
       }
+      if (this.ragdolls) this.ragdolls.blast(x, z, radius * 1.4, 8 + damage * 0.09);
       // barrels chain off explosions too
       for (const p of this.world.props) {
         if (p.dead || p.type !== 'barrel') continue;
@@ -210,6 +222,10 @@
 
     dropHealth(x, z) {
       this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'hp', life: 30 });
+    }
+
+    dropFuel(x, z) {
+      this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'gas', life: 34 });
     }
 
     addXp(amount, x, z) {
@@ -316,6 +332,9 @@
         if (this.state === 'playing') { this.state = 'paused'; this.hud.setScreen('pause'); this.audio.silenceEngine(); }
         else if (this.state === 'paused') { this.state = 'playing'; this.hud.setScreen(null); }
       }
+      if (inp.consume('KeyT')) {
+        this.hud.toast(this.touch.toggle() ? 'TOUCH CONTROLS ON' : 'TOUCH CONTROLS OFF');
+      }
       if (inp.consume('KeyM')) {
         this.audio.muted = !this.audio.muted;
         if (this.audio.muted) this.audio.silenceEngine();
@@ -329,6 +348,7 @@
         if (pick_ >= 0 && this.choices[pick_]) this.chooseUpgrade(this.choices[pick_]);
         this.updateCamera(dt * 0.25, true);
         this.fx.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z), null);
         return;
       }
 
@@ -336,6 +356,7 @@
         this.deathTimer += dt;
         this.updateCamera(dt, true);
         this.fx.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z), null);
         this.horde.update(dt * 0.35, this.car, this, this.world);
         if (this.deathTimer > 1.1 && (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyR') || this.hud.startRequested)) {
           this.hud.startRequested = false;
@@ -361,6 +382,7 @@
       this.spawnWave(dt);
       this.updateOrbs(dt);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
+      this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
 
       if (this.car.hp <= 0) this.die();
@@ -425,11 +447,17 @@
       for (let i = this.pickups.length - 1; i >= 0; i--) {
         const p = this.pickups[i];
         p.life -= dt; p.t += dt * 3;
-        if (Math.hypot(car.x - p.x, car.z - p.z) < 3.2) {
-          car.hp = Math.min(car.maxHp, car.hp + 32);
-          this.fx.text(p.x, 2.4, p.z, '+32 HP', '#7dffa0', 24, 'big');
+        if (Math.hypot(car.x - p.x, car.z - p.z) < 3.6) {
+          if (p.kind === 'gas') {
+            car.refuel(car.maxFuel * 0.55);
+            this.fx.text(p.x, 2.8, p.z, 'GAS!', '#ffd23a', 24, 'big');
+            this.fx.sparks(p.x, 1, p.z, 14, 1.4, 0.9, 0.3, 1);
+          } else {
+            car.hp = Math.min(car.maxHp, car.hp + 32);
+            this.fx.text(p.x, 2.8, p.z, '+32 HP', '#7dffa0', 24, 'big');
+            this.fx.sparks(p.x, 1, p.z, 14, 0.4, 1.4, 0.6, 1);
+          }
           this.audio.levelUp();
-          this.fx.sparks(p.x, 1, p.z, 14, 0.4, 1.4, 0.6, 1);
           this.pickups.splice(i, 1);
         } else if (p.life <= 0) this.pickups.splice(i, 1);
       }
@@ -449,14 +477,14 @@
       cam.yaw += angleDelta(cam.yaw, targetYaw) * clamp01(dt * (soft ? 2.2 : 5.4));
 
       const fx_ = Math.sin(cam.yaw), fz = Math.cos(cam.yaw);
-      const boost = car.boostTime > 0 ? 1 : 0;
-      cam.dist = damp(cam.dist, 11.4 + sp * 3.6 + boost * 1.4 + clamp(car.y * 0.3, 0, 3.5), 6, dt);
-      cam.height = damp(cam.height, 4.9 + sp * 1.1 + car.y * 0.5, 6, dt);
+      const boost = car.boosting ? 1 : 0;
+      cam.dist = damp(cam.dist, 12.6 + sp * 3.8 + boost * 1.6 + clamp(car.y * 0.3, 0, 3.5), 6, dt);
+      cam.height = damp(cam.height, 5.7 + sp * 1.2 + car.y * 0.5, 6, dt);
 
       const lookAhead = 4.0 + sp * 5.0;
       const tx = car.x + fx_ * lookAhead + car.vx * 0.06;
       const tz = car.z + fz * lookAhead + car.vz * 0.06;
-      const ty = car.y + 1.9;
+      const ty = car.y + 2.6;
       cam.tx = damp(cam.tx, tx, 12, dt);
       cam.ty = damp(cam.ty, ty, 9, dt);
       cam.tz = damp(cam.tz, tz, 12, dt);
@@ -514,6 +542,7 @@
       this.world.eyeX = this.cam.x;
       this.world.eyeZ = this.cam.z;
       this.world.draw(R, car.x, car.z);
+      this.ragdolls.draw(R, car.x, car.z);
       this.horde.draw(R, car.x, car.z);
       if (this.state !== 'dead') car.draw(R);
       this.weapons.draw(R, car, this);
@@ -528,18 +557,25 @@
       for (const p of this.pickups) {
         const b = 1 + Math.sin(p.t) * 0.12;
         const y = p.y + Math.sin(p.t) * 0.18;
-        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.1 * b, 0.34, 0.34, 0.2, 1.5, 0.4, 0.9);
-        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 0.34, 1.1 * b, 0.34, 0.2, 1.5, 0.4, 0.9);
-        R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.2, 2.2, 2.2, 0.05, 0.35, 0.12, 1);
+        if (p.kind === 'gas') {
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.0, 1.3 * b, 0.7, 0.72, 0.16, 0.08, 0.12);
+          R.push('box', 'opaque', p.x, y + 0.8, p.z, p.t * 0.5, 0, 0, 0.4, 0.3, 0.3, 0.3, 0.3, 0.32, 0);
+          R.push('box', 'opaque', p.x, y + 0.1, p.z, p.t * 0.5, 0, 0, 1.04, 0.4, 0.74, 1.1, 0.85, 0.15, 0.5);
+          R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.6, 2.6, 2.6, 0.28, 0.16, 0.03, 1);
+        } else {
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.1 * b, 0.34, 0.34, 0.2, 1.5, 0.4, 0.9);
+          R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 0.34, 1.1 * b, 0.34, 0.2, 1.5, 0.4, 0.9);
+          R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.2, 2.2, 2.2, 0.05, 0.35, 0.12, 1);
+        }
         R.shadow(p.x, p.z, 1.4, 0.35);
       }
 
       const P = R.post;
       const sp = car.speed01;
       P.bloom = 0.72;
-      P.aberration = 0.0006 + sp * 0.0018 + this.trauma * 0.006 + (car.boostTime > 0 ? 0.002 : 0);
+      P.aberration = 0.0006 + sp * 0.0018 + this.trauma * 0.006 + (car.boosting ? 0.0025 : 0);
       P.vignette = 1;
-      P.speedBlur = clamp01((sp - 0.45) / 0.55) * 1.1 + (car.boostTime > 0 ? 0.8 : 0);
+      P.speedBlur = clamp01((sp - 0.45) / 0.55) * 1.1 + (car.boosting ? 0.85 : 0);
       P.flash = this.flashAmt;
       P.flashCol = this.flashCol;
       P.hurt = Math.max(this.hurtFlash, clamp01(1 - car.hp / (car.maxHp * 0.34)) * 0.35);
@@ -581,6 +617,7 @@
 
       const intensity = clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
       this.audio.updateMusic(realDt, intensity, this.state === 'playing' || this.state === 'levelup');
+      this.touch.update(realDt, this);
       this.hud.update(this, realDt);
     }
   }

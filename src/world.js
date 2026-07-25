@@ -83,11 +83,13 @@
         if (r < 0.09) {
           const L = 9 + rng() * 5, W = 6 + rng() * 3, H = 3.0 + rng() * 2.2;
           add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
-        } else if (r < 0.42) {
+        } else if (r < 0.36) {
           add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.62) {
+        } else if (r < 0.47) {
+          add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
+        } else if (r < 0.64) {
           add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.74) {
+        } else if (r < 0.75) {
           add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
         } else if (r < 0.86) {
           add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
@@ -135,6 +137,7 @@
         const nx = d > 0.001 ? dx / d : 1, nz = d > 0.001 ? dz / d : 0;
 
         if (p.type === 'barrel') { this.explodeBarrel(p, game); continue; }
+        if (p.type === 'gascan') { this.grabGas(p, game); continue; }
         if (p.type === 'crate') { this.breakCrate(p, game); continue; }
 
         const impact = speed * (car.vx * -nx + car.vz * -nz > 0 ? 1 : 0.25);
@@ -193,13 +196,28 @@
       }
     }
 
+    grabGas(p, game) {
+      if (p.dead) return;
+      p.dead = true;
+      const car = game.car;
+      const before = car.fuel;
+      car.refuel(car.maxFuel * 0.4);
+      this.audio.pickup(0.6);
+      this.fx.sparks(p.x, 1.0, p.z, 12, 1.3, 0.85, 0.25, 1.1);
+      this.fx.shard(p.x, 0.8, p.z, 6, 0.62, 0.16, 0.09);
+      this.fx.fire(p.x, 0.7, p.z, 5, 0.5, 0.6);
+      const gained = Math.round(car.fuel - before);
+      if (gained > 0) this.fx.text(p.x, 2.4, p.z, '+' + gained + ' GAS', '#ffd23a', 22, 'big');
+    }
+
     breakCrate(p, game) {
       if (p.dead) return;
       p.dead = true;
       this.audio.squish();
       this.fx.shard(p.x, 0.9, p.z, 12, 0.55, 0.38, 0.18);
       this.fx.smoke(p.x, 0.8, p.z, 4, 0.7, 0.6, 0.5, 0.35, 1);
-      if (p.loot < 0.42) game.dropHealth(p.x, p.z);
+      if (p.loot < 0.32) game.dropHealth(p.x, p.z);
+      else if (p.loot < 0.6) game.dropFuel(p.x, p.z);
       else game.spawnXp(p.x, p.z, 4, 3);
     }
 
@@ -242,6 +260,15 @@
             R.push('cyl', 'opaque', p.x, 1.25 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
             R.push('cyl', 'opaque', p.x, 0.62 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
             R.shadow(p.x, p.z, 1.5, 0.5);
+            break;
+          }
+          case 'gascan': {
+            const bob = Math.sin(t * 2.4 + p.bob) * 0.05;
+            R.push('box', 'opaque', p.x, 0.75 + bob, p.z, p.yaw, 0, 0, 1.15, 1.5, 0.85, 0.66, 0.15, 0.08, 0.05);
+            R.push('box', 'opaque', p.x, 0.85 + bob, p.z, p.yaw, 0, 0, 1.2, 0.42, 0.9, 1.05, 0.80, 0.14, 0.45);
+            R.push('box', 'opaque', p.x, 1.6 + bob, p.z, p.yaw, 0, 0, 0.45, 0.32, 0.32, 0.28, 0.28, 0.3, 0);
+            R.push('sphere', 'glow', p.x, 0.9 + bob, p.z, 0, 0, 0, 2.4, 2.4, 2.4, 0.16, 0.09, 0.02, 1);
+            R.shadow(p.x, p.z, 1.4, 0.5);
             break;
           }
           case 'wreck': {

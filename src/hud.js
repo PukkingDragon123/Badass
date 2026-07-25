@@ -22,6 +22,7 @@
         bossWrap: $('bosswrap'), bossBar: $('bossbar'),
         banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
         toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
+        fuelWrap: $('fuelwrap'), fuelBar: $('fuelbar'), fuelLbl: $('fuellbl'),
         screens: {
           title: $('scTitle'), levelup: $('scLevel'),
           pause: $('scPause'), over: $('scOver'),
@@ -74,7 +75,7 @@
         card.innerHTML =
           `<div class="num">${i + 1}</div>` +
           (isNew ? `<div class="tag">NEW</div>` : (u.id !== 'repair' ? `<div class="tag">LV ${lv + 1}</div>` : '')) +
-          `<div class="cic">${u.icon}</div>` +
+          `<div class="cic">${BA.icons.img(u.icon, 56)}</div>` +
           `<div class="cnm">${u.name}</div>` +
           `<div class="clv">${u.id === 'repair' ? 'EMERGENCY' : (isNew ? (game.weaponLevels[u.id] !== undefined ? 'NEW WEAPON' : 'NEW PERK') : 'UPGRADE')}</div>` +
           `<div class="cds">${u.desc(lv)}</div>`;
@@ -136,6 +137,13 @@
       this.el.boostLbl.textContent = lbl;
       this.el.boostLbl.style.color = col;
 
+      // gas / nitrous
+      const fuel01 = clamp01(car.fuel / car.maxFuel);
+      this.el.fuelBar.style.width = fuel01 * 100 + '%';
+      this.el.fuelWrap.classList.toggle('low', fuel01 < 0.25);
+      this.el.fuelLbl.textContent = car.nitroActive ? 'NITROUS!' : (fuel01 < 0.25 ? 'LOW GAS' : 'GAS');
+      this.el.fuelLbl.style.color = car.nitroActive ? '#9fe8ff' : (fuel01 < 0.25 ? '#ff6b5e' : '#ffce8a');
+
       // boss bar
       const boss = game.bossAlive;
       this.el.bossWrap.classList.toggle('on', !!(boss && !boss.dead));
@@ -165,7 +173,7 @@
   function chip(u, l) {
     let pips = '';
     for (let i = 0; i < u.max; i++) pips += `<div class="pip${i < l ? ' f' : ''}"></div>`;
-    return `<div class="wchip" title="${u.name}"><div class="ic">${u.icon}</div><div class="pips">${pips}</div></div>`;
+    return `<div class="wchip" title="${u.name}"><div class="ic">${BA.icons.img(u.icon, 26)}</div><div class="pips">${pips}</div></div>`;
   }
 
   BA.Hud = Hud;

@@ -1,0 +1,4579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#120a0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%97%3C/text%3E%3C/svg%3E">
+<title>BADASS APOCALYPSE</title>
+<style>
+  :root{
+    --blood:#ff3b30;
+    --toxic:#8dff3a;
+    --hazard:#ffd23a;
+    --ice:#6fd8ff;
+    --ink:#0d0709;
+    --panel:rgba(14,8,10,.82);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:#0b0608;color:#fff;
+    font-family:"Arial Black","Helvetica Neue",Impact,system-ui,sans-serif;
+    font-weight:900;letter-spacing:.02em;user-select:none;touch-action:none}
+  canvas{position:fixed;inset:0;display:block}
+  #gl{z-index:0}
+  #ov{z-index:1;pointer-events:none}
+  #ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+  .sh{text-shadow:0 2px 0 rgba(0,0,0,.85),0 0 18px rgba(0,0,0,.6)}
+
+  /* ---------------------------------------------------------- play HUD */
+  #hud{position:absolute;inset:0;opacity:0;transition:opacity .3s}
+  #hud.on{opacity:1}
+
+  #xpwrap{position:absolute;top:0;left:0;right:0;height:11px;background:rgba(0,0,0,.55);
+    border-bottom:2px solid rgba(0,0,0,.6)}
+  #xpbar{height:100%;width:0%;background:linear-gradient(90deg,#39d0ff,#8dff3a);
+    box-shadow:0 0 16px #6ef05a,0 0 40px rgba(110,240,90,.45);transition:width .12s linear}
+
+  .panel{background:var(--panel);border:2px solid rgba(255,255,255,.13);
+    border-radius:10px;backdrop-filter:blur(6px);box-shadow:0 6px 0 rgba(0,0,0,.35)}
+
+  #topleft{position:absolute;top:22px;left:20px;display:flex;gap:12px;align-items:center}
+  #lvlbadge{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(160deg,#ffd23a,#ff8a1e);color:#2a1400;
+    font-size:13px;line-height:1;flex-direction:column;box-shadow:0 5px 0 rgba(0,0,0,.45)}
+  #lvlbadge b{font-size:24px;display:block}
+  #hpblock{min-width:260px}
+  #hpouter{width:270px;height:26px;border-radius:7px;overflow:hidden;position:relative;
+    background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.16);box-shadow:0 4px 0 rgba(0,0,0,.4)}
+  #hpbar{height:100%;width:100%;background:linear-gradient(180deg,#ff6a5e,#c81f16);transition:width .18s ease-out}
+  #hpghost{position:absolute;inset:0;width:100%;background:rgba(255,255,255,.35);
+    transition:width .55s .12s ease-out;z-index:-1}
+  #hptext{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;
+    text-shadow:0 2px 3px rgba(0,0,0,.9)}
+  #statrow{display:flex;gap:14px;margin-top:7px;font-size:12px;color:#ffcfa0;opacity:.95}
+
+  #topcenter{position:absolute;top:20px;left:50%;transform:translateX(-50%);text-align:center}
+  #clock{font-size:40px;line-height:1;letter-spacing:.06em}
+  #killrow{font-size:13px;margin-top:5px;color:#ff9a8f}
+
+  #combo{position:absolute;top:96px;right:26px;text-align:right;opacity:0;
+    transform:translateX(24px) scale(.8);transition:opacity .16s,transform .16s}
+  #combo.on{opacity:1;transform:none}
+  #combon{font-size:58px;line-height:.85;color:var(--hazard);
+    text-shadow:0 4px 0 #7a3b00,0 0 26px rgba(255,180,40,.65)}
+  #combol{font-size:13px;color:#ffd9a0;letter-spacing:.22em}
+
+  #weapons{position:absolute;left:20px;bottom:20px;display:flex;gap:9px;flex-wrap:wrap-reverse;max-width:52vw}
+  .wchip{width:52px;padding:6px 0 4px;border-radius:10px;text-align:center;background:var(--panel);
+    border:2px solid rgba(255,255,255,.14);box-shadow:0 4px 0 rgba(0,0,0,.4)}
+  .wchip .ic{font-size:21px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}
+  .wchip .pips{display:flex;gap:2px;justify-content:center;margin-top:5px}
+  .wchip .pip{width:5px;height:5px;border-radius:1px;background:rgba(255,255,255,.22)}
+  .wchip .pip.f{background:var(--hazard);box-shadow:0 0 6px var(--hazard)}
+
+  #boostwrap{position:absolute;right:26px;bottom:26px;width:150px;text-align:right}
+  #boostouter{height:14px;border-radius:7px;background:rgba(0,0,0,.6);overflow:hidden;
+    border:2px solid rgba(255,255,255,.16)}
+  #boostbar{height:100%;width:0%;background:#39d0ff;transition:width .06s linear}
+  #boostlbl{font-size:11px;letter-spacing:.2em;color:#9fe6ff;margin-bottom:5px}
+
+  #bosswrap{position:absolute;top:104px;left:50%;transform:translateX(-50%);width:min(520px,74vw);
+    opacity:0;transition:opacity .25s}
+  #bosswrap.on{opacity:1}
+  #bossouter{height:16px;border-radius:8px;background:rgba(0,0,0,.65);
+    border:2px solid rgba(255,60,50,.55);overflow:hidden}
+  #bossbar{height:100%;width:100%;background:linear-gradient(180deg,#ff5b4a,#8c0f0a);transition:width .15s}
+  #bosslbl{font-size:12px;letter-spacing:.28em;text-align:center;color:#ff8577;margin-bottom:5px}
+
+  /* ------------------------------------------------------------ banners */
+  #banner{position:absolute;top:26%;left:0;right:0;text-align:center;pointer-events:none;opacity:0}
+  #banner.go{animation:bang 2.1s ease-out}
+  #bannerT{font-size:74px;line-height:.9;color:#fff;text-shadow:0 6px 0 #7c0d06,0 0 40px rgba(255,60,40,.7)}
+  #bannerS{font-size:19px;letter-spacing:.4em;color:var(--hazard);margin-top:8px}
+  @keyframes bang{
+    0%{opacity:0;transform:scale(1.5) rotate(-3deg)}
+    12%{opacity:1;transform:scale(1) rotate(0)}
+    75%{opacity:1;transform:scale(1)}
+    100%{opacity:0;transform:scale(1.08)}
+  }
+  #toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);
+    font-size:15px;letter-spacing:.24em;opacity:0;transition:opacity .25s;color:#cfe}
+
+  /* ------------------------------------------------------------ screens */
+  .screen{position:absolute;inset:0;display:none;place-items:center;pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 40%,rgba(20,6,8,.72),rgba(6,3,4,.94))}
+  .screen.on{display:grid}
+  .box{text-align:center;padding:0 22px;max-width:min(1080px,94vw)}
+
+  #titleWord{font-size:clamp(46px,10.5vw,132px);line-height:.86;
+    background:linear-gradient(180deg,#fff 20%,#ffb03a 55%,#e01d10 96%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 7px 0 #4a0703) drop-shadow(0 0 34px rgba(255,90,30,.55));
+    transform:skewX(-6deg)}
+  #titleSub{margin-top:14px;font-size:clamp(11px,2.1vw,17px);letter-spacing:.5em;color:#ffd9a0}
+  .keys{margin:26px auto 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:760px}
+  .key{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.16);border-radius:9px;
+    padding:9px 13px;font-size:12px;letter-spacing:.1em;color:#e8dfe0}
+  .key b{color:var(--hazard);font-size:13px}
+  .cta{margin-top:26px;font-size:clamp(15px,3vw,23px);letter-spacing:.28em;color:#fff;
+    animation:pulse 1.25s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+
+  #luTitle{font-size:clamp(26px,5.5vw,52px);color:#fff;text-shadow:0 5px 0 #6b3b00,0 0 34px rgba(255,190,60,.55)}
+  #luSub{font-size:13px;letter-spacing:.34em;color:var(--hazard);margin:8px 0 26px}
+  #cards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+  .card{width:min(286px,84vw);background:linear-gradient(180deg,rgba(30,18,20,.95),rgba(12,7,9,.97));
+    border:3px solid var(--c,#fff);border-radius:16px;padding:20px 17px 17px;cursor:pointer;
+    box-shadow:0 8px 0 rgba(0,0,0,.5),0 0 34px -8px var(--c,#fff);
+    transition:transform .13s cubic-bezier(.3,1.6,.5,1),box-shadow .13s;position:relative}
+  .card:hover,.card:focus{transform:translateY(-9px) scale(1.035);
+    box-shadow:0 14px 0 rgba(0,0,0,.5),0 0 60px -6px var(--c,#fff);outline:none}
+  .card .num{position:absolute;top:-15px;left:-13px;width:34px;height:34px;border-radius:9px;
+    background:var(--c,#fff);color:#140b0d;display:grid;place-items:center;font-size:17px;
+    box-shadow:0 4px 0 rgba(0,0,0,.5)}
+  .card .cic{font-size:52px;line-height:1;filter:drop-shadow(0 4px 3px rgba(0,0,0,.8))}
+  .card .cnm{margin-top:11px;font-size:19px;color:var(--c,#fff)}
+  .card .clv{margin-top:5px;font-size:11px;letter-spacing:.22em;color:#c9bdbf}
+  .card .cds{margin-top:11px;font-size:12.5px;line-height:1.55;color:#e6dcde;font-weight:700;letter-spacing:0}
+  .card .tag{position:absolute;top:11px;right:11px;font-size:9px;letter-spacing:.18em;
+    padding:3px 7px;border-radius:5px;background:var(--c,#fff);color:#140b0d}
+
+  #overT{font-size:clamp(38px,9vw,104px);color:#fff;text-shadow:0 6px 0 #6d0a05,0 0 44px rgba(255,50,30,.65)}
+  #stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:26px 0 4px}
+  .stat{min-width:132px;padding:13px 17px;border-radius:12px;background:rgba(255,255,255,.06);
+    border:2px solid rgba(255,255,255,.13)}
+  .stat .v{font-size:29px;color:var(--hazard)}
+  .stat .l{font-size:10px;letter-spacing:.22em;color:#c9bdbf;margin-top:5px}
+  #newbest{font-size:15px;letter-spacing:.3em;color:var(--toxic);margin-top:14px;min-height:20px}
+  .btn{margin-top:24px;display:inline-block;padding:15px 34px;border-radius:12px;cursor:pointer;
+    background:linear-gradient(180deg,#ff5b45,#b41708);border:3px solid rgba(255,255,255,.22);
+    font-size:19px;letter-spacing:.16em;box-shadow:0 7px 0 rgba(0,0,0,.5);transition:transform .1s}
+  .btn:hover{transform:translateY(-3px)}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+
+  #fatal{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:30px;
+    background:#120a0c;z-index:9;font-size:15px;line-height:1.7}
+  @media (max-width:820px){
+    #hpouter{width:180px}#topleft{top:16px;left:14px}#clock{font-size:28px}
+    #combon{font-size:38px}#weapons{max-width:64vw;gap:6px}.wchip{width:42px}
+    #boostwrap{width:110px}
+  }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="ov"></canvas>
+
+<div id="ui">
+  <div id="hud">
+    <div id="xpwrap"><div id="xpbar"></div></div>
+
+    <div id="topleft">
+      <div id="lvlbadge" class="sh">LV<b id="lvlnum">1</b></div>
+      <div id="hpblock">
+        <div id="hpouter"><div id="hpghost"></div><div id="hpbar"></div><div id="hptext" class="sh">100 / 100</div></div>
+        <div id="statrow" class="sh">
+          <span id="stSpeed">0 KM/H</span><span id="stScrap">LV 1</span><span id="stScore">0 PTS</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="topcenter" class="sh">
+      <div id="clock">00:00</div>
+      <div id="killrow"><span id="killn">0</span> ROADKILLS</div>
+    </div>
+
+    <div id="bosswrap">
+      <div id="bosslbl" class="sh">BEHEMOTH</div>
+      <div id="bossouter"><div id="bossbar"></div></div>
+    </div>
+
+    <div id="combo">
+      <div id="combon" class="sh">x0</div>
+      <div id="combol" class="sh">COMBO</div>
+    </div>
+
+    <div id="weapons"></div>
+
+    <div id="boostwrap">
+      <div id="boostlbl" class="sh">DRIFT CHARGE</div>
+      <div id="boostouter"><div id="boostbar"></div></div>
+    </div>
+
+    <div id="banner"><div id="bannerT"></div><div id="bannerS"></div></div>
+    <div id="toast" class="sh"></div>
+  </div>
+
+  <!-- ------------------------------------------------------- title --- -->
+  <div class="screen on" id="scTitle">
+    <div class="box">
+      <div id="titleWord">BADASS<br>APOCALYPSE</div>
+      <div id="titleSub">DRIVE · RAM · UPGRADE · REPEAT</div>
+      <div class="keys">
+        <div class="key"><b>W / ↑</b> THROTTLE</div>
+        <div class="key"><b>A D / ← →</b> STEER</div>
+        <div class="key"><b>S / ↓</b> BRAKE</div>
+        <div class="key"><b>SHIFT</b> DRIFT → TURBO</div>
+        <div class="key"><b>SPACE</b> JUMP / SLAM</div>
+        <div class="key"><b>1 2 3</b> PICK UPGRADE</div>
+        <div class="key"><b>P</b> PAUSE</div>
+        <div class="key"><b>M</b> MUTE</div>
+      </div>
+      <div class="cta" id="startCta">PRESS SPACE TO FLOOR IT</div>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------- level up --- -->
+  <div class="screen" id="scLevel">
+    <div class="box">
+      <div id="luTitle">LEVEL <span id="luLevel">2</span></div>
+      <div id="luSub">CHOOSE YOUR WEAPON</div>
+      <div id="cards"></div>
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------- pause --- -->
+  <div class="screen" id="scPause">
+    <div class="box">
+      <div id="titleWord" style="font-size:clamp(34px,7vw,86px)">PAUSED</div>
+      <div class="cta">PRESS P OR ESC TO RESUME</div>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------- game over --- -->
+  <div class="screen" id="scOver">
+    <div class="box">
+      <div id="overT">WASTED</div>
+      <div id="stats">
+        <div class="stat"><div class="v" id="ovScore">0</div><div class="l">SCORE</div></div>
+        <div class="stat"><div class="v" id="ovKills">0</div><div class="l">ROADKILLS</div></div>
+        <div class="stat"><div class="v" id="ovTime">0:00</div><div class="l">SURVIVED</div></div>
+        <div class="stat"><div class="v" id="ovLevel">1</div><div class="l">LEVEL</div></div>
+        <div class="stat"><div class="v" id="ovCombo">0</div><div class="l">BEST COMBO</div></div>
+      </div>
+      <div id="newbest"></div>
+      <div class="btn" id="againBtn">DRIVE AGAIN</div>
+    </div>
+  </div>
+</div>
+
+<div id="fatal"></div>
+
+<script>
+/* ---- src/math.js ---- */
+/* BADASS APOCALYPSE - math helpers */
+(function () {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const DEG = Math.PI / 180;
+
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const mix = lerp;
+  const smoothstep = (a, b, x) => {
+    const t = clamp01((x - a) / (b - a));
+    return t * t * (3 - 2 * t);
+  };
+  // frame-rate independent exponential approach. rate = "how much of the gap
+  // is closed per second" (0..1-ish, higher = snappier)
+  const damp = (a, b, rate, dt) => lerp(a, b, 1 - Math.exp(-rate * dt));
+
+  const rand = (a = 1, b) => (b === undefined ? Math.random() * a : a + Math.random() * (b - a));
+  const randInt = (a, b) => Math.floor(rand(a, b + 1));
+  const randSign = () => (Math.random() < 0.5 ? -1 : 1);
+  const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
+  // shortest signed angle from a to b
+  function angleDelta(a, b) {
+    let d = (b - a) % TAU;
+    if (d > Math.PI) d -= TAU;
+    if (d < -Math.PI) d += TAU;
+    return d;
+  }
+
+  function hash01(n) {
+    n = (n << 13) ^ n;
+    return ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 0x7fffffff;
+  }
+
+  /* ------------------------------------------------------------------ mat4 */
+  // column-major, gl-style
+  function m4() {
+    const m = new Float32Array(16);
+    m[0] = m[5] = m[10] = m[15] = 1;
+    return m;
+  }
+
+  function m4identity(o) {
+    o.fill(0);
+    o[0] = o[5] = o[10] = o[15] = 1;
+    return o;
+  }
+
+  function m4mul(o, a, b) {
+    const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+    const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+    const a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+    const a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+    for (let i = 0; i < 4; i++) {
+      const b0 = b[i * 4], b1 = b[i * 4 + 1], b2 = b[i * 4 + 2], b3 = b[i * 4 + 3];
+      o[i * 4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+      o[i * 4 + 1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+      o[i * 4 + 2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+      o[i * 4 + 3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+    }
+    return o;
+  }
+
+  function m4perspective(o, fovy, aspect, near, far) {
+    const f = 1 / Math.tan(fovy * 0.5);
+    o.fill(0);
+    o[0] = f / aspect;
+    o[5] = f;
+    o[11] = -1;
+    o[10] = (far + near) / (near - far);
+    o[14] = (2 * far * near) / (near - far);
+    return o;
+  }
+
+  function m4lookAt(o, ex, ey, ez, cx, cy, cz, ux, uy, uz) {
+    let zx = ex - cx, zy = ey - cy, zz = ez - cz;
+    let l = Math.hypot(zx, zy, zz) || 1;
+    zx /= l; zy /= l; zz /= l;
+    let xx = uy * zz - uz * zy, xy = uz * zx - ux * zz, xz = ux * zy - uy * zx;
+    l = Math.hypot(xx, xy, xz) || 1;
+    xx /= l; xy /= l; xz /= l;
+    const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+    o[0] = xx; o[1] = yx; o[2] = zx; o[3] = 0;
+    o[4] = xy; o[5] = yy; o[6] = zy; o[7] = 0;
+    o[8] = xz; o[9] = yz; o[10] = zz; o[11] = 0;
+    o[12] = -(xx * ex + xy * ey + xz * ez);
+    o[13] = -(yx * ex + yy * ey + yz * ez);
+    o[14] = -(zx * ex + zy * ey + zz * ez);
+    o[15] = 1;
+    return o;
+  }
+
+  function m4invert(o, m) {
+    const a00 = m[0], a01 = m[1], a02 = m[2], a03 = m[3];
+    const a10 = m[4], a11 = m[5], a12 = m[6], a13 = m[7];
+    const a20 = m[8], a21 = m[9], a22 = m[10], a23 = m[11];
+    const a30 = m[12], a31 = m[13], a32 = m[14], a33 = m[15];
+    const b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10;
+    const b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11;
+    const b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12;
+    const b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30;
+    const b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31;
+    const b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32;
+    let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+    if (!det) return m4identity(o);
+    det = 1 / det;
+    o[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+    o[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+    o[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+    o[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+    o[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+    o[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+    o[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+    o[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+    o[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+    o[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+    o[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+    o[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+    o[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+    o[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+    o[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+    o[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+    return o;
+  }
+
+  // Compose a TRS matrix into `out` at float offset `off`.
+  // Rotation order: Ry(yaw) * Rx(pitch) * Rz(roll)
+  function composeInto(out, off, px, py, pz, yaw, pitch, roll, sx, sy, sz) {
+    const cy = Math.cos(yaw), sy_ = Math.sin(yaw);
+    const cx = Math.cos(pitch), sx_ = Math.sin(pitch);
+    const cz = Math.cos(roll), sz_ = Math.sin(roll);
+
+    const r00 = cy * cz + sy_ * sx_ * sz_;
+    const r01 = -cy * sz_ + sy_ * sx_ * cz;
+    const r02 = sy_ * cx;
+    const r10 = cx * sz_;
+    const r11 = cx * cz;
+    const r12 = -sx_;
+    const r20 = -sy_ * cz + cy * sx_ * sz_;
+    const r21 = sy_ * sz_ + cy * sx_ * cz;
+    const r22 = cy * cx;
+
+    out[off] = r00 * sx; out[off + 1] = r10 * sx; out[off + 2] = r20 * sx; out[off + 3] = 0;
+    out[off + 4] = r01 * sy; out[off + 5] = r11 * sy; out[off + 6] = r21 * sy; out[off + 7] = 0;
+    out[off + 8] = r02 * sz; out[off + 9] = r12 * sz; out[off + 10] = r22 * sz; out[off + 11] = 0;
+    out[off + 12] = px; out[off + 13] = py; out[off + 14] = pz; out[off + 15] = 1;
+  }
+
+  window.BA = Object.assign(window.BA || {}, {
+    TAU, DEG, clamp, clamp01, lerp, mix, smoothstep, damp, rand, randInt, randSign,
+    pick, angleDelta, hash01,
+    m4, m4identity, m4mul, m4perspective, m4lookAt, m4invert, composeInto,
+  });
+})();
+
+</script>
+<script>
+/* ---- src/geometry.js ---- */
+/* BADASS APOCALYPSE - procedural meshes (no external assets, ever) */
+(function () {
+  'use strict';
+  const { TAU } = BA;
+
+  function emptyGeo() {
+    return { pos: [], nrm: [], idx: [] };
+  }
+
+  function pushTri(g, a, b, c) {
+    g.idx.push(a, b, c);
+  }
+
+  /* unit cube, centred, flat normals */
+  function box() {
+    const g = emptyGeo();
+    const faces = [
+      [[0, 0, 1], [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]]],
+      [[0, 0, -1], [[1, -1, -1], [-1, -1, -1], [-1, 1, -1], [1, 1, -1]]],
+      [[1, 0, 0], [[1, -1, 1], [1, -1, -1], [1, 1, -1], [1, 1, 1]]],
+      [[-1, 0, 0], [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]]],
+      [[0, 1, 0], [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]]],
+      [[0, -1, 0], [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]]],
+    ];
+    for (const [n, verts] of faces) {
+      const b = g.pos.length / 3;
+      for (const v of verts) {
+        g.pos.push(v[0] * 0.5, v[1] * 0.5, v[2] * 0.5);
+        g.nrm.push(n[0], n[1], n[2]);
+      }
+      pushTri(g, b, b + 1, b + 2);
+      pushTri(g, b, b + 2, b + 3);
+    }
+    return g;
+  }
+
+  /* uv sphere, radius .5 */
+  function sphere(seg = 14, rings = 10) {
+    const g = emptyGeo();
+    for (let y = 0; y <= rings; y++) {
+      const v = y / rings, phi = v * Math.PI;
+      for (let x = 0; x <= seg; x++) {
+        const u = x / seg, th = u * TAU;
+        const nx = Math.sin(phi) * Math.cos(th);
+        const ny = Math.cos(phi);
+        const nz = Math.sin(phi) * Math.sin(th);
+        g.pos.push(nx * 0.5, ny * 0.5, nz * 0.5);
+        g.nrm.push(nx, ny, nz);
+      }
+    }
+    for (let y = 0; y < rings; y++) {
+      for (let x = 0; x < seg; x++) {
+        const a = y * (seg + 1) + x, b = a + seg + 1;
+        pushTri(g, a, b, a + 1);
+        pushTri(g, a + 1, b, b + 1);
+      }
+    }
+    return g;
+  }
+
+  /* cylinder along an axis, diameter 1, length 1, with caps */
+  function cylinder(seg = 16, axis = 'y', taper = 1) {
+    const g = emptyGeo();
+    const put = (a, b, c) => {
+      // a = along-axis, (b,c) = the two perpendicular components
+      if (axis === 'y') return [b, a, c];
+      if (axis === 'x') return [a, b, c];
+      return [b, c, a];
+    };
+    // side
+    for (let i = 0; i <= seg; i++) {
+      const t = (i / seg) * TAU;
+      const cx = Math.cos(t), cz = Math.sin(t);
+      const nrm = put(0, cx, cz);
+      const n2 = put(taper < 1 ? 0.4 : 0, cx, cz);
+      const nl = Math.hypot(n2[0], n2[1], n2[2]) || 1;
+      for (let k = 0; k < 2; k++) {
+        const a = k ? 0.5 : -0.5;
+        const r = (k ? taper : 1) * 0.5;
+        const p = put(a, cx * r, cz * r);
+        g.pos.push(p[0], p[1], p[2]);
+        g.nrm.push(n2[0] / nl, n2[1] / nl, n2[2] / nl);
+      }
+    }
+    for (let i = 0; i < seg; i++) {
+      const a = i * 2;
+      pushTri(g, a, a + 1, a + 2);
+      pushTri(g, a + 1, a + 3, a + 2);
+    }
+    // caps
+    for (let k = 0; k < 2; k++) {
+      const a = k ? 0.5 : -0.5;
+      const r = (k ? taper : 1) * 0.5;
+      if (r <= 0.0001) continue;
+      const n = put(k ? 1 : -1, 0, 0);
+      const base = g.pos.length / 3;
+      const c = put(a, 0, 0);
+      g.pos.push(c[0], c[1], c[2]);
+      g.nrm.push(n[0], n[1], n[2]);
+      for (let i = 0; i <= seg; i++) {
+        const t = (i / seg) * TAU;
+        const p = put(a, Math.cos(t) * r, Math.sin(t) * r);
+        g.pos.push(p[0], p[1], p[2]);
+        g.nrm.push(n[0], n[1], n[2]);
+      }
+      for (let i = 0; i < seg; i++) {
+        if (k) pushTri(g, base, base + 1 + i, base + 2 + i);
+        else pushTri(g, base, base + 2 + i, base + 1 + i);
+      }
+    }
+    return g;
+  }
+
+  /* cone pointing +Y, base diameter 1, height 1, origin at base centre */
+  function cone(seg = 12) {
+    const g = emptyGeo();
+    for (let i = 0; i < seg; i++) {
+      const t0 = (i / seg) * TAU, t1 = ((i + 1) / seg) * TAU, tm = (t0 + t1) * 0.5;
+      const p0 = [Math.cos(t0) * 0.5, 0, Math.sin(t0) * 0.5];
+      const p1 = [Math.cos(t1) * 0.5, 0, Math.sin(t1) * 0.5];
+      const ap = [0, 1, 0];
+      const nx = Math.cos(tm) * 0.9, nz = Math.sin(tm) * 0.9;
+      const nl = Math.hypot(nx, 0.45, nz);
+      const b = g.pos.length / 3;
+      for (const p of [p0, p1, ap]) {
+        g.pos.push(p[0], p[1], p[2]);
+        g.nrm.push(nx / nl, 0.45 / nl, nz / nl);
+      }
+      pushTri(g, b, b + 1, b + 2);
+      // base
+      const bb = g.pos.length / 3;
+      for (const p of [[0, 0, 0], p1, p0]) {
+        g.pos.push(p[0], p[1], p[2]);
+        g.nrm.push(0, -1, 0);
+      }
+      pushTri(g, bb, bb + 1, bb + 2);
+    }
+    return g;
+  }
+
+  /* flat disc in XZ plane, diameter 1, facing +Y */
+  function disc(seg = 24) {
+    const g = emptyGeo();
+    g.pos.push(0, 0, 0);
+    g.nrm.push(0, 1, 0);
+    for (let i = 0; i <= seg; i++) {
+      const t = (i / seg) * TAU;
+      g.pos.push(Math.cos(t) * 0.5, 0, Math.sin(t) * 0.5);
+      g.nrm.push(0, 1, 0);
+    }
+    for (let i = 0; i < seg; i++) pushTri(g, 0, i + 2, i + 1);
+    return g;
+  }
+
+  /* open-ended ring/tube in XZ plane, for shockwaves */
+  function ring(seg = 40, inner = 0.72) {
+    const g = emptyGeo();
+    for (let i = 0; i <= seg; i++) {
+      const t = (i / seg) * TAU;
+      const c = Math.cos(t), s = Math.sin(t);
+      g.pos.push(c * inner * 0.5, 0, s * inner * 0.5);
+      g.nrm.push(0, 1, 0);
+      g.pos.push(c * 0.5, 0.06, s * 0.5);
+      g.nrm.push(0, 1, 0);
+    }
+    for (let i = 0; i < seg; i++) {
+      const a = i * 2;
+      pushTri(g, a, a + 2, a + 1);
+      pushTri(g, a + 1, a + 2, a + 3);
+    }
+    return g;
+  }
+
+  /* unit quad in XZ, facing +Y */
+  function plane(size = 1) {
+    const g = emptyGeo();
+    const h = size * 0.5;
+    g.pos.push(-h, 0, -h, h, 0, -h, h, 0, h, -h, 0, h);
+    for (let i = 0; i < 4; i++) g.nrm.push(0, 1, 0);
+    pushTri(g, 0, 2, 1);
+    pushTri(g, 0, 3, 2);
+    return g;
+  }
+
+  /* saw blade: thin toothed disc in the XY plane, facing +Z, so a `roll`
+     rotation spins it around its own axle */
+  function saw(teeth = 8) {
+    const g = emptyGeo();
+    const th = 0.06;
+    for (let k = 0; k < 2; k++) {
+      const z = k ? th : -th;
+      const base = g.pos.length / 3;
+      g.pos.push(0, 0, z);
+      g.nrm.push(0, 0, k ? 1 : -1);
+      const steps = teeth * 4;
+      for (let i = 0; i <= steps; i++) {
+        const t = (i / steps) * TAU;
+        const saw_ = (i % 4) < 2 ? 0.5 : 0.34;
+        g.pos.push(Math.cos(t) * saw_, Math.sin(t) * saw_, z);
+        g.nrm.push(0, 0, k ? 1 : -1);
+      }
+      for (let i = 0; i < steps; i++) {
+        if (k) pushTri(g, base, base + i + 1, base + i + 2);
+        else pushTri(g, base, base + i + 2, base + i + 1);
+      }
+    }
+    return g;
+  }
+
+  BA.geo = { box, sphere, cylinder, cone, disc, ring, plane, saw };
+})();
+
+</script>
+<script>
+/* ---- src/shaders.js ---- */
+/* BADASS APOCALYPSE - GLSL (WebGL2 / GLSL ES 3.00) */
+(function () {
+  'use strict';
+
+  const COMMON = `
+const vec3 SUN_DIR = normalize(vec3(0.45, 0.72, 0.32));
+const vec3 SUN_COL = vec3(1.42, 1.16, 0.80);
+const vec3 SKY_COL = vec3(0.30, 0.34, 0.52);
+const vec3 BOUNCE  = vec3(0.42, 0.20, 0.13);
+
+float hash11(float p){ p = fract(p*0.1031); p *= p+33.33; p *= p+p; return fract(p); }
+float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
+float noise2(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  f = f*f*(3.0-2.0*f);
+  return mix(mix(hash12(i), hash12(i+vec2(1,0)), f.x),
+             mix(hash12(i+vec2(0,1)), hash12(i+vec2(1,1)), f.x), f.y);
+}
+float fbm(vec2 p){
+  float v = 0.0, a = 0.5;
+  for(int i=0;i<4;i++){ v += a*noise2(p); p *= 2.03; a *= 0.5; }
+  return v;
+}
+`;
+
+  /* ---------------------------------------------------------------- scene */
+  const SCENE_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;
+layout(location=1) in vec3 aNrm;
+layout(location=2) in vec4 aM0;
+layout(location=3) in vec4 aM1;
+layout(location=4) in vec4 aM2;
+layout(location=5) in vec4 aM3;
+layout(location=6) in vec4 aCol;   // rgb = albedo, a = emissive amount
+uniform mat4 uViewProj;
+out vec3 vNrm; out vec3 vWorld; out vec4 vCol;
+void main(){
+  mat4 m = mat4(aM0,aM1,aM2,aM3);
+  vec4 wp = m * vec4(aPos,1.0);
+  vWorld = wp.xyz;
+  vNrm = normalize(mat3(m) * aNrm);
+  vCol = aCol;
+  gl_Position = uViewProj * wp;
+}`;
+
+  const SCENE_FS = `#version 300 es
+precision highp float;
+in vec3 vNrm; in vec3 vWorld; in vec4 vCol;
+uniform vec3 uCam;
+uniform vec3 uFog;
+uniform float uFogDensity;
+layout(location=0) out vec4 oCol;
+layout(location=1) out vec4 oBright;
+${COMMON}
+void main(){
+  vec3 N = normalize(vNrm);
+  vec3 V = normalize(uCam - vWorld);
+  float ndl = dot(N, SUN_DIR);
+  // three cartoon bands, softened so it still reads at speed
+  float band = smoothstep(-0.12, 0.06, ndl)*0.42 + smoothstep(0.24, 0.46, ndl)*0.38 + smoothstep(0.72,0.92,ndl)*0.20;
+  vec3 base = vCol.rgb;
+  vec3 amb = mix(BOUNCE, SKY_COL, N.y*0.5+0.5);
+  vec3 lit = base * (amb*0.82 + SUN_COL*band);
+  // rim light: subtle, and only where the surface faces up-ish, so it reads as
+  // sky bounce instead of turning every silhouette into a white blob
+  float fres = pow(1.0 - clamp(dot(N,V),0.0,1.0), 4.0);
+  lit += fres * mix(vec3(0.30,0.48,0.90), base, 0.5) * 0.16 * (0.35 + 0.65*smoothstep(-0.3,0.7,N.y));
+  // fake specular pop so metal reads shiny
+  float spec = pow(max(dot(reflect(-SUN_DIR,N), V),0.0), 40.0);
+  lit += spec * SUN_COL * 0.30;
+
+  float e = vCol.a;
+  // keep emissive colour saturated - adding a white floor here turns every
+  // glowing particle into a white blob once bloom hits it
+  vec3 col = mix(lit, base * 1.15, e);
+
+  float d = length(vWorld - uCam);
+  float fg = 1.0 - exp(-pow(d*uFogDensity, 2.0));
+  vec3 fogged = mix(col, uFog, fg*0.92);
+  oCol = vec4(fogged, 1.0);
+
+  float lum = dot(col, vec3(0.299,0.587,0.114));
+  vec3 bright = col * e * 1.45 + col * smoothstep(0.85, 1.5, lum) * 0.8;
+  oBright = vec4(bright * (1.0-fg), 1.0);
+}`;
+
+  /* --------------------------------------------------------------- ground */
+  const GROUND_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;
+uniform mat4 uViewProj;
+uniform vec3 uCenter;
+uniform float uSize;
+out vec3 vWorld;
+void main(){
+  vec3 p = vec3(aPos.x*uSize + uCenter.x, 0.0, aPos.z*uSize + uCenter.z);
+  vWorld = p;
+  gl_Position = uViewProj * vec4(p,1.0);
+}`;
+
+  const GROUND_FS = `#version 300 es
+precision highp float;
+in vec3 vWorld;
+uniform vec3 uCam;
+uniform vec3 uFog;
+uniform float uFogDensity;
+uniform float uTime;
+layout(location=0) out vec4 oCol;
+layout(location=1) out vec4 oBright;
+${COMMON}
+void main(){
+  vec2 p = vWorld.xz;
+  float grit = fbm(p*0.9)*0.5 + fbm(p*7.0)*0.12;
+  vec3 asphalt = mix(vec3(0.085,0.082,0.10), vec3(0.16,0.15,0.17), grit);
+  // patchy dead earth
+  float blot = smoothstep(0.52, 0.78, fbm(p*0.055));
+  asphalt = mix(asphalt, mix(vec3(0.22,0.15,0.09), vec3(0.30,0.22,0.11), grit), blot*0.85);
+
+  // cracked slab grid
+  vec2 g = abs(fract(p/6.0 + 0.5) - 0.5) * 6.0;
+  float line = 1.0 - smoothstep(0.0, 0.16, min(g.x, g.y));
+  float wob = noise2(p*0.55)*0.5;
+  asphalt = mix(asphalt, vec3(0.03,0.03,0.04), line*(0.55+wob*0.4));
+
+  // faint road markings for speed reference
+  float lane = step(0.965, fract(p.x/24.0)) * step(0.35, fract(p.y*0.0+ p.y));
+  float dash = step(0.5, fract(p.y*0.0 + vWorld.z/7.0));
+  asphalt = mix(asphalt, vec3(0.45,0.42,0.28), lane*dash*0.5);
+
+  vec3 N = vec3(0.0,1.0,0.0);
+  float band = smoothstep(-0.1,0.05,SUN_DIR.y)*0.45 + 0.4;
+  vec3 col = asphalt * (mix(BOUNCE,SKY_COL,0.75)*0.8 + SUN_COL*band*0.75);
+
+  float d = length(vWorld - uCam);
+  float fg = 1.0 - exp(-pow(d*uFogDensity, 2.0));
+  oCol = vec4(mix(col, uFog, fg), 1.0);
+  oBright = vec4(0.0,0.0,0.0,1.0);
+}`;
+
+  /* ------------------------------------------------------------------ sky */
+  const SKY_VS = `#version 300 es
+precision highp float;
+out vec2 vUv;
+void main(){
+  vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2);
+  vUv = p;
+  gl_Position = vec4(p*2.0-1.0, 1.0, 1.0);
+}`;
+
+  const SKY_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform mat4 uInvViewProj;
+uniform vec3 uCam;
+uniform vec3 uFog;
+uniform float uTime;
+layout(location=0) out vec4 oCol;
+layout(location=1) out vec4 oBright;
+${COMMON}
+void main(){
+  vec4 ndc = vec4(vUv*2.0-1.0, 1.0, 1.0);
+  vec4 w = uInvViewProj * ndc;
+  vec3 dir = normalize(w.xyz/w.w - uCam);
+  float h = clamp(dir.y, -1.0, 1.0);
+
+  vec3 low  = uFog;
+  vec3 mid  = vec3(0.55, 0.26, 0.20);
+  vec3 high = vec3(0.09, 0.10, 0.22);
+  vec3 col = mix(low, mid, smoothstep(-0.02, 0.22, h));
+  col = mix(col, high, smoothstep(0.16, 0.75, h));
+
+  // sun bruise
+  float sd = max(dot(dir, SUN_DIR), 0.0);
+  col += vec3(1.0,0.55,0.22) * pow(sd, 26.0) * 1.4;
+  col += vec3(0.9,0.42,0.18) * pow(sd, 4.0) * 0.28;
+
+  // drifting ash clouds
+  vec2 cp = dir.xz / max(abs(h)+0.16, 0.001);
+  float cl = fbm(cp*0.6 + vec2(uTime*0.012, uTime*0.005));
+  float cmask = smoothstep(0.48, 0.95, cl) * smoothstep(0.0, 0.28, h);
+  col = mix(col, mix(vec3(0.22,0.17,0.20), vec3(0.62,0.44,0.40), cl), cmask*0.75);
+
+  oCol = vec4(col, 1.0);
+  oBright = vec4(vec3(1.0,0.55,0.22) * pow(sd, 26.0) * 0.9, 1.0);
+}`;
+
+  /* ---------------------------------------------------------- blob shadow */
+  const SHADOW_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;
+layout(location=2) in vec4 aM0;
+layout(location=3) in vec4 aM1;
+layout(location=4) in vec4 aM2;
+layout(location=5) in vec4 aM3;
+layout(location=6) in vec4 aCol;
+uniform mat4 uViewProj;
+out vec2 vLocal; out float vStr;
+void main(){
+  mat4 m = mat4(aM0,aM1,aM2,aM3);
+  vLocal = aPos.xz * 2.0;
+  vStr = aCol.a;
+  gl_Position = uViewProj * (m * vec4(aPos,1.0));
+}`;
+
+  const SHADOW_FS = `#version 300 es
+precision highp float;
+in vec2 vLocal; in float vStr;
+layout(location=0) out vec4 oCol;
+layout(location=1) out vec4 oBright;
+void main(){
+  float r = length(vLocal);
+  float a = smoothstep(1.0, 0.15, r) * vStr;
+  oCol = vec4(vec3(1.0 - a), 1.0);   // multiplicative darkening
+  oBright = vec4(1.0);
+}`;
+
+  /* ---------------------------------------------------------------- decal */
+  const DECAL_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;
+layout(location=2) in vec4 aM0;
+layout(location=3) in vec4 aM1;
+layout(location=4) in vec4 aM2;
+layout(location=5) in vec4 aM3;
+layout(location=6) in vec4 aCol;
+uniform mat4 uViewProj;
+out vec2 vLocal; out vec4 vCol; out float vSeed; out vec3 vWorld;
+void main(){
+  mat4 m = mat4(aM0,aM1,aM2,aM3);
+  vec4 wp = m * vec4(aPos,1.0);
+  vLocal = aPos.xz * 2.0;
+  vCol = aCol;
+  vSeed = fract(aM3.x*0.137 + aM3.z*0.311)*20.0;
+  vWorld = wp.xyz;
+  gl_Position = uViewProj * wp;
+}`;
+
+  const DECAL_FS = `#version 300 es
+precision highp float;
+in vec2 vLocal; in vec4 vCol; in float vSeed; in vec3 vWorld;
+uniform vec3 uCam;
+uniform vec3 uFog;
+uniform float uFogDensity;
+layout(location=0) out vec4 oCol;
+layout(location=1) out vec4 oBright;
+${COMMON}
+void main(){
+  float r = length(vLocal);
+  float ang = atan(vLocal.y, vLocal.x);
+  float lobes = 0.62 + 0.30*sin(ang*3.0+vSeed) + 0.16*sin(ang*7.0-vSeed*2.0) + 0.10*noise2(vLocal*3.0+vSeed);
+  float a = smoothstep(lobes, lobes-0.30, r) * vCol.a;
+  if(a < 0.01) discard;
+  float d = length(vWorld - uCam);
+  float fg = 1.0 - exp(-pow(d*uFogDensity, 2.0));
+  vec3 c = mix(vCol.rgb * (0.55 + 0.45*noise2(vLocal*5.0+vSeed)), uFog, fg);
+  oCol = vec4(c, a*(1.0-fg));
+  oBright = vec4(0.0,0.0,0.0,1.0);
+}`;
+
+  /* ----------------------------------------------------------------- post */
+  const FS_QUAD_VS = `#version 300 es
+precision highp float;
+out vec2 vUv;
+void main(){
+  vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2);
+  vUv = p;
+  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);
+}`;
+
+  const BLUR_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uTex;
+uniform vec2 uDir;      // texel-sized step
+out vec4 oCol;
+void main(){
+  vec3 s = texture(uTex, vUv).rgb * 0.227027;
+  s += (texture(uTex, vUv + uDir*1.3846).rgb + texture(uTex, vUv - uDir*1.3846).rgb) * 0.316216;
+  s += (texture(uTex, vUv + uDir*3.2307).rgb + texture(uTex, vUv - uDir*3.2307).rgb) * 0.070270;
+  oCol = vec4(s, 1.0);
+}`;
+
+  const COMPOSITE_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uScene;
+uniform sampler2D uBloom;
+uniform float uBloomAmt;
+uniform float uAberration;
+uniform float uVignette;
+uniform float uTime;
+uniform float uFlash;
+uniform vec3  uFlashCol;
+uniform float uSpeedBlur;   // radial streak amount
+uniform float uHurt;
+out vec4 oCol;
+${COMMON}
+void main(){
+  vec2 uv = vUv;
+  vec2 d = uv - 0.5;
+  float r2 = dot(d,d);
+
+  // radial speed streaks
+  vec3 base = vec3(0.0);
+  if(uSpeedBlur > 0.001){
+    float w = 0.0;
+    for(int i=0;i<6;i++){
+      float t = float(i)/5.0;
+      float sc = 1.0 - t*uSpeedBlur*0.09*smoothstep(0.02,0.30,r2);
+      float wt = 1.0 - t*0.55;
+      base += texture(uScene, 0.5 + d*sc).rgb * wt;
+      w += wt;
+    }
+    base /= w;
+  } else {
+    base = texture(uScene, uv).rgb;
+  }
+
+  // chromatic aberration, strongest at the edges
+  float ab = uAberration * (0.35 + r2*2.4);
+  if(ab > 0.0002){
+    base.r = mix(base.r, texture(uScene, uv + d*ab).r, 0.9);
+    base.b = mix(base.b, texture(uScene, uv - d*ab).b, 0.9);
+  }
+
+  vec3 bloom = texture(uBloom, uv).rgb;
+  vec3 col = base + bloom * uBloomAmt;
+
+  // punchy grade
+  col = pow(max(col, 0.0), vec3(0.92));
+  col = mix(vec3(dot(col, vec3(0.299,0.587,0.114))), col, 1.22);
+  col *= mix(vec3(1.02,0.99,0.96), vec3(1.0), 0.4);
+
+  col += uFlashCol * uFlash;
+  col = mix(col, vec3(0.72,0.05,0.06), uHurt * (0.25 + r2*1.4));
+
+  float vig = smoothstep(0.95, 0.18, r2*2.0);
+  col *= mix(1.0, vig, uVignette);
+
+  // gentle filmic knee so explosions don't clip flat
+  col = col / (1.0 + col*0.22);
+  col *= 1.18;
+
+  float g = (hash12(uv*vec2(1920.0,1080.0) + fract(uTime)*137.0)-0.5) * 0.035;
+  col += g;
+
+  oCol = vec4(col, 1.0);
+}`;
+
+  BA.shaders = {
+    SCENE_VS, SCENE_FS, GROUND_VS, GROUND_FS, SKY_VS, SKY_FS,
+    SHADOW_VS, SHADOW_FS, DECAL_VS, DECAL_FS,
+    FS_QUAD_VS, BLUR_FS, COMPOSITE_FS,
+  };
+})();
+
+</script>
+<script>
+/* ---- src/render.js ---- */
+/* BADASS APOCALYPSE - WebGL2 instanced renderer + post stack */
+(function () {
+  'use strict';
+  const { m4, m4mul, m4perspective, m4lookAt, m4invert, composeInto, clamp } = BA;
+  const S = BA.shaders;
+
+  const FLOATS_PER_INST = 20; // mat4 + rgba
+
+  function compile(gl, type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      const log = gl.getShaderInfoLog(sh);
+      const numbered = src.split('\n').map((l, i) => `${i + 1}: ${l}`).join('\n');
+      throw new Error('shader compile failed:\n' + log + '\n' + numbered);
+    }
+    return sh;
+  }
+
+  function program(gl, vs, fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl, gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, compile(gl, gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+      throw new Error('link failed: ' + gl.getProgramInfoLog(p));
+    }
+    p.u = new Proxy({}, {
+      get(cache, name) {
+        if (!(name in cache)) cache[name] = gl.getUniformLocation(p, name);
+        return cache[name];
+      },
+    });
+    return p;
+  }
+
+  class Renderer {
+    constructor(canvas) {
+      const gl = canvas.getContext('webgl2', {
+        antialias: false, alpha: false, depth: true, stencil: false,
+        powerPreference: 'high-performance', preserveDrawingBuffer: false,
+      });
+      if (!gl) throw new Error('WebGL2 is required to run BADASS APOCALYPSE.');
+      this.gl = gl;
+      this.canvas = canvas;
+      this.w = 1; this.h = 1;
+
+      this.progScene = program(gl, S.SCENE_VS, S.SCENE_FS);
+      this.progGround = program(gl, S.GROUND_VS, S.GROUND_FS);
+      this.progSky = program(gl, S.SKY_VS, S.SKY_FS);
+      this.progShadow = program(gl, S.SHADOW_VS, S.SHADOW_FS);
+      this.progDecal = program(gl, S.DECAL_VS, S.DECAL_FS);
+      this.progBlur = program(gl, S.FS_QUAD_VS, S.BLUR_FS);
+      this.progComposite = program(gl, S.FS_QUAD_VS, S.COMPOSITE_FS);
+
+      this.emptyVao = gl.createVertexArray();
+
+      this.meshes = {};
+      const g = BA.geo;
+      this.addMesh('box', g.box());
+      this.addMesh('sphere', g.sphere(14, 10));
+      this.addMesh('cyl', g.cylinder(16, 'y'));
+      this.addMesh('cylX', g.cylinder(14, 'x'));
+      this.addMesh('cone', g.cone(10));
+      this.addMesh('disc', g.disc(26));
+      this.addMesh('ring', g.ring(44, 0.74));
+      this.addMesh('saw', g.saw(8));
+      this.addMesh('groundQuad', g.plane(1));
+
+      this.batches = { opaque: new Map(), glow: new Map(), shadow: new Map(), decal: new Map() };
+
+      this.view = m4();
+      this.proj = m4();
+      this.viewProj = m4();
+      this.invViewProj = m4();
+      this.camPos = [0, 10, 20];
+      this.fog = [0.40, 0.22, 0.19];
+      this.fogDensity = 0.0040;
+      this.time = 0;
+
+      this.post = { bloom: 1.0, aberration: 0.0, vignette: 1.0, flash: 0, flashCol: [1, 1, 1], speedBlur: 0, hurt: 0 };
+
+      this.fbo = null;
+      this.resize(canvas.clientWidth || 1280, canvas.clientHeight || 720, 1);
+    }
+
+    addMesh(name, geo) {
+      const gl = this.gl;
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+      const vbo = gl.createBuffer();
+      const interleaved = new Float32Array(geo.pos.length * 2);
+      for (let i = 0, n = geo.pos.length / 3; i < n; i++) {
+        interleaved[i * 6] = geo.pos[i * 3];
+        interleaved[i * 6 + 1] = geo.pos[i * 3 + 1];
+        interleaved[i * 6 + 2] = geo.pos[i * 3 + 2];
+        interleaved[i * 6 + 3] = geo.nrm[i * 3];
+        interleaved[i * 6 + 4] = geo.nrm[i * 3 + 1];
+        interleaved[i * 6 + 5] = geo.nrm[i * 3 + 2];
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, interleaved, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+      const ibo = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      const idx = geo.pos.length / 3 > 65535 ? new Uint32Array(geo.idx) : new Uint16Array(geo.idx);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+      gl.bindVertexArray(null);
+      this.meshes[name] = {
+        vao, vbo, ibo, count: geo.idx.length,
+        type: idx instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,
+      };
+    }
+
+    getBatch(layer, meshName) {
+      const map = this.batches[layer];
+      let b = map.get(meshName);
+      if (b) return b;
+      const gl = this.gl;
+      const mesh = this.meshes[meshName];
+      const cap = 256;
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vbo);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.ibo);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, cap * FLOATS_PER_INST * 4, gl.DYNAMIC_DRAW);
+      for (let i = 0; i < 5; i++) {
+        const loc = 2 + i;
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, FLOATS_PER_INST * 4, i * 16);
+        gl.vertexAttribDivisor(loc, 1);
+      }
+      gl.bindVertexArray(null);
+      b = { mesh, vao, buf, cap, count: 0, data: new Float32Array(cap * FLOATS_PER_INST) };
+      map.set(meshName, b);
+      return b;
+    }
+
+    reserve(b) {
+      if (b.count < b.cap) return true;
+      const gl = this.gl;
+      const cap = b.cap * 2;
+      if (cap > 200000) return false;
+      const data = new Float32Array(cap * FLOATS_PER_INST);
+      data.set(b.data);
+      b.data = data; b.cap = cap;
+      gl.bindBuffer(gl.ARRAY_BUFFER, b.buf);
+      gl.bufferData(gl.ARRAY_BUFFER, cap * FLOATS_PER_INST * 4, gl.DYNAMIC_DRAW);
+      return true;
+    }
+
+    /* the one call everything draws through */
+    push(mesh, layer, px, py, pz, yaw, pitch, roll, sx, sy, sz, r, g, b, emissive) {
+      const bt = this.getBatch(layer, mesh);
+      if (!this.reserve(bt)) return;
+      const off = bt.count * FLOATS_PER_INST;
+      composeInto(bt.data, off, px, py, pz, yaw, pitch, roll, sx, sy, sz);
+      bt.data[off + 16] = r; bt.data[off + 17] = g; bt.data[off + 18] = b; bt.data[off + 19] = emissive;
+      bt.count++;
+    }
+
+    shadow(x, z, radius, strength, y) {
+      this.push('disc', 'shadow', x, y === undefined ? 0.012 : y, z, 0, 0, 0, radius * 2, 1, radius * 2, 0, 0, 0, strength);
+    }
+
+    decal(x, z, radius, yaw, r, g, b, alpha) {
+      this.push('disc', 'decal', x, 0.02, z, yaw, 0, 0, radius * 2, 1, radius * 2, r, g, b, alpha);
+    }
+
+    resize(cssW, cssH, scale) {
+      const gl = this.gl;
+      const w = Math.max(2, Math.floor(cssW * scale));
+      const h = Math.max(2, Math.floor(cssH * scale));
+      if (w === this.w && h === this.h && this.fbo) return;
+      this.w = w; this.h = h;
+      this.canvas.width = w;
+      this.canvas.height = h;
+
+      if (this.fbo) {
+        gl.deleteFramebuffer(this.fbo.f);
+        gl.deleteTexture(this.fbo.color);
+        gl.deleteTexture(this.fbo.bright);
+        gl.deleteRenderbuffer(this.fbo.depth);
+        for (const p of this.pingpong) { gl.deleteFramebuffer(p.f); gl.deleteTexture(p.tex); }
+      }
+
+      const mkTex = (w2, h2) => {
+        const t = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w2, h2, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        return t;
+      };
+
+      const color = mkTex(w, h);
+      const bright = mkTex(w, h);
+      const depth = gl.createRenderbuffer();
+      gl.bindRenderbuffer(gl.RENDERBUFFER, depth);
+      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, w, h);
+      const f = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, color, 0);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, bright, 0);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
+      this.fbo = { f, color, bright, depth };
+
+      this.bw = Math.max(2, w >> 2);
+      this.bh = Math.max(2, h >> 2);
+      this.pingpong = [0, 1].map(() => {
+        const tex = mkTex(this.bw, this.bh);
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+        return { f: fb, tex };
+      });
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    setCamera(eye, target, up, fov, near, far) {
+      m4perspective(this.proj, fov, this.w / this.h, near, far);
+      m4lookAt(this.view, eye[0], eye[1], eye[2], target[0], target[1], target[2], up[0], up[1], up[2]);
+      m4mul(this.viewProj, this.proj, this.view);
+      m4invert(this.invViewProj, this.viewProj);
+      this.camPos[0] = eye[0]; this.camPos[1] = eye[1]; this.camPos[2] = eye[2];
+    }
+
+    beginFrame() {
+      for (const layer in this.batches) for (const b of this.batches[layer].values()) b.count = 0;
+    }
+
+    worldToScreen(x, y, z, out) {
+      const m = this.viewProj;
+      const cw = m[3] * x + m[7] * y + m[11] * z + m[15];
+      if (cw <= 0.001) { out[2] = -1; return out; }
+      const cx = m[0] * x + m[4] * y + m[8] * z + m[12];
+      const cy = m[1] * x + m[5] * y + m[9] * z + m[13];
+      out[0] = (cx / cw * 0.5 + 0.5);
+      out[1] = (1 - (cy / cw * 0.5 + 0.5));
+      out[2] = cw;
+      return out;
+    }
+
+    drawBatches(layer, prog) {
+      const gl = this.gl;
+      for (const b of this.batches[layer].values()) {
+        if (!b.count) continue;
+        gl.bindBuffer(gl.ARRAY_BUFFER, b.buf);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, b.data, 0, b.count * FLOATS_PER_INST);
+        gl.bindVertexArray(b.vao);
+        gl.drawElementsInstanced(gl.TRIANGLES, b.mesh.count, b.mesh.type, 0, b.count);
+      }
+    }
+
+    render(groundCenter) {
+      const gl = this.gl;
+      const P = this.post;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo.f);
+      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+      gl.viewport(0, 0, this.w, this.h);
+      gl.disable(gl.BLEND);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthMask(true);
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(gl.BACK);
+      gl.clearColor(this.fog[0], this.fog[1], this.fog[2], 1);
+      gl.clearDepth(1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      // sky
+      gl.depthMask(false);
+      gl.disable(gl.DEPTH_TEST);
+      gl.useProgram(this.progSky);
+      gl.uniformMatrix4fv(this.progSky.u.uInvViewProj, false, this.invViewProj);
+      gl.uniform3fv(this.progSky.u.uCam, this.camPos);
+      gl.uniform3fv(this.progSky.u.uFog, this.fog);
+      gl.uniform1f(this.progSky.u.uTime, this.time);
+      gl.bindVertexArray(this.emptyVao);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthMask(true);
+
+      // ground
+      gl.useProgram(this.progGround);
+      gl.uniformMatrix4fv(this.progGround.u.uViewProj, false, this.viewProj);
+      gl.uniform3fv(this.progGround.u.uCam, this.camPos);
+      gl.uniform3fv(this.progGround.u.uFog, this.fog);
+      gl.uniform1f(this.progGround.u.uFogDensity, this.fogDensity);
+      gl.uniform1f(this.progGround.u.uTime, this.time);
+      gl.uniform3f(this.progGround.u.uCenter, groundCenter[0], 0, groundCenter[1]);
+      gl.uniform1f(this.progGround.u.uSize, 1600);
+      const gq = this.meshes.groundQuad;
+      gl.bindVertexArray(gq.vao);
+      gl.drawElements(gl.TRIANGLES, gq.count, gq.type, 0);
+
+      // decals (alpha)
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.depthMask(false);
+      gl.useProgram(this.progDecal);
+      gl.uniformMatrix4fv(this.progDecal.u.uViewProj, false, this.viewProj);
+      gl.uniform3fv(this.progDecal.u.uCam, this.camPos);
+      gl.uniform3fv(this.progDecal.u.uFog, this.fog);
+      gl.uniform1f(this.progDecal.u.uFogDensity, this.fogDensity);
+      this.drawBatches('decal', this.progDecal);
+
+      // blob shadows (multiply)
+      gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
+      gl.useProgram(this.progShadow);
+      gl.uniformMatrix4fv(this.progShadow.u.uViewProj, false, this.viewProj);
+      this.drawBatches('shadow', this.progShadow);
+
+      // opaque world
+      gl.disable(gl.BLEND);
+      gl.depthMask(true);
+      gl.useProgram(this.progScene);
+      gl.uniformMatrix4fv(this.progScene.u.uViewProj, false, this.viewProj);
+      gl.uniform3fv(this.progScene.u.uCam, this.camPos);
+      gl.uniform3fv(this.progScene.u.uFog, this.fog);
+      gl.uniform1f(this.progScene.u.uFogDensity, this.fogDensity);
+      this.drawBatches('opaque', this.progScene);
+
+      // additive glow
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.depthMask(false);
+      this.drawBatches('glow', this.progScene);
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
+
+      /* ---- bloom ---- */
+      gl.bindVertexArray(this.emptyVao);
+      gl.viewport(0, 0, this.bw, this.bh);
+      gl.useProgram(this.progBlur);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.uniform1i(this.progBlur.u.uTex, 0);
+      let src = this.fbo.bright;
+      for (let i = 0; i < 4; i++) {
+        const dst = this.pingpong[i & 1];
+        gl.bindFramebuffer(gl.FRAMEBUFFER, dst.f);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        gl.bindTexture(gl.TEXTURE_2D, src);
+        const horiz = (i & 1) === 0;
+        gl.uniform2f(this.progBlur.u.uDir, horiz ? 1.35 / this.bw : 0, horiz ? 0 : 1.35 / this.bh);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        src = dst.tex;
+      }
+
+      /* ---- composite ---- */
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, this.w, this.h);
+      gl.useProgram(this.progComposite);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.fbo.color);
+      gl.uniform1i(this.progComposite.u.uScene, 0);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, src);
+      gl.uniform1i(this.progComposite.u.uBloom, 1);
+      gl.uniform1f(this.progComposite.u.uBloomAmt, P.bloom);
+      gl.uniform1f(this.progComposite.u.uAberration, P.aberration);
+      gl.uniform1f(this.progComposite.u.uVignette, P.vignette);
+      gl.uniform1f(this.progComposite.u.uTime, this.time);
+      gl.uniform1f(this.progComposite.u.uFlash, P.flash);
+      gl.uniform3fv(this.progComposite.u.uFlashCol, P.flashCol);
+      gl.uniform1f(this.progComposite.u.uSpeedBlur, P.speedBlur);
+      gl.uniform1f(this.progComposite.u.uHurt, P.hurt);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.bindVertexArray(null);
+    }
+  }
+
+  BA.Renderer = Renderer;
+})();
+
+</script>
+<script>
+/* ---- src/audio.js ---- */
+/* BADASS APOCALYPSE - procedural audio (WebAudio, zero samples) */
+(function () {
+  'use strict';
+  const { clamp, lerp, rand, pick } = BA;
+
+  class Audio {
+    constructor() {
+      this.ctx = null;
+      this.ready = false;
+      this.muted = false;
+      this.engineOn = false;
+      this.nextBeat = 0;
+      this.beat = 0;
+      this.intensity = 0;
+    }
+
+    init() {
+      if (this.ctx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      this.ctx = ctx;
+
+      const master = ctx.createGain();
+      master.gain.value = 0.75;
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -14;
+      comp.knee.value = 22;
+      comp.ratio.value = 9;
+      comp.attack.value = 0.004;
+      comp.release.value = 0.18;
+      master.connect(comp).connect(ctx.destination);
+      this.master = master;
+
+      this.sfxBus = ctx.createGain(); this.sfxBus.gain.value = 1.0; this.sfxBus.connect(master);
+      this.musicBus = ctx.createGain(); this.musicBus.gain.value = 0.42; this.musicBus.connect(master);
+
+      // shared noise buffer
+      const n = ctx.sampleRate * 2;
+      const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      this.noiseBuf = buf;
+
+      this.buildEngine();
+      this.ready = true;
+      this.nextBeat = ctx.currentTime + 0.1;
+    }
+
+    resume() {
+      if (!this.ctx) this.init();
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    }
+
+    noise(dur, gain, type, f0, f1, q, dest) {
+      const ctx = this.ctx, t = ctx.currentTime;
+      const src = ctx.createBufferSource();
+      src.buffer = this.noiseBuf;
+      src.loop = true;
+      src.playbackRate.value = rand(0.85, 1.2);
+      const flt = ctx.createBiquadFilter();
+      flt.type = type || 'lowpass';
+      flt.frequency.setValueAtTime(f0, t);
+      flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t + dur);
+      flt.Q.value = q || 1;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(flt).connect(g).connect(dest || this.sfxBus);
+      src.start(t);
+      src.stop(t + dur + 0.02);
+      return g;
+    }
+
+    tone(freq, dur, gain, type, freqEnd, dest, delay) {
+      const ctx = this.ctx, t = ctx.currentTime + (delay || 0);
+      const o = ctx.createOscillator();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      if (freqEnd) o.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), t + dur);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + Math.min(0.012, dur * 0.2));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(dest || this.sfxBus);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+      return o;
+    }
+
+    /* ------------------------------------------------------------ engine */
+    buildEngine() {
+      const ctx = this.ctx;
+      const g = ctx.createGain(); g.gain.value = 0;
+      const flt = ctx.createBiquadFilter();
+      flt.type = 'lowpass'; flt.frequency.value = 900; flt.Q.value = 3.2;
+      const dist = ctx.createWaveShaper();
+      const curve = new Float32Array(1024);
+      for (let i = 0; i < 1024; i++) {
+        const x = (i / 512) - 1;
+        curve[i] = Math.tanh(x * 2.6);
+      }
+      dist.curve = curve;
+
+      this.eOsc = [];
+      for (let i = 0; i < 3; i++) {
+        const o = ctx.createOscillator();
+        o.type = i === 2 ? 'square' : 'sawtooth';
+        o.frequency.value = 60;
+        const og = ctx.createGain();
+        og.gain.value = i === 2 ? 0.18 : 0.4;
+        o.connect(og).connect(dist);
+        o.start();
+        this.eOsc.push({ o, mul: [1, 0.503, 2.01][i] });
+      }
+      dist.connect(flt).connect(g).connect(this.master);
+      this.engineGain = g;
+      this.engineFilter = flt;
+
+      // tyre skid
+      const sN = ctx.createBufferSource();
+      sN.buffer = this.noiseBuf; sN.loop = true;
+      const sF = ctx.createBiquadFilter();
+      sF.type = 'bandpass'; sF.frequency.value = 2400; sF.Q.value = 4;
+      const sG = ctx.createGain(); sG.gain.value = 0;
+      sN.connect(sF).connect(sG).connect(this.master);
+      sN.start();
+      this.skidGain = sG; this.skidFilter = sF;
+
+      // wind
+      const wN = ctx.createBufferSource();
+      wN.buffer = this.noiseBuf; wN.loop = true;
+      const wF = ctx.createBiquadFilter();
+      wF.type = 'bandpass'; wF.frequency.value = 700; wF.Q.value = 0.7;
+      const wG = ctx.createGain(); wG.gain.value = 0;
+      wN.connect(wF).connect(wG).connect(this.master);
+      wN.start();
+      this.windGain = wG;
+    }
+
+    engine(rpm01, load, skid01, speed01, airborne) {
+      if (!this.ready || this.muted) return;
+      const t = this.ctx.currentTime;
+      const base = lerp(46, 168, rpm01);
+      for (const e of this.eOsc) e.o.frequency.setTargetAtTime(base * e.mul, t, 0.04);
+      this.engineFilter.frequency.setTargetAtTime(lerp(420, 2600, rpm01 * 0.7 + load * 0.3), t, 0.06);
+      this.engineGain.gain.setTargetAtTime(0.16 + load * 0.14 + (airborne ? 0.06 : 0), t, 0.07);
+      this.skidGain.gain.setTargetAtTime(skid01 * 0.13, t, 0.05);
+      this.skidFilter.frequency.setTargetAtTime(lerp(1400, 3400, skid01), t, 0.06);
+      this.windGain.gain.setTargetAtTime(speed01 * speed01 * 0.055, t, 0.12);
+    }
+
+    silenceEngine() {
+      if (!this.ready) return;
+      const t = this.ctx.currentTime;
+      this.engineGain.gain.setTargetAtTime(0, t, 0.1);
+      this.skidGain.gain.setTargetAtTime(0, t, 0.1);
+      this.windGain.gain.setTargetAtTime(0, t, 0.1);
+    }
+
+    /* --------------------------------------------------------------- sfx */
+    hit(power) {
+      if (!this.ready || this.muted) return;
+      const p = clamp(power, 0, 1);
+      this.noise(0.09 + p * 0.1, 0.30 + p * 0.4, 'lowpass', 900 + p * 2200, 120, 1.2);
+      this.tone(rand(70, 120), 0.13, 0.28 + p * 0.25, 'square', 38);
+    }
+    squish() {
+      if (!this.ready || this.muted) return;
+      this.noise(0.14, 0.22, 'bandpass', rand(500, 900), 180, 2.4);
+    }
+    explode(size) {
+      if (!this.ready || this.muted) return;
+      const s = clamp(size, 0.4, 2);
+      this.noise(0.5 * s, 0.55, 'lowpass', 1800, 60, 0.8);
+      this.tone(rand(90, 130), 0.42 * s, 0.42, 'triangle', 28);
+      this.noise(0.16, 0.3, 'highpass', 3000, 1200, 0.8);
+    }
+    shoot() {
+      if (!this.ready || this.muted) return;
+      this.noise(0.06, 0.13, 'highpass', 2400, 900, 1.0);
+      this.tone(rand(320, 420), 0.06, 0.10, 'square', 140);
+    }
+    rocket() {
+      if (!this.ready || this.muted) return;
+      this.noise(0.28, 0.2, 'bandpass', 600, 2600, 1.6);
+      this.tone(180, 0.2, 0.14, 'sawtooth', 620);
+    }
+    zap() {
+      if (!this.ready || this.muted) return;
+      this.noise(0.16, 0.24, 'highpass', 5200, 1400, 1.4);
+      this.tone(1400, 0.12, 0.12, 'square', 300);
+    }
+    pickup(pitch) {
+      if (!this.ready || this.muted) return;
+      this.tone(520 * (1 + pitch * 0.5), 0.07, 0.07, 'triangle', 900 * (1 + pitch * 0.4));
+    }
+    boost() {
+      if (!this.ready || this.muted) return;
+      this.noise(0.45, 0.28, 'bandpass', 380, 3200, 2.2);
+      this.tone(160, 0.35, 0.2, 'sawtooth', 720);
+    }
+    jump() {
+      if (!this.ready || this.muted) return;
+      this.tone(220, 0.16, 0.16, 'triangle', 640);
+      this.noise(0.12, 0.1, 'bandpass', 900, 2000, 1.4);
+    }
+    land(p) {
+      if (!this.ready || this.muted) return;
+      this.noise(0.18, 0.22 + p * 0.3, 'lowpass', 700, 90, 1.0);
+      this.tone(90, 0.2, 0.2 + p * 0.2, 'sine', 40);
+    }
+    hurt() {
+      if (!this.ready || this.muted) return;
+      this.tone(180, 0.3, 0.3, 'sawtooth', 60);
+      this.noise(0.24, 0.24, 'lowpass', 700, 120, 1.0);
+    }
+    levelUp() {
+      if (!this.ready || this.muted) return;
+      [0, 4, 7, 12, 16].forEach((s, i) => {
+        this.tone(330 * Math.pow(2, s / 12), 0.30, 0.13, 'triangle', null, this.sfxBus, i * 0.065);
+      });
+    }
+    ui() {
+      if (!this.ready || this.muted) return;
+      this.tone(660, 0.05, 0.08, 'square', 880);
+    }
+    bigBad() {
+      if (!this.ready || this.muted) return;
+      this.tone(58, 1.1, 0.34, 'sawtooth', 34);
+      this.noise(0.9, 0.3, 'lowpass', 500, 70, 1.0);
+    }
+    gameOver() {
+      if (!this.ready || this.muted) return;
+      [0, -3, -7, -12].forEach((s, i) => {
+        this.tone(300 * Math.pow(2, s / 12), 0.7, 0.16, 'sawtooth', null, this.sfxBus, i * 0.19);
+      });
+    }
+
+    /* ------------------------------------------------------------- music */
+    updateMusic(dt, intensity, playing) {
+      if (!this.ready || this.muted) return;
+      this.intensity = lerp(this.intensity, playing ? clamp(intensity, 0, 1) : 0, 1 - Math.exp(-1.5 * dt));
+      const ctx = this.ctx;
+      this.musicBus.gain.setTargetAtTime(playing ? 0.40 : 0.10, ctx.currentTime, 0.4);
+      const bpm = lerp(104, 150, this.intensity);
+      const spb = 60 / bpm / 2; // eighth notes
+      let guard = 0;
+      while (this.nextBeat < ctx.currentTime + 0.25 && guard++ < 16) {
+        this.step(this.nextBeat, this.beat);
+        this.nextBeat += spb;
+        this.beat++;
+      }
+    }
+
+    step(t, i) {
+      const ctx = this.ctx, bus = this.musicBus;
+      const b = i % 16;
+      const inten = this.intensity;
+      const kick = (b % 4 === 0) || (b === 10 && inten > 0.35);
+      if (kick) {
+        const o = ctx.createOscillator(); o.type = 'sine';
+        const g = ctx.createGain();
+        o.frequency.setValueAtTime(150, t);
+        o.frequency.exponentialRampToValueAtTime(42, t + 0.11);
+        g.gain.setValueAtTime(0.6, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+        o.connect(g).connect(bus); o.start(t); o.stop(t + 0.26);
+      }
+      if (b % 8 === 4) {
+        const s = ctx.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true;
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1900; f.Q.value = 1.1;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.30, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+        s.connect(f).connect(g).connect(bus); s.start(t); s.stop(t + 0.18);
+      }
+      if (inten > 0.15 && b % 2 === 1) {
+        const s = ctx.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true;
+        const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.07 * inten, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+        s.connect(f).connect(g).connect(bus); s.start(t); s.stop(t + 0.06);
+      }
+      // driving minor bassline
+      const seq = [0, 0, 3, 0, 5, 0, 3, -2];
+      const semi = seq[(i >> 1) % seq.length] - 12;
+      if (b % 2 === 0 || inten > 0.5) {
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass';
+        f.frequency.setValueAtTime(300 + 900 * inten, t);
+        f.frequency.exponentialRampToValueAtTime(180, t + 0.2);
+        f.Q.value = 6;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16 + 0.1 * inten, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.19);
+        o.frequency.value = 110 * Math.pow(2, semi / 12);
+        o.connect(f).connect(g).connect(bus); o.start(t); o.stop(t + 0.22);
+      }
+      if (inten > 0.55 && (b === 6 || b === 14)) {
+        const o = ctx.createOscillator(); o.type = 'square';
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.055, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        o.frequency.value = 440 * Math.pow(2, (semi + 7) / 12);
+        o.connect(g).connect(bus); o.start(t); o.stop(t + 0.32);
+      }
+    }
+  }
+
+  BA.Audio = Audio;
+})();
+
+</script>
+<script>
+/* ---- src/input.js ---- */
+/* BADASS APOCALYPSE - keyboard / gamepad / touch */
+(function () {
+  'use strict';
+  const { clamp } = BA;
+
+  class Input {
+    constructor(el) {
+      this.keys = Object.create(null);
+      this.pressed = Object.create(null);
+      this.steer = 0; this.throttle = 0; this.brake = 0;
+      this.handbrake = false; this.jump = false; this.jumpPressed = false;
+      this.touch = { active: false, steer: 0, throttle: 0, drift: false, jump: false };
+      this.anyPress = false;
+
+      const down = (e) => {
+        const k = e.code;
+        if (!this.keys[k]) this.pressed[k] = true;
+        this.keys[k] = true;
+        this.anyPress = true;
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(k)) e.preventDefault();
+      };
+      const up = (e) => { this.keys[e.code] = false; };
+      window.addEventListener('keydown', down);
+      window.addEventListener('keyup', up);
+      window.addEventListener('blur', () => { this.keys = Object.create(null); });
+
+      // ---- touch: left half steers, right half is gas; two-finger = drift
+      const zone = el;
+      const pointers = new Map();
+      const onDown = (e) => {
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now() });
+        this.anyPress = true;
+        if (e.pointerType === 'touch') this.touch.active = true;
+      };
+      const onMove = (e) => {
+        const p = pointers.get(e.pointerId);
+        if (p) { p.x = e.clientX; p.y = e.clientY; }
+      };
+      const onUp = (e) => {
+        const p = pointers.get(e.pointerId);
+        if (p && e.pointerType === 'touch') {
+          const dt = performance.now() - p.t;
+          const moved = Math.hypot(p.x - p.sx, p.y - p.sy);
+          if (dt < 260 && moved < 22 && p.sx > window.innerWidth * 0.5) this.touch.jump = true;
+        }
+        pointers.delete(e.pointerId);
+      };
+      zone.addEventListener('pointerdown', onDown);
+      zone.addEventListener('pointermove', onMove);
+      zone.addEventListener('pointerup', onUp);
+      zone.addEventListener('pointercancel', onUp);
+      this.pointers = pointers;
+    }
+
+    consume(code) {
+      if (this.pressed[code]) { this.pressed[code] = false; return true; }
+      return false;
+    }
+
+    update() {
+      const k = this.keys;
+      let steer = 0, thr = 0, brake = 0;
+      if (k.KeyA || k.ArrowLeft) steer -= 1;
+      if (k.KeyD || k.ArrowRight) steer += 1;
+      if (k.KeyW || k.ArrowUp) thr += 1;
+      if (k.KeyS || k.ArrowDown) brake += 1;
+      let hb = !!(k.ShiftLeft || k.ShiftRight);
+      let jump = !!k.Space;
+
+      // ---- gamepad
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (const p of pads) {
+        if (!p) continue;
+        const ax = p.axes[0] || 0;
+        if (Math.abs(ax) > 0.14) steer += ax;
+        const rt = p.buttons[7] ? p.buttons[7].value : 0;
+        const lt = p.buttons[6] ? p.buttons[6].value : 0;
+        thr += rt;
+        brake += lt;
+        if (p.buttons[0] && p.buttons[0].pressed) jump = true;
+        if ((p.buttons[1] && p.buttons[1].pressed) || (p.buttons[5] && p.buttons[5].pressed)) hb = true;
+        if (p.buttons.some((b) => b && b.pressed)) this.anyPress = true;
+        break;
+      }
+
+      // ---- touch
+      if (this.touch.active) {
+        let steerTouch = 0, gas = 0, drift = false;
+        let n = 0;
+        for (const p of this.pointers.values()) {
+          if (p.sx < window.innerWidth * 0.5) {
+            steerTouch = clamp((p.x - p.sx) / 70, -1, 1);
+          } else {
+            gas = 1; n++;
+          }
+        }
+        if (n >= 2) drift = true;
+        steer += steerTouch;
+        thr += gas;
+        if (drift) hb = true;
+        if (this.touch.jump) { jump = true; this.touch.jump = false; }
+      }
+
+      const prevJump = this.jump;
+      this.steer = clamp(steer, -1, 1);
+      this.throttle = clamp(thr, 0, 1);
+      this.brake = clamp(brake, 0, 1);
+      this.handbrake = hb;
+      this.jump = jump;
+      this.jumpPressed = jump && !prevJump;
+    }
+  }
+
+  BA.Input = Input;
+})();
+
+</script>
+<script>
+/* ---- src/particles.js ---- */
+/* BADASS APOCALYPSE - particles, shockwaves, decals, floating text */
+(function () {
+  'use strict';
+  const { rand, randSign, clamp, clamp01, lerp, TAU } = BA;
+
+  const MAX_P = 2200;
+
+  class FX {
+    constructor() {
+      this.pool = [];
+      this.live = [];
+      for (let i = 0; i < MAX_P; i++) {
+        this.pool.push({
+          x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+          ry: 0, rx: 0, rz: 0, rvx: 0, rvy: 0, rvz: 0,
+          sx: 1, sy: 1, sz: 1, r: 1, g: 1, b: 1, e: 0,
+          life: 0, max: 1, grav: 0, drag: 0, bounce: 0,
+          mesh: 'box', layer: 'opaque', shrink: 1, stretch: 0, spin: 0,
+        });
+      }
+      this.waves = [];
+      this.texts = [];
+      this.decals = [];
+      this.decalIdx = 0;
+      this.maxDecals = 260;
+    }
+
+    spawn() {
+      if (!this.pool.length) {
+        // recycle the oldest
+        const p = this.live.shift();
+        if (!p) return null;
+        this.live.push(p);
+        return p;
+      }
+      const p = this.pool.pop();
+      p.fade = 0; p.stretch = 0; p.e = 0;
+      this.live.push(p);
+      return p;
+    }
+
+    /* -------------------------------------------------------- emitters */
+    blood(x, y, z, dx, dy, dz, count, power, col) {
+      const c = col || [0.62, 0.06, 0.09];
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        const s = rand(0.11, 0.3) * (0.7 + clamp01(power / 14) * 0.75);
+        p.x = x + rand(-0.3, 0.3); p.y = y + rand(-0.2, 0.4); p.z = z + rand(-0.3, 0.3);
+        const spread = 0.75;
+        p.vx = dx * power * rand(0.4, 1.4) + rand(-spread, spread) * power;
+        p.vy = dy * power * rand(0.3, 1.2) + rand(1.5, 7.5);
+        p.vz = dz * power * rand(0.4, 1.4) + rand(-spread, spread) * power;
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-9, 9); p.rvy = rand(-9, 9); p.rvz = rand(-9, 9);
+        p.sx = s; p.sy = s * rand(0.6, 1.3); p.sz = s;
+        p.r = c[0] * rand(0.75, 1.15); p.g = c[1] * rand(0.7, 1.4); p.b = c[2] * rand(0.7, 1.3);
+        p.e = 0;
+        p.max = p.life = rand(0.7, 1.6);
+        p.grav = 26; p.drag = 0.6; p.bounce = 0.28;
+        p.mesh = 'box'; p.layer = 'opaque'; p.shrink = 0.55; p.stretch = 0.5;
+      }
+    }
+
+    gibs(x, y, z, dx, dy, dz, count, power, col) {
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        const s = rand(0.22, 0.55);
+        p.x = x + rand(-0.4, 0.4); p.y = y + rand(0.1, 1.2); p.z = z + rand(-0.4, 0.4);
+        p.vx = dx * power * rand(0.5, 1.5) + rand(-4, 4);
+        p.vy = rand(4, 11) + dy * power * 0.4;
+        p.vz = dz * power * rand(0.5, 1.5) + rand(-4, 4);
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-16, 16); p.rvy = rand(-16, 16); p.rvz = rand(-16, 16);
+        p.sx = s * rand(0.7, 1.5); p.sy = s * rand(0.7, 1.6); p.sz = s * rand(0.7, 1.4);
+        const c = col || [0.44, 0.55, 0.30];
+        p.r = c[0] * rand(0.8, 1.15); p.g = c[1] * rand(0.8, 1.15); p.b = c[2] * rand(0.8, 1.15);
+        p.e = 0;
+        p.max = p.life = rand(1.4, 2.6);
+        p.grav = 28; p.drag = 0.35; p.bounce = 0.42;
+        p.mesh = 'box'; p.layer = 'opaque'; p.shrink = 0.15;
+      }
+    }
+
+    sparks(x, y, z, count, r, g, b, power) {
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        p.x = x; p.y = y; p.z = z;
+        const a = rand(TAU), e = rand(0.1, 1.3);
+        const sp = rand(3, 15) * (power || 1);
+        p.vx = Math.cos(a) * sp; p.vy = e * sp * 0.7; p.vz = Math.sin(a) * sp;
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-20, 20); p.rvy = rand(-20, 20); p.rvz = rand(-20, 20);
+        const s = rand(0.07, 0.17);
+        p.sx = s; p.sy = s; p.sz = s * rand(1, 3.5);
+        p.r = r; p.g = g; p.b = b; p.e = 1;
+        p.max = p.life = rand(0.22, 0.6);
+        p.grav = 16; p.drag = 1.4; p.bounce = 0.4;
+        p.mesh = 'box'; p.layer = 'glow'; p.shrink = 0.9; p.stretch = 1.4;
+      }
+    }
+
+    smoke(x, y, z, count, size, r, g, b, up) {
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        p.x = x + rand(-0.5, 0.5); p.y = y + rand(0, 0.4); p.z = z + rand(-0.5, 0.5);
+        p.vx = rand(-1.4, 1.4); p.vy = rand(0.6, 2.6) * (up || 1); p.vz = rand(-1.4, 1.4);
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-1.4, 1.4); p.rvy = rand(-1.4, 1.4); p.rvz = rand(-1.4, 1.4);
+        const s = size * rand(0.9, 1.5);
+        p.sx = p.sy = p.sz = s;
+        p.r = r; p.g = g; p.b = b * 1.04; p.e = 0;
+        p.max = p.life = rand(0.4, 0.95);
+        p.grav = -1.2; p.drag = 2.4; p.bounce = 0;
+        // puffs shrink away rather than darken - opaque geometry can't fade out
+        p.mesh = 'sphere'; p.layer = 'opaque'; p.shrink = 0.94; p.fade = 0.35;
+      }
+    }
+
+    fire(x, y, z, count, size, power) {
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        p.x = x + rand(-0.4, 0.4); p.y = y + rand(0, 0.5); p.z = z + rand(-0.4, 0.4);
+        p.vx = rand(-2, 2) * (power || 1); p.vy = rand(2, 7); p.vz = rand(-2, 2) * (power || 1);
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-4, 4); p.rvy = rand(-4, 4); p.rvz = rand(-4, 4);
+        const s = size * rand(0.6, 1.5);
+        p.sx = p.sy = p.sz = s;
+        const t = rand(0, 1);
+        p.r = 0.85; p.g = lerp(0.48, 0.15, t); p.b = lerp(0.14, 0.02, t); p.e = 1;
+        p.max = p.life = rand(0.25, 0.65);
+        p.grav = -4; p.drag = 1.6; p.bounce = 0;
+        p.mesh = 'sphere'; p.layer = 'glow'; p.shrink = 0.8;
+      }
+    }
+
+    shard(x, y, z, count, r, g, b) {
+      for (let i = 0; i < count; i++) {
+        const p = this.spawn(); if (!p) return;
+        p.x = x; p.y = y; p.z = z;
+        const a = rand(TAU);
+        p.vx = Math.cos(a) * rand(2, 9); p.vy = rand(2, 9); p.vz = Math.sin(a) * rand(2, 9);
+        p.rx = rand(TAU); p.ry = rand(TAU); p.rz = rand(TAU);
+        p.rvx = rand(-12, 12); p.rvy = rand(-12, 12); p.rvz = rand(-12, 12);
+        const s = rand(0.14, 0.3);
+        p.sx = s; p.sy = s * 0.25; p.sz = s * rand(1, 2);
+        p.r = r; p.g = g; p.b = b; p.e = 0.1;
+        p.max = p.life = rand(0.8, 1.8);
+        p.grav = 30; p.drag = 0.4; p.bounce = 0.5;
+        p.mesh = 'box'; p.layer = 'opaque'; p.shrink = 0.2;
+      }
+    }
+
+    wave(x, y, z, r0, r1, dur, cr, cg, cb, thick) {
+      this.waves.push({ x, y, z, r0, r1, t: 0, dur, r: cr, g: cg, b: cb, thick: thick || 1 });
+    }
+
+    text(x, y, z, str, col, size, kind) {
+      if (this.texts.length > 60) this.texts.shift();
+      this.texts.push({ x, y, z, str, col: col || '#fff', size: size || 22, t: 0, dur: kind === 'big' ? 1.5 : 0.9, kind: kind || 'small', vy: kind === 'big' ? 2.4 : 3.4, jx: rand(-0.6, 0.6) });
+    }
+
+    splat(x, z, radius, r, g, b, alpha) {
+      const d = { x, z, radius, yaw: rand(TAU), r, g, b, a: alpha === undefined ? 0.85 : alpha, born: 0 };
+      if (this.decals.length < this.maxDecals) this.decals.push(d);
+      else { this.decals[this.decalIdx] = d; this.decalIdx = (this.decalIdx + 1) % this.maxDecals; }
+    }
+
+    /* ---------------------------------------------------------- update */
+    update(dt, groundAt) {
+      const live = this.live;
+      for (let i = live.length - 1; i >= 0; i--) {
+        const p = live[i];
+        p.life -= dt;
+        if (p.life <= 0) {
+          live.splice(i, 1);
+          this.pool.push(p);
+          continue;
+        }
+        const dragK = Math.exp(-p.drag * dt);
+        p.vx *= dragK; p.vz *= dragK;
+        p.vy = (p.vy - p.grav * dt) * (p.grav < 0 ? dragK : 1);
+        p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+        const gy = groundAt ? groundAt(p.x, p.z) : 0;
+        if (p.y < gy + p.sy * 0.4 && p.bounce > 0) {
+          p.y = gy + p.sy * 0.4;
+          if (p.vy < 0) {
+            p.vy = -p.vy * p.bounce;
+            p.vx *= 0.62; p.vz *= 0.62;
+            p.rvx *= 0.5; p.rvz *= 0.5;
+            if (Math.abs(p.vy) < 0.7) { p.vy = 0; p.grav = 0; p.rvx = p.rvy = p.rvz = 0; }
+          }
+        } else if (p.y < gy && p.bounce === 0) {
+          p.y = gy;
+        }
+        p.rx += p.rvx * dt; p.ry += p.rvy * dt; p.rz += p.rvz * dt;
+      }
+
+      for (let i = this.waves.length - 1; i >= 0; i--) {
+        const w = this.waves[i];
+        w.t += dt;
+        if (w.t >= w.dur) this.waves.splice(i, 1);
+      }
+      for (let i = this.texts.length - 1; i >= 0; i--) {
+        const t = this.texts[i];
+        t.t += dt;
+        t.y += t.vy * dt;
+        t.vy *= Math.exp(-2.4 * dt);
+        if (t.t >= t.dur) this.texts.splice(i, 1);
+      }
+    }
+
+    /* ------------------------------------------------------------ draw */
+    draw(R) {
+      for (const p of this.live) {
+        const k = clamp01(p.life / p.max);
+        let sx = p.sx, sy = p.sy, sz = p.sz;
+        if (p.shrink > 0) {
+          const f = lerp(1 - p.shrink, 1, k);
+          sx *= f; sy *= f; sz *= f;
+        } else if (p.shrink < 0) {
+          const f = lerp(1 - p.shrink, 1, k);
+          sx *= f; sy *= f; sz *= f;
+        }
+        if (p.stretch) {
+          const sp = Math.hypot(p.vx, p.vy, p.vz);
+          const st = 1 + clamp(sp * 0.028 * p.stretch, 0, 1.7);
+          sz *= st;
+          sx /= Math.sqrt(st); sy /= Math.sqrt(st);
+        }
+        const e = p.layer === 'glow' ? p.e * (0.35 + k * 0.9) : p.e;
+        const dim = p.layer === 'glow' ? k : (p.fade ? lerp(1 - p.fade, 1, k * k) : 1);
+        R.push(p.mesh, p.layer, p.x, p.y, p.z, p.ry, p.rx, p.rz, sx, sy, sz,
+          p.r * dim, p.g * dim, p.b * dim, e);
+      }
+
+      for (const w of this.waves) {
+        const k = clamp01(w.t / w.dur);
+        const r = lerp(w.r0, w.r1, 1 - Math.pow(1 - k, 2.2));
+        const a = Math.pow(1 - k, 1.6);
+        R.push('ring', 'glow', w.x, w.y + 0.05, w.z, 0, 0, 0,
+          r * 2, 1 + w.thick * 2 * a, r * 2, w.r * a, w.g * a, w.b * a, 1);
+      }
+
+      for (const d of this.decals) {
+        R.decal(d.x, d.z, d.radius, d.yaw, d.r, d.g, d.b, d.a);
+      }
+    }
+
+    drawText(ctx, R, w, h) {
+      const out = [0, 0, 0];
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const t of this.texts) {
+        R.worldToScreen(t.x + t.jx, t.y, t.z, out);
+        if (out[2] < 0.1) continue;
+        const k = t.t / t.dur;
+        const alpha = k < 0.12 ? k / 0.12 : Math.pow(1 - (k - 0.12) / 0.88, 0.8);
+        const pop = k < 0.16 ? 1 + (1 - k / 0.16) * 0.9 : 1;
+        const distScale = clamp(26 / out[2], 0.35, 1.5);
+        const size = t.size * pop * distScale;
+        const x = out[0] * w, y = out[1] * h;
+        ctx.globalAlpha = clamp01(alpha);
+        ctx.font = `900 ${size.toFixed(1)}px "Arial Black", Impact, system-ui, sans-serif`;
+        ctx.lineWidth = Math.max(2, size * 0.16);
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+        ctx.strokeText(t.str, x, y);
+        ctx.fillStyle = t.col;
+        ctx.fillText(t.str, x, y);
+      }
+      ctx.restore();
+    }
+
+    clear() {
+      while (this.live.length) this.pool.push(this.live.pop());
+      this.waves.length = 0;
+      this.texts.length = 0;
+      this.decals.length = 0;
+      this.decalIdx = 0;
+    }
+  }
+
+  BA.FX = FX;
+})();
+
+</script>
+<script>
+/* ---- src/car.js ---- */
+/* BADASS APOCALYPSE - the car: arcade physics, springs, squash & stretch */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, damp, rand, TAU, angleDelta } = BA;
+
+  const GRAV = 36;
+
+  const DRIFT_STAGES = [0.75, 1.7, 2.9];
+  const BOOST_POWER = [13, 20, 28];
+  const BOOST_TIME = [0.55, 0.95, 1.45];
+  const SPARK_COL = [[0.35, 0.75, 1.0], [1.0, 0.55, 0.12], [0.85, 0.32, 1.0]];
+
+  class Car {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.reset();
+    }
+
+    reset() {
+      this.x = 0; this.y = 0; this.z = 0;
+      this.yaw = 0;
+      this.vx = 0; this.vz = 0; this.vy = 0;
+      this.vf = 0; this.vr = 0;
+      this.grounded = true;
+      this.groundPrev = 0;
+      this.lastClimb = 0;
+      this.airTime = 0;
+      this.airSpin = 0;
+      this.slamming = false;
+
+      this.pitchVis = 0; this.pitchVel = 0;
+      this.rollVis = 0; this.rollVel = 0;
+      this.squash = 1; this.squashVel = 0;
+      this.wheelSpin = 0;
+      this.steerVis = 0;
+      this.bodyY = 0;
+
+      this.drifting = false;
+      this.driftDir = 0;
+      this.driftCharge = 0;
+      this.driftStage = -1;
+      this.boostTime = 0;
+      this.boostPower = 0;
+      this.boostStage = 0;
+
+      this.hp = 100; this.maxHp = 100;
+      this.invuln = 0;
+      this.hurtFlash = 0;
+      this.damageSmoke = 0;
+
+      this.stats = {
+        maxSpeed: 44, accel: 34, grip: 14, driftGrip: 2.7, turn: 2.45,
+        jump: 14.5, airControl: 2.4, magnet: 5.5, damage: 1, cooldown: 1,
+        xpGain: 1, ramDamage: 26, armor: 0, boostMul: 1,
+      };
+      this.spikeLevel = 0;
+      this.color = [0.90, 0.13, 0.14];
+    }
+
+    get forwardX() { return Math.sin(this.yaw); }
+    get forwardZ() { return Math.cos(this.yaw); }
+    get speed() { return Math.hypot(this.vx, this.vz); }
+    get speed01() { return clamp01(this.speed / this.stats.maxSpeed); }
+
+    /* ------------------------------------------------------------ update */
+    update(dt, inp, world, game) {
+      const S = this.stats;
+      const fx_ = Math.sin(this.yaw), fz = Math.cos(this.yaw);
+      const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
+
+      this.vf = this.vx * fx_ + this.vz * fz;
+      this.vr = this.vx * rx + this.vz * rz;
+
+      const prevVf = this.vf;
+      const boosting = this.boostTime > 0;
+      const maxSpeed = S.maxSpeed + (boosting ? this.boostPower : 0);
+
+      /* ---- throttle / brake ---- */
+      if (this.grounded) {
+        if (inp.throttle > 0) {
+          const headroom = clamp01(1 - this.vf / maxSpeed);
+          this.vf += S.accel * inp.throttle * (0.35 + headroom * 0.9) * dt;
+        }
+        if (inp.brake > 0) {
+          if (this.vf > 1.5) this.vf -= 62 * inp.brake * dt;
+          else this.vf = Math.max(this.vf - 26 * inp.brake * dt, -16);
+        }
+        if (inp.throttle <= 0 && inp.brake <= 0) {
+          this.vf -= this.vf * 0.85 * dt;
+          this.vf -= Math.sign(this.vf) * Math.min(Math.abs(this.vf), 5.5 * dt);
+        }
+        // quadratic drag, per-second so it behaves the same at any frame rate.
+        // tuned so terminal speed lands just under stats.maxSpeed
+        this.vf -= this.vf * Math.abs(this.vf) * 0.0065 * dt;
+      } else {
+        this.vf -= this.vf * 0.12 * dt;
+      }
+      if (boosting) {
+        this.vf = Math.max(this.vf, S.maxSpeed * 0.85);
+        this.vf += this.boostPower * 0.45 * dt;
+      }
+      this.vf = clamp(this.vf, -16, maxSpeed * 1.25);
+
+      /* ---- steering + drift ---- */
+      const speedFactor = clamp01(Math.abs(this.vf) / 9) * lerp(1, 0.72, clamp01(this.vf / 60));
+      const dirSign = this.vf < -0.4 ? -1 : 1;
+
+      if (this.grounded) {
+        // easier to hold a drift than to start one, so a slide never cancels itself
+        const wantDrift = inp.handbrake && Math.abs(this.vf) > (this.drifting ? 6 : 12);
+        if (wantDrift && !this.drifting) {
+          this.drifting = true;
+          this.driftDir = Math.abs(inp.steer) > 0.12 ? Math.sign(inp.steer) : (this.vr > 0 ? 1 : -1);
+          this.driftCharge = 0;
+          this.driftStage = -1;
+          this.vr += this.driftDir * 5.5;
+        } else if (!wantDrift && this.drifting) {
+          this.releaseDrift();
+        }
+      } else if (this.drifting) {
+        this.releaseDrift();
+      }
+
+      let turn = inp.steer * S.turn * speedFactor * dirSign;
+      if (this.drifting) {
+        const bias = this.driftDir;
+        turn = (bias * 0.62 + inp.steer * 0.75) * S.turn * 1.35 * speedFactor;
+        // clamp the slip angle: past ~45 degrees of sideways the car would scrub
+        // all its speed off and drop out of the drift on its own
+        const moveYaw = Math.atan2(this.vx, this.vz);
+        const slipAngle = angleDelta(moveYaw, this.yaw);
+        if (Math.abs(slipAngle) > 0.8 && turn * slipAngle > 0) turn *= 0.12;
+        this.driftCharge += dt * (0.55 + clamp01(Math.abs(this.vr) / 12) * 0.8);
+        const st = DRIFT_STAGES.filter((s) => this.driftCharge >= s).length - 1;
+        if (st > this.driftStage) {
+          this.driftStage = st;
+          if (st >= 0) {
+            this.audio.pickup(st * 0.5);
+            const c = SPARK_COL[st];
+            this.fx.sparks(this.x - fx_ * 1.8, 0.4, this.z - fz * 1.8, 14, c[0], c[1], c[2], 1.1);
+          }
+        }
+      }
+      if (!this.grounded) {
+        turn = inp.steer * S.airControl;
+        this.airSpin += Math.abs(turn) * dt;
+      }
+      this.yaw += turn * dt;
+      this.steerVis = damp(this.steerVis, inp.steer, 16, dt);
+
+      /* ---- lateral grip ---- */
+      let grip = this.grounded ? (this.drifting ? S.driftGrip : S.grip) : 0.6;
+      if (inp.brake > 0.5 && !this.drifting) grip *= 0.75;
+      this.vr *= Math.exp(-grip * dt);
+
+      /* ---- back to world space ---- */
+      this.vx = fx_ * this.vf + rx * this.vr;
+      this.vz = fz * this.vf + rz * this.vr;
+
+      /* ---- jump / slam ---- */
+      if (inp.jumpPressed) {
+        if (this.grounded) {
+          this.vy = S.jump;
+          this.grounded = false;
+          this.airTime = 0;
+          this.airSpin = 0;
+          this.squashVel = 5.5;
+          this.audio.jump();
+          this.fx.smoke(this.x, 0.2, this.z, 6, 0.7, 0.36, 0.32, 0.29, 1);
+          this.fx.wave(this.x, 0.06, this.z, 1.0, 3.4, 0.35, 0.7, 0.75, 0.85, 0.5);
+        } else if (!this.slamming && this.airTime > 0.12) {
+          this.slamming = true;
+          this.vy = -34;
+          this.fx.sparks(this.x, this.y + 0.5, this.z, 10, 1.0, 0.75, 0.25, 0.8);
+        }
+      }
+
+      /* ---- vertical ---- */
+      this.x += this.vx * dt;
+      this.z += this.vz * dt;
+      const gh = world.groundHeight(this.x, this.z);
+      this.shadowY = gh;
+      if (this.grounded) {
+        const climb = (gh - this.groundPrev) / Math.max(dt, 0.0001);
+        if (climb < -16 && Math.abs(this.vf) > 8) {
+          this.grounded = false;
+          this.vy = Math.max(0, this.lastClimb * 0.92);
+          this.airTime = 0;
+          this.airSpin = 0;
+        } else {
+          this.y = gh;
+          this.vy = 0;
+          this.lastClimb = clamp(climb, 0, 34);
+        }
+        this.groundPrev = gh;
+      } else {
+        this.vy -= GRAV * dt * (this.slamming ? 2.1 : 1);
+        this.y += this.vy * dt;
+        this.airTime += dt;
+        if (this.y <= gh) {
+          this.land(gh, game, world);
+        }
+        this.groundPrev = gh;
+      }
+
+      /* ---- boost timer ---- */
+      if (this.boostTime > 0) {
+        this.boostTime -= dt;
+        const c = SPARK_COL[this.boostStage];
+        if (Math.random() < dt * 90) {
+          this.fx.fire(this.x - fx_ * 2.4 + rand(-0.6, 0.6), 0.55, this.z - fz * 2.4, 1, 0.55, 1);
+          this.fx.sparks(this.x - fx_ * 2.4, 0.5, this.z - fz * 2.4, 1, c[0], c[1], c[2], 0.8);
+        }
+      }
+
+      /* ---- visual springs (this is where the bounce lives) ---- */
+      const accelF = (this.vf - prevVf) / Math.max(dt, 0.0001);
+      const latAcc = this.vr * 2.2 + turn * this.vf * 0.9;
+
+      const pitchTarget = clamp(-accelF * 0.0052, -0.20, 0.20) + (this.grounded ? 0 : clamp(this.vy * 0.006, -0.18, 0.16));
+      const rollTarget = clamp(latAcc * 0.011, -0.32, 0.32);
+      const spring = (val, vel, target, k, d) => {
+        vel += (target - val) * k * dt;
+        vel *= Math.exp(-d * dt);
+        return [val + vel * dt, vel];
+      };
+      [this.pitchVis, this.pitchVel] = spring(this.pitchVis, this.pitchVel, pitchTarget, 190, 11);
+      [this.rollVis, this.rollVel] = spring(this.rollVis, this.rollVel, rollTarget, 165, 9.5);
+
+      this.squashVel += (1 - this.squash) * 260 * dt;
+      this.squashVel *= Math.exp(-12 * dt);
+      this.squash += this.squashVel * dt;
+      this.squash = clamp(this.squash, 0.45, 1.7);
+
+      this.wheelSpin += (this.vf / 0.55) * dt;
+      this.bodyY = damp(this.bodyY, this.grounded ? 0 : 0.06, 8, dt);
+
+      if (this.invuln > 0) this.invuln -= dt;
+      this.hurtFlash = Math.max(0, this.hurtFlash - dt * 2.6);
+
+      /* ---- surface fx ---- */
+      const slip = Math.abs(this.vr);
+      if (this.grounded && (slip > 4 || this.drifting)) {
+        const n = this.drifting ? 2 : 1;
+        for (let i = 0; i < n; i++) {
+          const side = i === 0 ? 1 : -1;
+          const px = this.x - fx_ * 1.5 + rx * side * 0.95;
+          const pz = this.z - fz * 1.5 + rz * side * 0.95;
+          if (Math.random() < dt * 22) this.fx.smoke(px, 0.12, pz, 1, 0.5, 0.34, 0.31, 0.30, 0.5);
+        }
+        if (this.drifting && Math.random() < dt * 9) {
+          this.fx.splat(this.x - fx_ * 1.6, this.z - fz * 1.6, 1.3, 0.02, 0.02, 0.025, 0.20);
+        }
+        if (this.drifting && this.driftStage >= 0 && Math.random() < dt * 70) {
+          const c = SPARK_COL[this.driftStage];
+          for (const side of [1, -1]) {
+            this.fx.sparks(this.x - fx_ * 1.6 + rx * side, 0.28, this.z - fz * 1.6 + rz * side, 2, c[0], c[1], c[2], 0.55);
+          }
+        }
+      }
+      if (this.damageSmoke > 0 && Math.random() < dt * 30 * this.damageSmoke) {
+        this.fx.smoke(this.x + rand(-0.7, 0.7), 1.1, this.z + rand(-0.7, 0.7), 1, 0.8, 0.16, 0.15, 0.16, 1.4);
+        if (this.damageSmoke > 0.6 && Math.random() < 0.4) this.fx.fire(this.x, 1.0, this.z, 1, 0.35, 0.4);
+      }
+      this.damageSmoke = clamp01(1 - this.hp / (this.maxHp * 0.55));
+    }
+
+    releaseDrift() {
+      this.drifting = false;
+      const st = this.driftStage;
+      this.driftCharge = 0;
+      this.driftStage = -1;
+      if (st >= 0) {
+        this.boostStage = st;
+        this.boostPower = BOOST_POWER[st] * this.stats.boostMul;
+        this.boostTime = Math.max(this.boostTime, BOOST_TIME[st] * this.stats.boostMul);
+        this.vf += BOOST_POWER[st] * 0.42;
+        this.audio.boost();
+        const c = SPARK_COL[st];
+        this.fx.sparks(this.x, 0.6, this.z, 26, c[0], c[1], c[2], 1.6);
+        this.fx.wave(this.x, 0.06, this.z, 1.2, 7 + st * 2, 0.4, c[0], c[1], c[2], 0.7);
+        if (st >= 1) this.fx.text(this.x, 2.6, this.z, st >= 2 ? 'ULTRA BOOST!' : 'TURBO!', st >= 2 ? '#dd7bff' : '#ffb03a', 26, 'big');
+      }
+    }
+
+    land(gh, game, world) {
+      const impact = clamp01(-this.vy / 30);
+      this.y = gh;
+      this.grounded = true;
+      this.slamming = false;
+      this.groundPrev = gh;
+      this.squashVel = -8 - impact * 22;
+      this.vy = 0;
+      this.audio.land(impact);
+      this.fx.smoke(this.x, 0.2, this.z, 4 + (impact * 10) | 0, 0.8, 0.38, 0.34, 0.31, 1);
+      if (game) {
+        game.shake(0.12 + impact * 0.4);
+        if (this.airTime > 0.35) {
+          const power = 0.5 + impact;
+          game.slamShock(this.x, this.z, power, this.airTime);
+        }
+        if (this.airTime > 0.85) {
+          const spins = this.airSpin / TAU;
+          let msg = 'BIG AIR!';
+          let bonus = 12;
+          if (spins > 1.6) { msg = 'INSANE SPIN!'; bonus = 45; }
+          else if (spins > 0.75) { msg = 'SICK SPIN!'; bonus = 28; }
+          else if (this.airTime > 1.4) { msg = 'HUGE AIR!'; bonus = 26; }
+          this.fx.text(this.x, 3.4, this.z, msg, '#7cf5ff', 28, 'big');
+          game.addXp(bonus, this.x, this.z);
+          game.shake(0.2);
+        }
+      }
+      this.airSpin = 0;
+      this.airTime = 0;
+    }
+
+    hurt(amount, game) {
+      if (this.invuln > 0) return false;
+      const dmg = amount * (1 - clamp(this.stats.armor, 0, 0.75));
+      this.hp -= dmg;
+      this.invuln = 0.42;
+      this.hurtFlash = 1;
+      this.audio.hurt();
+      this.fx.sparks(this.x, 1.1, this.z, 10, 1.0, 0.7, 0.2, 1.0);
+      if (game) { game.shake(0.32); game.hurtFlash = 1; }
+      return true;
+    }
+
+    /* -------------------------------------------------------------- draw */
+    draw(R) {
+      const yaw = this.yaw;
+      const pitch = this.pitchVis;
+      const roll = this.rollVis;
+      const sq = this.squash;
+      const stretch = 1 + (1 - sq) * 0.55;
+      const bx = this.x, bz = this.z;
+      const by = this.y + 0.62 * sq + this.bodyY;
+
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
+      // local (right, up, fwd) -> world, ignoring the small pitch/roll for offsets
+      const px = (lx, ly, lz) => bx + lx * cy + lz * sy;
+      const pz = (lx, ly, lz) => bz - lx * sy + lz * cy;
+      const py = (lx, ly, lz) => by + ly * sq - lz * Math.sin(pitch) * 0.9 + lx * Math.sin(roll) * 0.5;
+
+      const put = (lx, ly, lz, sx, sy2, sz, r, g, b, e) => {
+        R.push('box', 'opaque', px(lx, ly, lz), py(lx, ly, lz), pz(lx, ly, lz),
+          yaw, pitch, roll, sx, sy2 * sq, sz * stretch, r, g, b, e || 0);
+      };
+
+      const C = this.color;
+      const flash = this.hurtFlash;
+      const cr = lerp(C[0], 2.2, flash), cg = lerp(C[1], 1.6, flash), cb = lerp(C[2], 1.6, flash);
+      const dark = [cr * 0.42, cg * 0.42, cb * 0.42];
+
+      // chassis
+      put(0, 0, 0, 2.15, 0.72, 4.3, cr, cg, cb, flash * 0.5);
+      // lower skirt / armour
+      put(0, -0.42, -0.1, 2.32, 0.34, 3.9, 0.13, 0.13, 0.15, 0);
+      // bonnet scoop
+      put(0, 0.42, 1.05, 0.95, 0.3, 1.1, 0.10, 0.10, 0.11, 0);
+      put(0, 0.60, 1.05, 0.72, 0.18, 0.86, 0.16, 0.16, 0.18, 0);
+      // cabin
+      put(0, 0.55, -0.55, 1.82, 0.68, 1.95, cr * 0.85, cg * 0.85, cb * 0.85, flash * 0.4);
+      // glass
+      put(0, 0.62, 0.42, 1.62, 0.55, 0.42, 0.10, 0.16, 0.22, 0);
+      put(0, 0.62, -1.52, 1.5, 0.5, 0.3, 0.10, 0.16, 0.22, 0);
+      put(0.92, 0.6, -0.55, 0.06, 0.5, 1.7, 0.10, 0.16, 0.22, 0);
+      put(-0.92, 0.6, -0.55, 0.06, 0.5, 1.7, 0.10, 0.16, 0.22, 0);
+      // roll cage
+      for (const s of [1, -1]) {
+        put(s * 0.86, 0.95, -0.55, 0.12, 0.55, 0.12, 0.2, 0.2, 0.22, 0);
+      }
+      put(0, 1.2, -0.55, 1.9, 0.14, 1.9, 0.22, 0.22, 0.24, 0);
+      // spoiler
+      put(0, 0.75, -2.0, 2.0, 0.14, 0.5, 0.08, 0.08, 0.09, 0);
+      for (const s of [1, -1]) put(s * 0.75, 0.45, -1.95, 0.16, 0.5, 0.16, 0.14, 0.14, 0.16, 0);
+      // bumpers
+      put(0, -0.2, 2.2, 2.3, 0.5, 0.4, 0.20, 0.20, 0.22, 0);
+      put(0, -0.2, -2.2, 2.25, 0.45, 0.35, 0.18, 0.18, 0.20, 0);
+      // headlights
+      for (const s of [1, -1]) {
+        put(s * 0.72, 0.12, 2.16, 0.42, 0.24, 0.14, 1.0, 0.95, 0.72, 1);
+      }
+      // tail lights
+      for (const s of [1, -1]) put(s * 0.72, 0.1, -2.2, 0.36, 0.18, 0.12, 1.0, 0.12, 0.08, 0.9);
+
+      // exhausts
+      for (const s of [1, -1]) {
+        R.push('cyl', 'opaque', px(s * 0.55, -0.15, -2.35), py(s * 0.55, -0.15, -2.35), pz(s * 0.55, -0.15, -2.35),
+          yaw, pitch + Math.PI / 2, roll, 0.22, 0.5, 0.22, 0.3, 0.3, 0.32, 0);
+      }
+
+      // spikes
+      if (this.spikeLevel > 0) {
+        const n = 2 + this.spikeLevel;
+        const len = 0.55 + this.spikeLevel * 0.24;
+        for (let i = 0; i < n; i++) {
+          const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
+          const lx = t * 0.92;
+          R.push('cone', 'opaque', px(lx, -0.1, 2.35), py(lx, -0.1, 2.35), pz(lx, -0.1, 2.35),
+            yaw, pitch + Math.PI / 2, roll, 0.34, len, 0.34, 0.72, 0.74, 0.8, 0.05);
+        }
+        for (const s of [1, -1]) {
+          for (let i = 0; i < this.spikeLevel; i++) {
+            const lz = -0.9 + i * 0.9;
+            R.push('cone', 'opaque', px(s * 1.12, -0.15, lz), py(s * 1.12, -0.15, lz), pz(s * 1.12, -0.15, lz),
+              yaw, pitch, roll + s * Math.PI / 2, 0.26, 0.5, 0.26, 0.72, 0.74, 0.8, 0.05);
+          }
+        }
+      }
+
+      /* wheels: they hug the ground, not the springy body */
+      const steerA = this.steerVis * 0.42 * (this.drifting ? 1.5 : 1);
+      const wheelR = 0.58;
+      for (const fwd of [1, -1]) {
+        for (const s of [1, -1]) {
+          const lx = s * 1.02, lz = fwd * 1.42;
+          const wx = bx + lx * cy + lz * sy;
+          const wz = bz - lx * sy + lz * cy;
+          const comp = clamp((sq - 1) * 0.4, -0.18, 0.18);
+          const wy = this.y + wheelR + comp + (this.grounded ? 0 : 0.08);
+          const wyaw = yaw + (fwd > 0 ? steerA : 0);
+          R.push('cylX', 'opaque', wx, wy, wz, wyaw, 0, this.wheelSpin,
+            0.42, wheelR * 2, wheelR * 2, 0.06, 0.06, 0.07, 0);
+          R.push('cylX', 'opaque', wx + Math.cos(wyaw) * s * 0.16, wy, wz - Math.sin(wyaw) * s * 0.16, wyaw, 0, this.wheelSpin,
+            0.14, wheelR * 1.05, wheelR * 1.05, 0.75, 0.72, 0.2, 0.12);
+        }
+      }
+
+      // boost flames
+      if (this.boostTime > 0) {
+        const c = SPARK_COL[this.boostStage];
+        const k = clamp01(this.boostTime / 0.5);
+        for (const s of [1, -1]) {
+          const l = 1.1 + Math.random() * 0.9;
+          R.push('cone', 'glow', px(s * 0.55, -0.1, -2.6 - l * 0.3), py(s * 0.55, -0.1, -2.6), pz(s * 0.55, -0.1, -2.6 - l * 0.3),
+            yaw, pitch - Math.PI / 2, roll, 0.5, l, 0.5, c[0] * k, c[1] * k, c[2] * k, 1);
+        }
+      }
+
+      // drift sparks glow under the car
+      if (this.drifting && this.driftStage >= 0) {
+        const c = SPARK_COL[this.driftStage];
+        R.push('disc', 'glow', bx, 0.06, bz, 0, 0, 0, 5, 1, 5, c[0] * 0.25, c[1] * 0.25, c[2] * 0.25, 1);
+      }
+
+      R.shadow(bx, bz, 3.0 + clamp(this.y * 0.35, 0, 2.4), clamp01(0.62 - this.y * 0.06), (this.shadowY || 0) + 0.016);
+    }
+  }
+
+  BA.Car = Car;
+  BA.CarConst = { DRIFT_STAGES, SPARK_COL };
+})();
+
+</script>
+<script>
+/* ---- src/world.js ---- */
+/* BADASS APOCALYPSE - endless procedural wasteland: ramps, wrecks, barrels */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, rand, TAU, smoothstep } = BA;
+
+  const CHUNK = 62;
+  const VIEW_CHUNKS = 3;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  class World {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.chunks = new Map();
+      this.props = [];
+      this.ramps = [];
+      this.time = 0;
+    }
+
+    reset() {
+      this.chunks.clear();
+      this.props.length = 0;
+      this.ramps.length = 0;
+      this.time = 0;
+      this.runId = (this.runId || 0) + 1;
+    }
+
+    key(cx, cz) { return cx + ',' + cz; }
+
+    ensure(px, pz) {
+      const ccx = Math.round(px / CHUNK), ccz = Math.round(pz / CHUNK);
+      for (let dz = -VIEW_CHUNKS; dz <= VIEW_CHUNKS; dz++) {
+        for (let dx = -VIEW_CHUNKS; dx <= VIEW_CHUNKS; dx++) {
+          const cx = ccx + dx, cz = ccz + dz;
+          const k = this.key(cx, cz);
+          if (!this.chunks.has(k)) this.genChunk(cx, cz, k);
+        }
+      }
+      // drop far chunks
+      const far = (VIEW_CHUNKS + 1.6) * CHUNK;
+      for (const [k, ch] of this.chunks) {
+        if (Math.abs(ch.x - px) > far || Math.abs(ch.z - pz) > far) {
+          this.chunks.delete(k);
+          for (const p of ch.props) {
+            const i = this.props.indexOf(p);
+            if (i >= 0) this.props.splice(i, 1);
+            if (p.type === 'ramp') {
+              const j = this.ramps.indexOf(p);
+              if (j >= 0) this.ramps.splice(j, 1);
+            }
+          }
+        }
+      }
+    }
+
+    genChunk(cx, cz, k) {
+      const rng = mulberry32((cx * 73856093) ^ (cz * 19349663) ^ 0x9e3779b9);
+      const ox = cx * CHUNK, oz = cz * CHUNK;
+      const ch = { x: ox, z: oz, props: [] };
+      const isSpawn = cx === 0 && cz === 0;
+
+      const add = (p) => {
+        if (isSpawn && Math.hypot(p.x, p.z) < 16) return;
+        p.seed = rng();
+        ch.props.push(p);
+        this.props.push(p);
+        if (p.type === 'ramp') this.ramps.push(p);
+      };
+
+      const n = 4 + Math.floor(rng() * 4);
+      for (let i = 0; i < n; i++) {
+        const x = ox + (rng() - 0.5) * CHUNK;
+        const z = oz + (rng() - 0.5) * CHUNK;
+        const r = rng();
+        if (r < 0.09) {
+          const L = 9 + rng() * 5, W = 6 + rng() * 3, H = 3.0 + rng() * 2.2;
+          add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
+        } else if (r < 0.42) {
+          add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
+        } else if (r < 0.62) {
+          add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
+        } else if (r < 0.74) {
+          add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
+        } else if (r < 0.86) {
+          add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
+        } else {
+          add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, solid: false, loot: rng() });
+        }
+      }
+      this.chunks.set(k, ch);
+    }
+
+    /* ---------------------------------------------------------- terrain */
+    groundHeight(x, z) {
+      let h = 0;
+      for (const r of this.ramps) {
+        const dx = x - r.x, dz = z - r.z;
+        if (dx * dx + dz * dz > (r.L + r.W) * (r.L + r.W)) continue;
+        const c = Math.cos(-r.yaw), s = Math.sin(-r.yaw);
+        const lx = dx * c + dz * s;
+        const lz = -dx * s + dz * c;
+        if (lz < -r.L / 2 || lz > r.L / 2) continue;
+        const wf = 1 - smoothstep(r.W * 0.5 - 1.4, r.W * 0.5, Math.abs(lx));
+        if (wf <= 0) continue;
+        const t = clamp01((lz + r.L / 2) / r.L);
+        const hh = r.H * t * wf;
+        if (hh > h) h = hh;
+      }
+      return h;
+    }
+
+    /* ------------------------------------------------------- collisions */
+    update(dt, car, game) {
+      this.time += dt;
+      this.ensure(car.x, car.z);
+
+      const carR = 2.0;
+      for (let i = this.props.length - 1; i >= 0; i--) {
+        const p = this.props[i];
+        if (p.dead) continue;
+        if (p.type === 'ramp') continue;
+        const dx = car.x - p.x, dz = car.z - p.z;
+        const d = Math.hypot(dx, dz);
+        const minD = carR + p.radius;
+        if (d > minD) continue;
+        const speed = car.speed;
+        const nx = d > 0.001 ? dx / d : 1, nz = d > 0.001 ? dz / d : 0;
+
+        if (p.type === 'barrel') { this.explodeBarrel(p, game); continue; }
+        if (p.type === 'crate') { this.breakCrate(p, game); continue; }
+
+        const impact = speed * (car.vx * -nx + car.vz * -nz > 0 ? 1 : 0.25);
+        const dmg = impact * 9 * (1 + car.stats.ramDamage / 60);
+        p.hp -= dmg;
+        if (p.hp <= 0) {
+          this.destroyProp(p, game, -nx, -nz, impact);
+          continue;
+        }
+        // bounce
+        const push = (minD - d) + 0.05;
+        car.x += nx * push;
+        car.z += nz * push;
+        const vn = car.vx * nx + car.vz * nz;
+        if (vn < 0) {
+          const restitution = 0.42;
+          car.vx -= (1 + restitution) * vn * nx;
+          car.vz -= (1 + restitution) * vn * nz;
+          const fx_ = Math.sin(car.yaw), fz = Math.cos(car.yaw);
+          car.vf = car.vx * fx_ + car.vz * fz;
+          car.vr = car.vx * Math.cos(car.yaw) + car.vz * -Math.sin(car.yaw);
+          car.squashVel = -6 - Math.abs(vn) * 0.5;
+          if (speed > 9) {
+            game.shake(clamp01(speed / 40) * 0.5);
+            game.hitstop(0.05);
+            this.audio.hit(clamp01(speed / 45));
+            this.fx.sparks(p.x + nx * p.radius, 1.0, p.z + nz * p.radius, 12, 1.0, 0.8, 0.35, 1.2);
+            this.fx.smoke(p.x, 1.0, p.z, 3, 0.8, 0.4, 0.38, 0.35, 1);
+            car.hurt(clamp(speed * 0.32, 3, 16), game);
+          }
+        }
+      }
+    }
+
+    explodeBarrel(p, game, runId) {
+      if (p.dead) return;
+      if (runId !== undefined && runId !== this.runId) return;
+      p.dead = true;
+      this.audio.explode(1.1);
+      this.fx.fire(p.x, 1.2, p.z, 26, 1.4, 2.2);
+      this.fx.smoke(p.x, 1.4, p.z, 14, 1.7, 0.18, 0.16, 0.16, 1.4);
+      this.fx.shard(p.x, 1.0, p.z, 10, 0.55, 0.15, 0.12);
+      this.fx.wave(p.x, 0.1, p.z, 1, 13, 0.45, 1.4, 0.6, 0.15, 1.4);
+      this.fx.splat(p.x, p.z, 5.5, 0.07, 0.06, 0.06, 0.7);
+      game.explosion(p.x, p.z, 11, 95, 'barrel');
+      game.shake(0.55);
+      game.flash(0.35, [1.0, 0.55, 0.2]);
+      // chain reaction
+      for (const q of this.props) {
+        if (q.dead || q === p) continue;
+        if (q.type === 'barrel' && Math.hypot(q.x - p.x, q.z - p.z) < 12) {
+          q.chain = (q.chain || 0) + 1;
+          const rid = this.runId;
+          setTimeout(() => this.explodeBarrel(q, game, rid), 90 + Math.random() * 130);
+        }
+      }
+    }
+
+    breakCrate(p, game) {
+      if (p.dead) return;
+      p.dead = true;
+      this.audio.squish();
+      this.fx.shard(p.x, 0.9, p.z, 12, 0.55, 0.38, 0.18);
+      this.fx.smoke(p.x, 0.8, p.z, 4, 0.7, 0.6, 0.5, 0.35, 1);
+      if (p.loot < 0.42) game.dropHealth(p.x, p.z);
+      else game.spawnXp(p.x, p.z, 4, 3);
+    }
+
+    destroyProp(p, game, dx, dz, impact) {
+      p.dead = true;
+      const big = p.type === 'wreck';
+      this.audio.explode(big ? 1.3 : 0.7);
+      if (big) {
+        this.fx.fire(p.x, 1.2, p.z, 20, 1.3, 1.8);
+        this.fx.wave(p.x, 0.1, p.z, 1, 11, 0.4, 1.3, 0.6, 0.2, 1.2);
+        game.explosion(p.x, p.z, 9, 70, 'wreck');
+        game.flash(0.25, [1.0, 0.6, 0.25]);
+      }
+      this.fx.shard(p.x, 1.0, p.z, big ? 18 : 10, 0.4, 0.4, 0.44);
+      this.fx.smoke(p.x, 1.2, p.z, 8, 1.2, 0.2, 0.19, 0.19, 1.2);
+      this.fx.sparks(p.x, 1.0, p.z, 16, 1.0, 0.8, 0.3, 1.4);
+      game.shake(0.4);
+      game.spawnXp(p.x, p.z, big ? 5 : 2, 2);
+      this.fx.text(p.x, 2.5, p.z, 'SMASHED!', '#ffd84a', 22, 'big');
+    }
+
+    /* -------------------------------------------------------------- draw */
+    draw(R, camX, camZ) {
+      const t = this.time;
+      for (const p of this.props) {
+        if (p.dead) continue;
+        const dx = p.x - camX, dz = p.z - camZ;
+        const d2 = dx * dx + dz * dz;
+        if (d2 > 240 * 240) continue;
+        // don't render props sitting in the camera's lap - they fill the screen
+        if (p.type !== 'ramp' && this.eyeX !== undefined) {
+          const ex = p.x - this.eyeX, ez = p.z - this.eyeZ;
+          if (ex * ex + ez * ez < 34) continue;
+        }
+        switch (p.type) {
+          case 'ramp': this.drawRamp(R, p); break;
+          case 'barrel': {
+            const bob = Math.sin(t * 2 + p.bob) * 0.03;
+            R.push('cyl', 'opaque', p.x, 0.95 + bob, p.z, p.yaw, 0, 0, 1.5, 1.9, 1.5, 0.62, 0.14, 0.09, 0.04);
+            R.push('cyl', 'opaque', p.x, 1.25 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
+            R.push('cyl', 'opaque', p.x, 0.62 + bob, p.z, p.yaw, 0, 0, 1.56, 0.22, 1.56, 0.92, 0.72, 0.10, 0.10);
+            R.shadow(p.x, p.z, 1.5, 0.5);
+            break;
+          }
+          case 'wreck': {
+            const hp01 = clamp01(p.hp / 190);
+            const c = lerp(0.12, 0.30, p.seed);
+            R.push('box', 'opaque', p.x, 0.62, p.z, p.yaw, 0.06, 0.1, 2.0, 1.0, 4.0, c, c * 0.95, c * 0.9, 0);
+            R.push('box', 'opaque', p.x, 1.32, p.z + 0.2, p.yaw, -0.08, 0.14, 1.7, 0.75, 1.8, c * 0.8, c * 0.78, c * 0.75, 0);
+            R.push('box', 'opaque', p.x, 0.25, p.z, p.yaw, 0, 0.1, 2.2, 0.4, 4.2, 0.07, 0.07, 0.08, 0);
+            if (hp01 < 0.6 && Math.random() < 0.06) this.fx.smoke(p.x, 1.4, p.z, 1, 0.7, 0.2, 0.19, 0.18, 1);
+            R.shadow(p.x, p.z, 3.4, 0.55);
+            break;
+          }
+          case 'rock': {
+            const s = p.radius;
+            R.push('sphere', 'opaque', p.x, s * 0.45, p.z, p.yaw, 0.2, 0.3, s * 1.7, s * 1.1, s * 1.6, 0.24, 0.22, 0.21, 0);
+            R.push('box', 'opaque', p.x + s * 0.3, s * 0.3, p.z - s * 0.2, p.yaw * 1.7, 0.3, 0.5, s * 0.9, s * 0.8, s * 0.9, 0.20, 0.19, 0.18, 0);
+            R.shadow(p.x, p.z, s * 1.9, 0.55);
+            break;
+          }
+          case 'lamp': {
+            R.push('cyl', 'opaque', p.x, 3.0, p.z, p.yaw, 0, 0, 0.34, 6.0, 0.34, 0.22, 0.23, 0.25, 0);
+            R.push('box', 'opaque', p.x + Math.sin(p.yaw) * 0.9, 6.0, p.z + Math.cos(p.yaw) * 0.9, p.yaw, 0, 0, 0.4, 0.3, 2.0, 0.22, 0.23, 0.25, 0);
+            if (p.lit) {
+              const flick = 0.75 + Math.sin(t * 13 + p.seed * 30) * 0.2 + (Math.random() < 0.02 ? -0.5 : 0);
+              R.push('box', 'glow', p.x + Math.sin(p.yaw) * 1.7, 5.75, p.z + Math.cos(p.yaw) * 1.7, p.yaw, 0, 0, 0.7, 0.3, 1.1,
+                0.75 * flick, 0.62 * flick, 0.34 * flick, 1);
+              R.push('disc', 'glow', p.x + Math.sin(p.yaw) * 1.7, 0.05, p.z + Math.cos(p.yaw) * 1.7, 0, 0, 0, 11, 1, 11,
+                0.045 * flick, 0.036 * flick, 0.018 * flick, 1);
+            }
+            R.shadow(p.x, p.z, 1.0, 0.45);
+            break;
+          }
+          case 'crate': {
+            R.push('box', 'opaque', p.x, 0.75, p.z, p.yaw, 0, 0, 1.6, 1.5, 1.6, 0.42, 0.30, 0.15, 0);
+            R.push('box', 'opaque', p.x, 0.75, p.z, p.yaw, 0, 0, 1.66, 0.22, 1.66, 0.55, 0.42, 0.20, 0);
+            R.push('box', 'glow', p.x, 1.58, p.z, p.yaw + t, 0, 0, 0.36, 0.36, 0.36,
+              p.loot < 0.42 ? 1.0 : 0.35, p.loot < 0.42 ? 0.2 : 1.0, p.loot < 0.42 ? 0.28 : 0.7, 1);
+            R.shadow(p.x, p.z, 1.6, 0.5);
+            break;
+          }
+        }
+      }
+    }
+
+    drawRamp(R, p) {
+      const th = Math.atan2(p.H, p.L);
+      const len = Math.hypot(p.L, p.H);
+      const t = 1.4;
+      const c = Math.cos(th), s = Math.sin(th);
+      const cy = Math.cos(p.yaw), sy = Math.sin(p.yaw);
+      // centre offset so the top face lines up with the wedge surface
+      const ly = p.H / 2 - (t / 2) * c;
+      const lz = (t / 2) * s;
+      const wx = p.x + lz * sy, wz = p.z + lz * cy;
+      R.push('box', 'opaque', wx, ly, wz, p.yaw, -th, 0, p.W, t, len, 0.26, 0.24, 0.22, 0);
+      // hazard nose + rails
+      R.push('box', 'opaque', p.x + Math.sin(p.yaw) * (p.L / 2), p.H + 0.18, p.z + Math.cos(p.yaw) * (p.L / 2),
+        p.yaw, 0, 0, p.W, 0.36, 0.7, 1.0, 0.72, 0.06, 0.35);
+      for (const side of [1, -1]) {
+        const ox = Math.cos(p.yaw) * side * (p.W / 2), oz = -Math.sin(p.yaw) * side * (p.W / 2);
+        R.push('box', 'opaque', p.x + ox + lz * sy, ly + t * 0.5 * c, p.z + oz + lz * cy,
+          p.yaw, -th, 0, 0.3, t * 0.9, len, 0.85, 0.62, 0.08, 0.16);
+      }
+      R.shadow(p.x, p.z, Math.max(p.L, p.W) * 0.6, 0.30);
+    }
+  }
+
+  BA.World = World;
+})();
+
+</script>
+<script>
+/* ---- src/enemies.js ---- */
+/* BADASS APOCALYPSE - the horde */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, rand, randInt, TAU, angleDelta } = BA;
+
+  const TYPES = {
+    walker: { hp: 20, speed: 4.6, radius: 0.62, scale: 1.0, xp: 1, dmg: 7, mass: 1, col: [0.34, 0.52, 0.26] },
+    runner: { hp: 13, speed: 10.5, radius: 0.52, scale: 0.9, xp: 1, dmg: 6, mass: 0.7, col: [0.62, 0.48, 0.20] },
+    bomber: { hp: 26, speed: 5.4, radius: 0.78, scale: 1.15, xp: 3, dmg: 10, mass: 1.1, col: [0.35, 0.75, 0.22] },
+    brute: { hp: 190, speed: 3.6, radius: 1.5, scale: 1.95, xp: 8, dmg: 22, mass: 5, col: [0.30, 0.19, 0.21] },
+    boss: { hp: 1500, speed: 4.2, radius: 2.7, scale: 3.4, xp: 90, dmg: 34, mass: 22, col: [0.42, 0.10, 0.12] },
+  };
+
+  class Grid {
+    constructor(cell) { this.cell = cell; this.map = new Map(); }
+    clear() { this.map.clear(); }
+    key(ix, iz) { return ix * 73856093 ^ iz * 19349663; }
+    insert(e) {
+      const ix = Math.floor(e.x / this.cell), iz = Math.floor(e.z / this.cell);
+      const k = this.key(ix, iz);
+      let a = this.map.get(k);
+      if (!a) { a = []; this.map.set(k, a); }
+      a.push(e);
+    }
+    query(x, z, r, out) {
+      out.length = 0;
+      const c = this.cell;
+      const x0 = Math.floor((x - r) / c), x1 = Math.floor((x + r) / c);
+      const z0 = Math.floor((z - r) / c), z1 = Math.floor((z + r) / c);
+      for (let iz = z0; iz <= z1; iz++) {
+        for (let ix = x0; ix <= x1; ix++) {
+          const a = this.map.get(this.key(ix, iz));
+          if (a) for (let i = 0; i < a.length; i++) out.push(a[i]);
+        }
+      }
+      return out;
+    }
+  }
+
+  class Horde {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.list = [];
+      this.pool = [];
+      this.grid = new Grid(3.2);
+      this.tmp = [];
+      this.max = 400;
+    }
+
+    reset() {
+      for (const e of this.list) this.pool.push(e);
+      this.list.length = 0;
+      this.grid.clear();
+    }
+
+    get count() { return this.list.length; }
+
+    spawn(type, x, z, hpMul, speedMul) {
+      if (this.list.length >= this.max && type !== 'boss') return null;
+      const T = TYPES[type];
+      const e = this.pool.pop() || {};
+      e.type = type;
+      e.x = x; e.z = z; e.y = 0;
+      e.vx = 0; e.vz = 0; e.vy = 0;
+      e.yaw = rand(TAU);
+      e.maxHp = T.hp * (hpMul || 1);
+      e.hp = e.maxHp;
+      e.speed = T.speed * (speedMul || 1) * rand(0.88, 1.12);
+      e.radius = T.radius;
+      e.scale = T.scale * rand(0.92, 1.08);
+      e.xp = T.xp;
+      e.dmg = T.dmg;
+      e.mass = T.mass;
+      e.col = T.col;
+      e.tint = rand(0.85, 1.15);
+      e.phase = rand(TAU);
+      e.flash = 0;
+      e.stun = 0;
+      e.attackCd = 0;
+      e.burn = 0;
+      e.slow = 0;
+      e.airborne = false;
+      e.wobble = rand(0.6, 1.5);
+      e.dead = false;
+      this.list.push(e);
+      return e;
+    }
+
+    kill(e, dirX, dirZ, power, game, silent) {
+      if (e.dead) return;
+      e.dead = true;
+      const i = this.list.indexOf(e);
+      if (i >= 0) this.list.splice(i, 1);
+      this.pool.push(e);
+
+      const s = e.scale;
+      this.fx.blood(e.x, 0.9 * s, e.z, dirX, 0.4, dirZ, 8 + (power * 8) | 0, 5 + power * 8);
+      this.fx.gibs(e.x, 0.6 * s, e.z, dirX, 0.5, dirZ, 4 + (s * 2) | 0, 4 + power * 7, e.col);
+      this.fx.splat(e.x + dirX * 1.2, e.z + dirZ * 1.2, 1.6 * s * rand(0.8, 1.4), 0.32, 0.03, 0.05, 0.8);
+      if (!silent) this.audio.squish();
+
+      if (e.type === 'bomber') {
+        this.fx.fire(e.x, 1.0, e.z, 18, 1.1, 1.6);
+        this.fx.wave(e.x, 0.1, e.z, 1, 9, 0.4, 0.5, 1.4, 0.3, 1.1);
+        this.fx.splat(e.x, e.z, 4.5, 0.16, 0.30, 0.08, 0.75);
+        game.explosion(e.x, e.z, 8, 60, 'bomber');
+        this.audio.explode(0.8);
+      }
+      if (e.type === 'boss') {
+        this.fx.fire(e.x, 2.0, e.z, 40, 2.2, 2.6);
+        this.fx.wave(e.x, 0.1, e.z, 1, 26, 0.8, 1.4, 0.5, 0.2, 2.0);
+        this.fx.gibs(e.x, 1.5, e.z, dirX, 1, dirZ, 26, 14, e.col);
+        game.shake(1.0);
+        game.flash(0.6, [1, 0.4, 0.3]);
+        this.audio.explode(2);
+        this.fx.text(e.x, 6, e.z, 'BOSS DOWN!', '#ff5a4a', 40, 'big');
+      }
+      game.onKill(e, power);
+    }
+
+    damage(e, amount, dirX, dirZ, knock, game, crit) {
+      if (e.dead) return false;
+      e.hp -= amount;
+      e.flash = 1;
+      if (knock) {
+        const k = knock / Math.max(0.4, e.mass);
+        e.vx += dirX * k;
+        e.vz += dirZ * k;
+        e.stun = Math.max(e.stun, Math.min(0.5, knock * 0.02));
+      }
+      if (amount >= 1) {
+        game.damageNumber(e.x, 1.4 * e.scale, e.z, Math.round(amount), crit);
+      }
+      if (e.hp <= 0) {
+        this.kill(e, dirX, dirZ, clamp01(amount / 60), game);
+        return true;
+      }
+      return false;
+    }
+
+    /* --------------------------------------------------------- simulate */
+    update(dt, car, game, world) {
+      const grid = this.grid;
+      grid.clear();
+      for (const e of this.list) grid.insert(e);
+
+      const cx = car.x, cz = car.z;
+      const carSpeed = car.speed;
+      const tmp = this.tmp;
+
+      // car OBB
+      const cyaw = car.yaw;
+      const cfx = Math.sin(cyaw), cfz = Math.cos(cyaw);
+      const crx = Math.cos(cyaw), crz = -Math.sin(cyaw);
+      const halfL = 2.35 + car.spikeLevel * 0.22;
+      const halfW = 1.25;
+      const carAirborne = car.y > 1.4;
+
+      for (let i = this.list.length - 1; i >= 0; i--) {
+        const e = this.list[i];
+        if (e.dead) continue;
+
+        e.flash = Math.max(0, e.flash - dt * 5.5);
+        if (e.stun > 0) e.stun -= dt;
+        if (e.slow > 0) e.slow -= dt;
+
+        if (e.burn > 0) {
+          e.burn -= dt;
+          e.burnTick = (e.burnTick || 0) - dt;
+          if (e.burnTick <= 0) {
+            e.burnTick = 0.28;
+            if (this.damage(e, e.burnDps * 0.28, 0, 0, 0, game)) continue;
+          }
+          if (Math.random() < dt * 22) this.fx.fire(e.x, 0.8 * e.scale, e.z, 1, 0.28 * e.scale, 0.3);
+        }
+
+        // --- steering toward the car
+        const dx = cx - e.x, dz = cz - e.z;
+        const dist = Math.hypot(dx, dz) || 1;
+        const nx = dx / dist, nz = dz / dist;
+
+        const stunned = e.stun > 0;
+        const spd = e.speed * (e.slow > 0 ? 0.42 : 1) * (stunned ? 0 : 1);
+        const accel = stunned ? 0 : 26;
+        e.vx += (nx * spd - e.vx) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
+        e.vz += (nz * spd - e.vz) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
+
+        // --- separation
+        const near = grid.query(e.x, e.z, e.radius + 1.6, tmp);
+        for (let j = 0; j < near.length; j++) {
+          const o = near[j];
+          if (o === e || o.dead) continue;
+          const ox = e.x - o.x, oz = e.z - o.z;
+          const d2 = ox * ox + oz * oz;
+          const rr = (e.radius + o.radius) * 0.95;
+          if (d2 < rr * rr && d2 > 0.0001) {
+            const d = Math.sqrt(d2);
+            const push = (rr - d) / d * 5.2 * dt * 30 / Math.max(1, e.mass);
+            e.vx += ox * push * dt;
+            e.vz += oz * push * dt;
+          }
+        }
+
+        e.vx *= Math.exp(-3.2 * dt);
+        e.vz *= Math.exp(-3.2 * dt);
+        e.x += e.vx * dt;
+        e.z += e.vz * dt;
+
+        if (e.airborne || e.y > 0.01) {
+          e.vy -= 40 * dt;
+          e.y += e.vy * dt;
+          if (e.y <= 0) { e.y = 0; e.vy = 0; e.airborne = false; }
+        }
+
+        const targetYaw = Math.atan2(e.vx, e.vz);
+        e.yaw += angleDelta(e.yaw, targetYaw) * clamp01(dt * 8);
+        e.phase += dt * (2.4 + Math.hypot(e.vx, e.vz) * 0.55) * e.wobble;
+
+        // --- despawn strays
+        if (dist > 190) {
+          this.list.splice(i, 1);
+          e.dead = true;
+          this.pool.push(e);
+          continue;
+        }
+
+        // --- car collision (OBB vs circle)
+        const rel = { x: e.x - cx, z: e.z - cz };
+        const lx = rel.x * crx + rel.z * crz;
+        const lz = rel.x * cfx + rel.z * cfz;
+        const overlapX = halfW + e.radius - Math.abs(lx);
+        const overlapZ = halfL + e.radius - Math.abs(lz);
+        if (overlapX > 0 && overlapZ > 0 && !carAirborne) {
+          const frontal = lz > 0 && car.vf > 0;
+          const impactSpeed = Math.abs(car.vf) + Math.abs(car.vr) * 0.5;
+          const hitPower = clamp01(impactSpeed / 34);
+
+          if (impactSpeed > 6) {
+            const dmg = car.stats.ramDamage * (0.35 + hitPower * 1.9) * (frontal ? 1.35 : 0.8)
+              * (car.boostTime > 0 ? 1.6 : 1) * car.stats.damage;
+            const kdirX = (e.x - cx) / (Math.hypot(e.x - cx, e.z - cz) || 1);
+            const kdirZ = (e.z - cz) / (Math.hypot(e.x - cx, e.z - cz) || 1);
+            const killed = this.damage(e, dmg, kdirX, kdirZ, 20 + impactSpeed * 1.4, game, car.boostTime > 0);
+            if (killed) {
+              e.dead = true;
+              game.shake(0.06 + hitPower * 0.16);
+              game.hitstop(0.016 + hitPower * 0.038);
+              this.audio.hit(hitPower);
+              // ragdoll launch
+              const lp = this.fx.spawn();
+              if (lp) {
+                lp.x = e.x; lp.y = 0.9; lp.z = e.z;
+                lp.vx = kdirX * (7 + impactSpeed * 0.85) + car.vx * 0.32;
+                lp.vy = 6 + hitPower * 12;
+                lp.vz = kdirZ * (7 + impactSpeed * 0.85) + car.vz * 0.32;
+                lp.rvx = rand(-16, 16); lp.rvy = rand(-10, 10); lp.rvz = rand(-16, 16);
+                lp.rx = 0; lp.ry = e.yaw; lp.rz = 0;
+                lp.sx = 0.75 * e.scale; lp.sy = 1.1 * e.scale; lp.sz = 0.5 * e.scale;
+                lp.r = e.col[0]; lp.g = e.col[1]; lp.b = e.col[2]; lp.e = 0;
+                lp.max = lp.life = 2.4;
+                lp.grav = 30; lp.drag = 0.3; lp.bounce = 0.45;
+                lp.mesh = 'box'; lp.layer = 'opaque'; lp.shrink = 0.1; lp.stretch = 0;
+              }
+            } else {
+              // heavy things shove back
+              const push = (e.mass > 3 ? 1 : 0.25);
+              car.vx -= car.vx * push * 0.35;
+              car.vz -= car.vz * push * 0.35;
+              car.vf *= (1 - push * 0.3);
+              car.squashVel = -4 - hitPower * 5;
+              game.shake(0.12 * push + 0.05);
+              game.hitstop(0.03);
+              this.audio.hit(hitPower * 0.7);
+              // separate
+              if (overlapX < overlapZ) {
+                const s = Math.sign(lx) || 1;
+                e.x += crx * s * overlapX; e.z += crz * s * overlapX;
+              } else {
+                const s = Math.sign(lz) || 1;
+                e.x += cfx * s * overlapZ; e.z += cfz * s * overlapZ;
+              }
+            }
+            continue;
+          } else {
+            // too slow: they claw at you
+            e.attackCd -= dt;
+            if (e.attackCd <= 0) {
+              e.attackCd = 0.75;
+              if (car.hurt(e.dmg, game)) {
+                this.fx.blood(car.x, 1.2, car.z, 0, 1, 0, 5, 3, [0.7, 0.15, 0.1]);
+              }
+            }
+            const s = Math.sign(lx) || 1;
+            e.x += crx * s * overlapX * 0.5; e.z += crz * s * overlapX * 0.5;
+          }
+        }
+      }
+    }
+
+    /* ------------------------------------------------------------- draw */
+    draw(R, camX, camZ) {
+      for (const e of this.list) {
+        if (e.dead) continue;
+        const dx = e.x - camX, dz = e.z - camZ;
+        if (dx * dx + dz * dz > 200 * 200) continue;
+
+        const s = e.scale;
+        const yaw = e.yaw;
+        const cy = Math.cos(yaw), sy = Math.sin(yaw);
+        const walk = Math.sin(e.phase);
+        const walk2 = Math.cos(e.phase);
+        const bob = Math.abs(walk) * 0.09 * s;
+        const lean = 0.16 + walk2 * 0.05;
+        const base = e.y;
+
+        const f = e.flash;
+        const boss = e.type === 'boss';
+        const hurtT = boss ? clamp01(1 - e.hp / e.maxHp) * 0.4 : 0;
+        let r = lerp(e.col[0] * e.tint, 2.4, f);
+        let g = lerp(e.col[1] * e.tint, 2.0, f);
+        let b = lerp(e.col[2] * e.tint, 2.0, f);
+        r = lerp(r, 0.9, hurtT);
+        const em = f * 0.7 + (e.type === 'bomber' ? 0.28 + Math.sin(e.phase * 3) * 0.12 : 0) + (boss ? 0.16 : 0);
+
+        const P = (lx, ly, lz) => [e.x + lx * cy + lz * sy, base + ly, e.z - lx * sy + lz * cy];
+
+        // torso
+        let p = P(0, (1.05 + bob) * s, 0);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw, lean, walk2 * 0.08, 0.78 * s, 1.05 * s, 0.5 * s, r, g, b, em);
+        // head
+        p = P(0, (1.78 + bob) * s, 0.08 * s);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw + walk2 * 0.12, lean * 1.6, walk * 0.1,
+          0.56 * s, 0.56 * s, 0.56 * s, r * 1.15, g * 1.1, b * 1.05, em);
+        // jaw
+        p = P(0, (1.62 + bob) * s, 0.3 * s);
+        R.push('box', 'opaque', p[0], p[1], p[2], yaw, lean, 0, 0.34 * s, 0.2 * s, 0.24 * s, 0.75, 0.35, 0.35, em);
+        // eyes
+        for (const side of [1, -1]) {
+          p = P(side * 0.15 * s, (1.85 + bob) * s, 0.3 * s);
+          R.push('box', 'glow', p[0], p[1], p[2], yaw, 0, 0, 0.12 * s, 0.1 * s, 0.06 * s,
+            boss ? 1.6 : 1.0, boss ? 0.2 : 0.55, 0.12, 1);
+        }
+        // arms reaching forward
+        for (const side of [1, -1]) {
+          const swing = walk * side * 0.25;
+          const hx = side * 0.5 * s, hy = (1.45 + bob) * s;
+          const ang = -1.25 + swing;
+          const ax = Math.sin(ang) * 0 + 0;
+          const cxr = Math.cos(ang), sxr = Math.sin(ang);
+          const lz = -sxr * 0.5 * s, ly = -cxr * 0.5 * s;
+          p = P(hx + ax, hy + ly, lz);
+          R.push('box', 'opaque', p[0], p[1], p[2], yaw, ang, 0, 0.24 * s, 0.95 * s, 0.24 * s, r * 0.92, g * 0.92, b * 0.92, em);
+        }
+        // legs
+        for (const side of [1, -1]) {
+          const ang = walk * side * 0.75;
+          const cxr = Math.cos(ang), sxr = Math.sin(ang);
+          const hx = side * 0.24 * s, hy = 0.62 * s;
+          p = P(hx, hy - cxr * 0.34 * s, -sxr * 0.34 * s);
+          R.push('box', 'opaque', p[0], p[1], p[2], yaw, ang, 0, 0.26 * s, 0.8 * s, 0.26 * s, r * 0.7, g * 0.7, b * 0.72, em * 0.5);
+        }
+
+        if (boss || e.type === 'brute') {
+          // shoulder armour
+          for (const side of [1, -1]) {
+            p = P(side * 0.62 * s, 1.62 * s, 0);
+            R.push('box', 'opaque', p[0], p[1], p[2], yaw, 0, side * 0.25, 0.5 * s, 0.4 * s, 0.6 * s, 0.24, 0.22, 0.24, em);
+          }
+        }
+        if (boss) {
+          R.push('disc', 'glow', e.x, 0.06, e.z, 0, 0, 0, 11, 1, 11, 0.35, 0.05, 0.04, 1);
+        }
+
+        R.shadow(e.x, e.z, 1.5 * s, clamp01(0.55 - e.y * 0.08));
+      }
+    }
+  }
+
+  BA.Horde = Horde;
+  BA.ENEMY_TYPES = TYPES;
+})();
+
+</script>
+<script>
+/* ---- src/weapons.js ---- */
+/* BADASS APOCALYPSE - auto-firing arsenal */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, rand, TAU } = BA;
+
+  function beam(R, layer, x1, y1, z1, x2, y2, z2, w, r, g, b, e) {
+    const dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
+    const len = Math.hypot(dx, dy, dz) || 0.001;
+    const yaw = Math.atan2(dx, dz);
+    const pitch = -Math.asin(clamp(dy / len, -1, 1));
+    R.push('box', layer, (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, yaw, pitch, 0, w, w, len, r, g, b, e === undefined ? 1 : e);
+  }
+
+  class Weapons {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.reset();
+    }
+
+    reset() {
+      this.rockets = [];
+      this.bullets = [];
+      this.mines = [];
+      this.patches = [];
+      this.bolts = [];
+      this.sawAngle = 0;
+      this.cd = { rocket: 0, minigun: 0, tesla: 0, mine: 0, flame: 0, pulse: 0 };
+    }
+
+    nearest(horde, x, z, maxDist, exclude) {
+      let best = null, bd = maxDist * maxDist;
+      for (const e of horde.list) {
+        if (e.dead || (exclude && exclude.has(e))) continue;
+        const d = (e.x - x) * (e.x - x) + (e.z - z) * (e.z - z);
+        if (d < bd) { bd = d; best = e; }
+      }
+      return best;
+    }
+
+    update(dt, car, horde, game) {
+      const L = game.weaponLevels;
+      const cdMul = 1 / car.stats.cooldown;
+      const dmgMul = car.stats.damage;
+      const fx_ = Math.sin(car.yaw), fz = Math.cos(car.yaw);
+
+      /* ---------------------------------------------------- rockets */
+      if (L.rocket > 0) {
+        this.cd.rocket -= dt;
+        if (this.cd.rocket <= 0) {
+          this.cd.rocket = (1.65 - L.rocket * 0.15) * cdMul;
+          const shots = 1 + Math.floor(L.rocket / 2);
+          const used = new Set();
+          for (let i = 0; i < shots; i++) {
+            const t = this.nearest(horde, car.x, car.z, 62, used);
+            if (!t) break;
+            used.add(t);
+            const side = i % 2 === 0 ? 1 : -1;
+            const ox = Math.cos(car.yaw) * side * 0.9;
+            const oz = -Math.sin(car.yaw) * side * 0.9;
+            this.rockets.push({
+              x: car.x + ox, y: 1.3, z: car.z + oz,
+              vx: car.vx * 0.4 + ox * 5 + fx_ * 12, vy: 6.5, vz: car.vz * 0.4 + oz * 5 + fz * 12,
+              target: t, life: 3.2, dmg: (34 + L.rocket * 16) * dmgMul,
+              radius: 7 + L.rocket * 0.9, armed: 0.16,
+            });
+          }
+          if (this.rockets.length) this.audio.rocket();
+        }
+      }
+
+      for (let i = this.rockets.length - 1; i >= 0; i--) {
+        const r = this.rockets[i];
+        r.life -= dt;
+        r.armed -= dt;
+        let t = r.target;
+        if (!t || t.dead) t = r.target = this.nearest(horde, r.x, r.z, 70);
+        if (t && r.armed <= 0) {
+          const dx = t.x - r.x, dy = 0.9 * t.scale - r.y, dz = t.z - r.z;
+          const d = Math.hypot(dx, dy, dz) || 1;
+          const steer = 15 * dt;
+          r.vx += (dx / d) * 62 * dt; r.vy += (dy / d) * 62 * dt; r.vz += (dz / d) * 62 * dt;
+          const sp = Math.hypot(r.vx, r.vy, r.vz);
+          const want = 46;
+          r.vx *= want / sp; r.vy *= want / sp; r.vz *= want / sp;
+        } else {
+          r.vy -= 18 * dt;
+        }
+        r.x += r.vx * dt; r.y += r.vy * dt; r.z += r.vz * dt;
+        if (Math.random() < dt * 120) this.fx.fire(r.x, r.y, r.z, 1, 0.4, 0.4);
+        if (Math.random() < dt * 30) this.fx.smoke(r.x, r.y, r.z, 1, 0.36, 0.30, 0.28, 0.28, 0.2);
+
+        let hit = r.y <= 0.25 || r.life <= 0;
+        if (!hit && t) {
+          const d = Math.hypot(t.x - r.x, t.z - r.z);
+          if (d < t.radius + 0.9 && Math.abs(r.y - 0.9 * t.scale) < 1.6 * t.scale) hit = true;
+        }
+        if (hit) {
+          this.rockets.splice(i, 1);
+          game.explosion(r.x, r.z, r.radius, r.dmg, 'rocket');
+          this.fx.fire(r.x, Math.max(0.4, r.y), r.z, 20, 1.1, 1.6);
+          this.fx.smoke(r.x, Math.max(0.5, r.y), r.z, 8, 1.3, 0.2, 0.19, 0.19, 1.2);
+          this.fx.wave(r.x, 0.1, r.z, 1, r.radius * 1.6, 0.38, 1.4, 0.7, 0.2, 1.1);
+          this.fx.splat(r.x, r.z, r.radius * 0.5, 0.08, 0.07, 0.06, 0.55);
+          this.audio.explode(0.9);
+          game.shake(0.3);
+        }
+      }
+
+      /* ---------------------------------------------------- minigun */
+      if (L.minigun > 0) {
+        this.cd.minigun -= dt;
+        const rate = (0.13 - L.minigun * 0.014) * cdMul;
+        if (this.cd.minigun <= 0) {
+          const t = this.nearest(horde, car.x, car.z, 46);
+          if (t) {
+            this.cd.minigun = rate;
+            const barrels = 1 + Math.floor((L.minigun - 1) / 2);
+            for (let k = 0; k < barrels; k++) {
+              const ox = Math.cos(car.yaw) * (k === 0 ? 0.7 : -0.7);
+              const oz = -Math.sin(car.yaw) * (k === 0 ? 0.7 : -0.7);
+              const sx = car.x + ox, sz = car.z + oz, sy = 1.55;
+              const dx = t.x - sx, dy = 1.0 * t.scale - sy, dz = t.z - sz;
+              const d = Math.hypot(dx, dy, dz) || 1;
+              const spread = 0.055;
+              this.bullets.push({
+                x: sx, y: sy, z: sz,
+                vx: (dx / d + rand(-spread, spread)) * 105,
+                vy: (dy / d) * 105,
+                vz: (dz / d + rand(-spread, spread)) * 105,
+                life: 0.65, dmg: (7 + L.minigun * 4.5) * dmgMul,
+              });
+            }
+            this.audio.shoot();
+            this.fx.sparks(car.x + fx_ * 0.5, 1.6, car.z + fz * 0.5, 2, 1.4, 1.0, 0.35, 0.5);
+          } else this.cd.minigun = 0.1;
+        }
+      }
+      for (let i = this.bullets.length - 1; i >= 0; i--) {
+        const b = this.bullets[i];
+        b.life -= dt;
+        const px = b.x, py = b.y, pz = b.z;
+        b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
+        b.px = px; b.py = py; b.pz = pz;
+        let done = b.life <= 0 || b.y < 0.1;
+        if (!done) {
+          const near = horde.grid.query(b.x, b.z, 2.2, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            if (Math.hypot(e.x - b.x, e.z - b.z) < e.radius + 0.35 && b.y < 2.2 * e.scale) {
+              const d = Math.hypot(b.vx, b.vz) || 1;
+              horde.damage(e, b.dmg, b.vx / d, b.vz / d, 6, game);
+              this.fx.blood(b.x, b.y, b.z, b.vx / d, 0.3, b.vz / d, 3, 3);
+              done = true;
+              break;
+            }
+          }
+        }
+        if (done) this.bullets.splice(i, 1);
+      }
+
+      /* ---------------------------------------------------- saw blades */
+      if (L.saw > 0) {
+        const count = 1 + L.saw;
+        const radius = 4.0 + L.saw * 0.65;
+        const speed = 3.4 + L.saw * 0.45;
+        this.sawAngle += dt * speed;
+        const dmg = (13 + L.saw * 9) * dmgMul;
+        for (let i = 0; i < count; i++) {
+          const a = this.sawAngle + (i / count) * TAU;
+          const sx = car.x + Math.sin(a) * radius;
+          const sz = car.z + Math.cos(a) * radius;
+          const near = horde.grid.query(sx, sz, 2.6, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            if (Math.hypot(e.x - sx, e.z - sz) < e.radius + 1.1) {
+              e.sawCd = (e.sawCd || 0) - dt;
+              if (e.sawCd <= 0) {
+                e.sawCd = 0.28;
+                const dx = e.x - car.x, dz = e.z - car.z;
+                const d = Math.hypot(dx, dz) || 1;
+                horde.damage(e, dmg, dx / d, dz / d, 16, game);
+                this.fx.blood(sx, 1.0, sz, dx / d, 0.6, dz / d, 5, 5);
+                this.fx.sparks(sx, 1.0, sz, 4, 1.3, 0.9, 0.4, 0.8);
+              }
+            }
+          }
+        }
+      }
+
+      /* ---------------------------------------------------- flame trail */
+      if (L.flame > 0) {
+        this.cd.flame -= dt;
+        if (this.cd.flame <= 0) {
+          this.cd.flame = 0.16;
+          const bx = car.x - fx_ * 2.8, bz = car.z - fz * 2.8;
+          const life = 2.2 + L.flame * 0.4;
+          // refresh an overlapping patch instead of stacking additive discs
+          let merged = null;
+          for (const p of this.patches) {
+            if ((p.x - bx) * (p.x - bx) + (p.z - bz) * (p.z - bz) < 4) { merged = p; break; }
+          }
+          if (merged) { merged.life = merged.max; }
+          else {
+            this.patches.push({
+              x: bx, z: bz, r: 2.0 + L.flame * 0.42, life, max: life,
+              dps: (10 + L.flame * 8) * dmgMul,
+            });
+          }
+          this.fx.fire(bx, 0.35, bz, 1, 0.6, 0.5);
+        }
+      }
+      for (let i = this.patches.length - 1; i >= 0; i--) {
+        const p = this.patches[i];
+        p.life -= dt;
+        if (p.life <= 0) { this.patches.splice(i, 1); continue; }
+        if (Math.random() < dt * 9) this.fx.fire(p.x + rand(-p.r * 0.6, p.r * 0.6), 0.25, p.z + rand(-p.r * 0.6, p.r * 0.6), 1, 0.5, 0.3);
+        const near = horde.grid.query(p.x, p.z, p.r + 2, []);
+        for (const e of near) {
+          if (e.dead) continue;
+          if (Math.hypot(e.x - p.x, e.z - p.z) < p.r + e.radius) {
+            e.burn = Math.max(e.burn, 1.4);
+            e.burnDps = Math.max(e.burnDps || 0, p.dps);
+          }
+        }
+      }
+
+      /* ---------------------------------------------------- tesla coil */
+      if (L.tesla > 0) {
+        this.cd.tesla -= dt;
+        if (this.cd.tesla <= 0) {
+          const first = this.nearest(horde, car.x, car.z, 34);
+          if (first) {
+            this.cd.tesla = (1.5 - L.tesla * 0.14) * cdMul;
+            const chains = 2 + L.tesla;
+            const dmg = (22 + L.tesla * 14) * dmgMul;
+            const used = new Set();
+            let from = { x: car.x, y: 1.9, z: car.z };
+            let cur = first;
+            const pts = [from];
+            for (let i = 0; i < chains && cur; i++) {
+              used.add(cur);
+              pts.push({ x: cur.x, y: 1.1 * cur.scale, z: cur.z });
+              const dx = cur.x - from.x, dz = cur.z - from.z;
+              const d = Math.hypot(dx, dz) || 1;
+              horde.damage(cur, dmg, dx / d, dz / d, 10, game);
+              this.fx.sparks(cur.x, 1.2 * cur.scale, cur.z, 8, 0.5, 0.85, 1.5, 1.1);
+              cur.slow = Math.max(cur.slow, 0.8);
+              from = pts[pts.length - 1];
+              cur = this.nearest(horde, from.x, from.z, 17, used);
+            }
+            this.bolts.push({ pts, life: 0.22, max: 0.22 });
+            this.audio.zap();
+          } else this.cd.tesla = 0.25;
+        }
+      }
+      for (let i = this.bolts.length - 1; i >= 0; i--) {
+        this.bolts[i].life -= dt;
+        if (this.bolts[i].life <= 0) this.bolts.splice(i, 1);
+      }
+
+      /* ---------------------------------------------------- mines */
+      if (L.mine > 0) {
+        this.cd.mine -= dt;
+        if (this.cd.mine <= 0) {
+          this.cd.mine = (2.1 - L.mine * 0.2) * cdMul;
+          this.mines.push({
+            x: car.x - fx_ * 3.4, z: car.z - fz * 3.4, y: 0.35,
+            arm: 0.6, life: 14, dmg: (55 + L.mine * 32) * dmgMul, radius: 7 + L.mine,
+          });
+        }
+      }
+      for (let i = this.mines.length - 1; i >= 0; i--) {
+        const m = this.mines[i];
+        m.life -= dt; m.arm -= dt;
+        let boom = m.life <= 0;
+        if (!boom && m.arm <= 0) {
+          const near = horde.grid.query(m.x, m.z, 3.2, []);
+          for (const e of near) {
+            if (!e.dead && Math.hypot(e.x - m.x, e.z - m.z) < e.radius + 1.5) { boom = true; break; }
+          }
+        }
+        if (boom) {
+          this.mines.splice(i, 1);
+          game.explosion(m.x, m.z, m.radius, m.dmg, 'mine');
+          this.fx.fire(m.x, 0.6, m.z, 22, 1.2, 1.9);
+          this.fx.wave(m.x, 0.1, m.z, 1, m.radius * 1.7, 0.4, 1.3, 0.9, 0.25, 1.2);
+          this.fx.splat(m.x, m.z, m.radius * 0.45, 0.08, 0.07, 0.06, 0.5);
+          this.audio.explode(1.0);
+          game.shake(0.34);
+        }
+      }
+
+      /* ---------------------------------------------------- shock pulse */
+      if (L.slam > 0) {
+        this.cd.pulse -= dt;
+        if (this.cd.pulse <= 0) {
+          this.cd.pulse = (4.2 - L.slam * 0.35) * cdMul;
+          game.slamShock(car.x, car.z, 0.7 + L.slam * 0.16, 0.4, true);
+        }
+      }
+    }
+
+    /* -------------------------------------------------------------- draw */
+    draw(R, car, game) {
+      const L = game.weaponLevels;
+
+      for (const r of this.rockets) {
+        const yaw = Math.atan2(r.vx, r.vz);
+        const pitch = -Math.asin(clamp(r.vy / (Math.hypot(r.vx, r.vy, r.vz) || 1), -1, 1));
+        R.push('cyl', 'opaque', r.x, r.y, r.z, yaw, pitch + Math.PI / 2, 0, 0.34, 1.1, 0.34, 0.85, 0.85, 0.9, 0.05);
+        R.push('cone', 'opaque', r.x, r.y, r.z, yaw, pitch + Math.PI / 2, 0, 0.36, 0.5, 0.36, 0.9, 0.2, 0.15, 0.2);
+        R.push('sphere', 'glow', r.x - r.vx * 0.012, r.y - r.vy * 0.012, r.z - r.vz * 0.012, 0, 0, 0, 0.85, 0.85, 0.85, 1.3, 0.6, 0.15, 1);
+      }
+
+      for (const b of this.bullets) {
+        // clamp the tracer so a long frame doesn't draw a laser across the map
+        const tx = b.px === undefined ? b.x : b.px, ty = b.py === undefined ? b.y : b.py, tz = b.pz === undefined ? b.z : b.pz;
+        let dx = tx - b.x, dy = ty - b.y, dz = tz - b.z;
+        const len = Math.hypot(dx, dy, dz) || 1;
+        const k = Math.min(len, 2.6) / len;
+        beam(R, 'glow', b.x + dx * k, b.y + dy * k, b.z + dz * k, b.x, b.y, b.z, 0.11, 1.2, 0.95, 0.4);
+      }
+
+      for (const m of this.mines) {
+        const blink = m.arm > 0 ? 0.3 : (Math.sin(m.life * 14) > 0 ? 1 : 0.2);
+        R.push('cyl', 'opaque', m.x, 0.22, m.z, 0, 0, 0, 1.3, 0.44, 1.3, 0.18, 0.18, 0.2, 0);
+        R.push('sphere', 'glow', m.x, 0.5, m.z, 0, 0, 0, 0.4, 0.4, 0.4, 1.4 * blink, 0.25 * blink, 0.15 * blink, 1);
+        R.shadow(m.x, m.z, 1.3, 0.4);
+      }
+
+      for (const p of this.patches) {
+        const k = clamp01(p.life / p.max);
+        R.push('disc', 'glow', p.x, 0.07, p.z, 0, 0, 0, p.r * 2, 1, p.r * 2, 0.07 * k, 0.024 * k, 0.005 * k, 1);
+      }
+
+      for (const bo of this.bolts) {
+        const k = clamp01(bo.life / bo.max);
+        for (let i = 0; i < bo.pts.length - 1; i++) {
+          const a = bo.pts[i], b = bo.pts[i + 1];
+          const segs = 4;
+          let px = a.x, py = a.y, pz = a.z;
+          for (let s = 1; s <= segs; s++) {
+            const t = s / segs;
+            const jitter = s === segs ? 0 : 0.9;
+            const nx = lerp(a.x, b.x, t) + rand(-jitter, jitter);
+            const ny = lerp(a.y, b.y, t) + rand(-jitter * 0.6, jitter * 0.6);
+            const nz = lerp(a.z, b.z, t) + rand(-jitter, jitter);
+            beam(R, 'glow', px, py, pz, nx, ny, nz, 0.22 * k + 0.06, 0.65 * k, 1.0 * k, 1.6 * k);
+            px = nx; py = ny; pz = nz;
+          }
+        }
+      }
+
+      if (L.saw > 0) {
+        const count = 1 + L.saw;
+        const radius = 4.0 + L.saw * 0.65;
+        for (let i = 0; i < count; i++) {
+          const a = this.sawAngle + (i / count) * TAU;
+          const sx = car.x + Math.sin(a) * radius;
+          const sz = car.z + Math.cos(a) * radius;
+          const spin = this.sawAngle * 9 + i;
+          const y = 1.05 + Math.sin(a * 2 + this.sawAngle) * 0.12;
+          // blade plane lies along the orbit tangent, spinning on its own axle
+          R.push('saw', 'opaque', sx, y, sz, a + Math.PI / 2, 0, spin, 2.15, 2.15, 2.15, 0.44, 0.47, 0.55, 0.03);
+          R.push('cylX', 'opaque', sx, y, sz, a, 0, 0, 0.4, 0.5, 0.5, 0.30, 0.30, 0.34, 0);
+          R.shadow(sx, sz, 1.6, 0.3);
+        }
+      }
+    }
+  }
+
+  BA.Weapons = Weapons;
+  BA.beam = beam;
+})();
+
+</script>
+<script>
+/* ---- src/upgrades.js ---- */
+/* BADASS APOCALYPSE - roguelite upgrade pool */
+(function () {
+  'use strict';
+  const { rand, clamp } = BA;
+
+  const WEAPONS = [
+    {
+      id: 'spikes', name: 'RAM SPIKES', icon: '🔱', max: 5, color: '#c9d4e2',
+      desc: (l) => l === 0 ? 'Weld spikes to the bumper. Ramming hurts a LOT more.' : `+45% ram damage, longer spikes (Lv${l + 1})`,
+    },
+    {
+      id: 'rocket', name: 'ROCKET LAUNCHER', icon: '🚀', max: 5, color: '#ff8a3d',
+      desc: (l) => l === 0 ? 'Roof pod auto-fires homing rockets. Big boom.' : `Faster reload, +damage, more rockets (Lv${l + 1})`,
+    },
+    {
+      id: 'saw', name: 'BUZZ SPIN', icon: '⚙️', max: 5, color: '#9ad6ff',
+      desc: (l) => l === 0 ? 'Saw blades orbit the car and shred anything close.' : `+1 blade, wider orbit, +damage (Lv${l + 1})`,
+    },
+    {
+      id: 'flame', name: 'FLAME EXHAUST', icon: '🔥', max: 5, color: '#ff5a2b',
+      desc: (l) => l === 0 ? 'Leave a burning trail behind you. Cook the horde.' : `Bigger, hotter, longer-lasting fire (Lv${l + 1})`,
+    },
+    {
+      id: 'minigun', name: 'ROOF MINIGUN', icon: '🔫', max: 5, color: '#ffd75e',
+      desc: (l) => l === 0 ? 'Auto-tracking minigun. Never stops chewing.' : `Faster fire rate, +damage, +barrel (Lv${l + 1})`,
+    },
+    {
+      id: 'tesla', name: 'TESLA COIL', icon: '⚡', max: 5, color: '#7fd4ff',
+      desc: (l) => l === 0 ? 'Chain lightning that jumps between corpses-to-be.' : `+1 chain, +damage, slows targets (Lv${l + 1})`,
+    },
+    {
+      id: 'mine', name: 'DROP MINES', icon: '💣', max: 5, color: '#ff6b6b',
+      desc: (l) => l === 0 ? 'Drop proximity mines out the back. Rude.' : `Faster drops, bigger blast (Lv${l + 1})`,
+    },
+    {
+      id: 'slam', name: 'SHOCK SLAM', icon: '💥', max: 5, color: '#c68bff',
+      desc: (l) => l === 0 ? 'Landing from a jump detonates a shockwave. Auto-pulses too.' : `Bigger wave, more damage, faster pulse (Lv${l + 1})`,
+    },
+  ];
+
+  const PASSIVES = [
+    { id: 'engine', name: 'V8 ENGINE', icon: '🏎️', max: 5, color: '#ff4d4d', desc: () => '+12% top speed' },
+    { id: 'turbo', name: 'TURBOCHARGER', icon: '🌀', max: 5, color: '#4dd2ff', desc: () => '+18% acceleration, +12% drift boost' },
+    { id: 'grip', name: 'RACING TIRES', icon: '🛞', max: 5, color: '#b0b6c2', desc: () => '+16% grip, +8% steering' },
+    { id: 'armor', name: 'ARMOR PLATING', icon: '🛡️', max: 5, color: '#8fd18f', desc: () => '+28 max HP, +6% damage resist, repairs 20' },
+    { id: 'magnet', name: 'SCRAP MAGNET', icon: '🧲', max: 5, color: '#ff9ad5', desc: () => '+50% pickup range' },
+    { id: 'overdrive', name: 'OVERDRIVE', icon: '☠️', max: 5, color: '#ffcf3d', desc: () => '+18% weapon damage' },
+    { id: 'coolant', name: 'COOLANT TANK', icon: '❄️', max: 5, color: '#9fe8ff', desc: () => '+16% fire rate' },
+    { id: 'lucky', name: 'LUCKY DICE', icon: '🎲', max: 5, color: '#d2a6ff', desc: () => '+25% scrap gained' },
+    { id: 'hydraulics', name: 'HYDRAULICS', icon: '🦿', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
+    { id: 'ramplate', name: 'RAM PLATE', icon: '🪓', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
+  ];
+
+  const HEAL = {
+    id: 'repair', name: 'FIELD REPAIR', icon: '🔧', max: Infinity, color: '#7dffa0',
+    desc: () => 'Patch the wreck. Restore 45 HP right now.',
+  };
+
+  function levelOf(game, u) {
+    if (u.id === 'repair') return 0;
+    return game.weaponLevels[u.id] !== undefined ? game.weaponLevels[u.id] : (game.passiveLevels[u.id] || 0);
+  }
+
+  function roll(game, n) {
+    const pool = [];
+    const ownedWeapons = WEAPONS.filter((w) => game.weaponLevels[w.id] > 0).length;
+    for (const w of WEAPONS) {
+      const l = game.weaponLevels[w.id] || 0;
+      if (l >= w.max) continue;
+      // don't flood the player with brand-new weapons once they have a build
+      let weight = l === 0 ? (ownedWeapons >= 5 ? 0.4 : 1.5) : 1.15;
+      pool.push({ u: w, weight });
+    }
+    for (const p of PASSIVES) {
+      const l = game.passiveLevels[p.id] || 0;
+      if (l >= p.max) continue;
+      pool.push({ u: p, weight: 1.0 });
+    }
+    if (game.car.hp < game.car.maxHp * 0.75) pool.push({ u: HEAL, weight: 0.9 + (1 - game.car.hp / game.car.maxHp) * 1.6 });
+
+    const out = [];
+    for (let i = 0; i < n && pool.length; i++) {
+      let total = 0;
+      for (const p of pool) total += p.weight;
+      let r = rand(total);
+      let idx = 0;
+      for (let j = 0; j < pool.length; j++) {
+        r -= pool[j].weight;
+        if (r <= 0) { idx = j; break; }
+      }
+      out.push(pool[idx].u);
+      pool.splice(idx, 1);
+    }
+    if (!out.length) out.push(HEAL);
+    return out;
+  }
+
+  function apply(game, u) {
+    if (u.id === 'repair') {
+      game.car.hp = Math.min(game.car.maxHp, game.car.hp + 45);
+      game.fx.text(game.car.x, 3.2, game.car.z, '+45 HP', '#7dffa0', 26, 'big');
+      return;
+    }
+    if (game.weaponLevels[u.id] !== undefined) {
+      game.weaponLevels[u.id]++;
+    } else {
+      game.passiveLevels[u.id] = (game.passiveLevels[u.id] || 0) + 1;
+    }
+    game.recalcStats();
+  }
+
+  BA.upgrades = { WEAPONS, PASSIVES, HEAL, roll, apply, levelOf };
+})();
+
+</script>
+<script>
+/* ---- src/hud.js ---- */
+/* BADASS APOCALYPSE - DOM HUD */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp } = BA;
+
+  const $ = (id) => document.getElementById(id);
+
+  function fmtTime(t) {
+    const m = Math.floor(t / 60), s = Math.floor(t % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  class Hud {
+    constructor() {
+      this.el = {
+        hud: $('hud'), xp: $('xpbar'), lvl: $('lvlnum'),
+        hp: $('hpbar'), hpGhost: $('hpghost'), hpText: $('hptext'),
+        clock: $('clock'), kills: $('killn'), speed: $('stSpeed'),
+        scrap: $('stScrap'), score: $('stScore'),
+        combo: $('combo'), comboN: $('combon'),
+        weapons: $('weapons'), boost: $('boostbar'), boostLbl: $('boostlbl'),
+        bossWrap: $('bosswrap'), bossBar: $('bossbar'),
+        banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
+        toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
+        screens: {
+          title: $('scTitle'), levelup: $('scLevel'),
+          pause: $('scPause'), over: $('scOver'),
+        },
+      };
+      this.startRequested = false;
+      this.current = 'title';
+      this.toastT = 0;
+      this.chipCache = '';
+
+      const req = () => { this.startRequested = true; };
+      $('scTitle').addEventListener('click', req);
+      $('againBtn').addEventListener('click', (e) => { e.stopPropagation(); req(); });
+      $('scOver').addEventListener('click', req);
+    }
+
+    setScreen(name) {
+      for (const k in this.el.screens) this.el.screens[k].classList.toggle('on', k === name);
+      this.el.hud.classList.toggle('on', name === null || name === 'pause');
+      this.current = name;
+    }
+
+    flashBanner(title, sub) {
+      const b = this.el.banner;
+      this.el.bannerT.textContent = title;
+      this.el.bannerS.textContent = sub || '';
+      b.classList.remove('go');
+      void b.offsetWidth;
+      b.classList.add('go');
+    }
+
+    toast(msg) {
+      this.el.toast.textContent = msg;
+      this.el.toast.style.opacity = '1';
+      this.toastT = 1.4;
+    }
+
+    showLevelUp(choices, level, onPick) {
+      this.el.luLevel.textContent = level;
+      const wrap = this.el.cards;
+      wrap.innerHTML = '';
+      const game = window.GAME;
+      choices.forEach((u, i) => {
+        const lv = BA.upgrades.levelOf(game, u);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.setProperty('--c', u.color);
+        card.tabIndex = 0;
+        const isNew = lv === 0 && u.id !== 'repair';
+        card.innerHTML =
+          `<div class="num">${i + 1}</div>` +
+          (isNew ? `<div class="tag">NEW</div>` : (u.id !== 'repair' ? `<div class="tag">LV ${lv + 1}</div>` : '')) +
+          `<div class="cic">${u.icon}</div>` +
+          `<div class="cnm">${u.name}</div>` +
+          `<div class="clv">${u.id === 'repair' ? 'EMERGENCY' : (isNew ? (game.weaponLevels[u.id] !== undefined ? 'NEW WEAPON' : 'NEW PERK') : 'UPGRADE')}</div>` +
+          `<div class="cds">${u.desc(lv)}</div>`;
+        card.addEventListener('click', () => onPick(u));
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') onPick(u); });
+        wrap.appendChild(card);
+      });
+      this.setScreen('levelup');
+    }
+
+    showGameOver(game) {
+      $('ovScore').textContent = game.score.toLocaleString();
+      $('ovKills').textContent = game.kills.toLocaleString();
+      $('ovTime').textContent = fmtTime(game.time);
+      $('ovLevel').textContent = game.level;
+      $('ovCombo').textContent = game.bestCombo;
+      $('newbest').textContent = game.score >= game.best && game.score > 0 ? 'NEW PERSONAL BEST!' : `BEST: ${game.best.toLocaleString()}`;
+      setTimeout(() => this.setScreen('over'), 900);
+    }
+
+    update(game, dt) {
+      if (this.toastT > 0) {
+        this.toastT -= dt;
+        if (this.toastT <= 0) this.el.toast.style.opacity = '0';
+      }
+      if (game.state === 'title') return;
+
+      const car = game.car;
+      const hp01 = clamp01(car.hp / car.maxHp) * 100;
+      this.el.hp.style.width = hp01 + '%';
+      this.el.hpGhost.style.width = hp01 + '%';
+      this.el.hpText.textContent = `${Math.max(0, Math.ceil(car.hp))} / ${car.maxHp}`;
+      this.el.xp.style.width = clamp01(game.xp / game.xpNext) * 100 + '%';
+      this.el.lvl.textContent = game.level;
+      this.el.clock.textContent = fmtTime(game.time);
+      this.el.kills.textContent = game.kills.toLocaleString();
+      this.el.speed.textContent = Math.round(Math.abs(car.vf) * 3.6 * 1.6) + ' KM/H';
+      this.el.scrap.textContent = Math.floor(game.xp) + '/' + game.xpNext + ' SCRAP';
+      this.el.score.textContent = game.score.toLocaleString() + ' PTS';
+
+      const showCombo = game.combo >= 3;
+      this.el.combo.classList.toggle('on', showCombo);
+      if (showCombo) this.el.comboN.textContent = 'x' + game.combo;
+
+      // drift charge / boost meter
+      let pct = 0, lbl = 'DRIFT CHARGE', col = '#39d0ff';
+      if (car.boostTime > 0) {
+        pct = clamp01(car.boostTime / 1.5) * 100;
+        lbl = 'TURBO!';
+        col = ['#5ec8ff', '#ffa63a', '#d07bff'][car.boostStage] || '#39d0ff';
+      } else if (car.drifting) {
+        const stages = BA.CarConst.DRIFT_STAGES;
+        pct = clamp01(car.driftCharge / stages[2]) * 100;
+        col = car.driftStage >= 2 ? '#d07bff' : car.driftStage >= 1 ? '#ffa63a' : car.driftStage >= 0 ? '#5ec8ff' : '#88919c';
+        lbl = car.driftStage >= 0 ? ['BLUE SPARK', 'ORANGE SPARK', 'PURPLE SPARK'][car.driftStage] : 'DRIFTING...';
+      }
+      this.el.boost.style.width = pct + '%';
+      this.el.boost.style.background = col;
+      this.el.boostLbl.textContent = lbl;
+      this.el.boostLbl.style.color = col;
+
+      // boss bar
+      const boss = game.bossAlive;
+      this.el.bossWrap.classList.toggle('on', !!(boss && !boss.dead));
+      if (boss && !boss.dead) this.el.bossBar.style.width = clamp01(boss.hp / boss.maxHp) * 100 + '%';
+
+      // weapon chips
+      const key = Object.entries(game.weaponLevels).map(([k, v]) => k + v).join('') +
+        Object.entries(game.passiveLevels).map(([k, v]) => k + v).join('');
+      if (key !== this.chipCache) {
+        this.chipCache = key;
+        const parts = [];
+        for (const w of BA.upgrades.WEAPONS) {
+          const l = game.weaponLevels[w.id] || 0;
+          if (!l) continue;
+          parts.push(chip(w, l));
+        }
+        for (const p of BA.upgrades.PASSIVES) {
+          const l = game.passiveLevels[p.id] || 0;
+          if (!l) continue;
+          parts.push(chip(p, l));
+        }
+        this.el.weapons.innerHTML = parts.join('');
+      }
+    }
+  }
+
+  function chip(u, l) {
+    let pips = '';
+    for (let i = 0; i < u.max; i++) pips += `<div class="pip${i < l ? ' f' : ''}"></div>`;
+    return `<div class="wchip" title="${u.name}"><div class="ic">${u.icon}</div><div class="pips">${pips}</div></div>`;
+  }
+
+  BA.Hud = Hud;
+})();
+
+</script>
+<script>
+/* ---- src/game.js ---- */
+/* BADASS APOCALYPSE - game loop, director, camera, juice */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, damp, rand, randInt, pick, TAU, angleDelta } = BA;
+
+  const COMBO_TIME = 2.6;
+
+  class Game {
+    constructor(canvas, overlay, hud) {
+      this.R = new BA.Renderer(canvas);
+      this.overlay = overlay;
+      this.octx = overlay.getContext('2d');
+      this.hud = hud;
+      this.audio = new BA.Audio();
+      this.fx = new BA.FX();
+      this.input = new BA.Input(document.body);
+      this.world = new BA.World(this.fx, this.audio);
+      this.horde = new BA.Horde(this.fx, this.audio);
+      this.car = new BA.Car(this.fx, this.audio);
+      this.weapons = new BA.Weapons(this.fx, this.audio);
+
+      this.state = 'title';
+      this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
+      this.cam = { x: 0, y: 8, z: -16, yaw: 0, fov: 1.08, dist: 14, height: 6.4, tx: 0, ty: 0, tz: 0, roll: 0 };
+      this.trauma = 0;
+      this.freeze = 0;
+      this.slowmo = 0;
+      this.hurtFlash = 0;
+      this.flashAmt = 0;
+      this.flashCol = [1, 1, 1];
+      this.orbs = [];
+      this.pickups = [];
+      this.scratch = [];
+      this.best = Number(localStorage.getItem('ba_best') || 0);
+
+      this.newRun();
+
+      window.addEventListener('resize', () => this.resize());
+      this.resize();
+
+      this.last = performance.now();
+      this.acc = 0;
+      this.frame = this.frame.bind(this);
+      requestAnimationFrame(this.frame);
+    }
+
+    resize() {
+      const w = window.innerWidth, h = window.innerHeight;
+      this.overlay.width = Math.floor(w * Math.min(window.devicePixelRatio || 1, 2));
+      this.overlay.height = Math.floor(h * Math.min(window.devicePixelRatio || 1, 2));
+      this.overlay.style.width = w + 'px';
+      this.overlay.style.height = h + 'px';
+      this.R.canvas.style.width = w + 'px';
+      this.R.canvas.style.height = h + 'px';
+      this.R.resize(w, h, this.renderScale);
+    }
+
+    /* ------------------------------------------------------------- setup */
+    newRun() {
+      this.time = 0;
+      this.kills = 0;
+      this.score = 0;
+      this.level = 1;
+      this.xp = 0;
+      this.xpNext = 6;
+      this.combo = 0;
+      this.comboTimer = 0;
+      this.bestCombo = 0;
+      this.spawnAcc = 0;
+      this.nextBoss = 105;
+      this.bossAlive = null;
+      this.announce = null;
+      this.weaponLevels = {};
+      for (const w of BA.upgrades.WEAPONS) this.weaponLevels[w.id] = 0;
+      this.passiveLevels = {};
+      this.weaponLevels.spikes = 1;
+
+      this.orbs.length = 0;
+      this.pickups.length = 0;
+      this.fx.clear();
+      this.horde.reset();
+      this.world.reset();
+      this.weapons.reset();
+      this.car.reset();
+      this.recalcStats();
+      this.car.hp = this.car.maxHp;
+      this.cam.yaw = 0;
+      this.trauma = 0;
+      this.hurtFlash = 0;
+      this.deathTimer = 0;
+    }
+
+    recalcStats() {
+      const P = this.passiveLevels;
+      const lv = (k) => P[k] || 0;
+      const S = this.car.stats;
+      S.maxSpeed = 44 * (1 + lv('engine') * 0.12);
+      S.accel = 34 * (1 + lv('turbo') * 0.18);
+      S.boostMul = 1 + lv('turbo') * 0.12;
+      S.grip = 14 * (1 + lv('grip') * 0.16);
+      S.driftGrip = 2.7 * (1 + lv('grip') * 0.05);
+      S.turn = 2.45 * (1 + lv('grip') * 0.08);
+      S.jump = 14.5 * (1 + lv('hydraulics') * 0.14);
+      S.airControl = 2.4 * (1 + lv('hydraulics') * 0.22);
+      S.magnet = 5.5 * (1 + lv('magnet') * 0.5);
+      S.damage = 1 + lv('overdrive') * 0.18;
+      S.cooldown = 1 + lv('coolant') * 0.16;
+      S.xpGain = 1 + lv('lucky') * 0.25;
+      S.armor = lv('armor') * 0.06;
+      const spikes = this.weaponLevels.spikes || 0;
+      S.ramDamage = 26 * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
+      this.car.spikeLevel = spikes;
+
+      const newMax = 100 + lv('armor') * 28;
+      if (newMax > this.car.maxHp) this.car.hp += Math.min(20, newMax - this.car.maxHp);
+      this.car.maxHp = newMax;
+      this.car.hp = Math.min(this.car.hp, this.car.maxHp);
+    }
+
+    start() {
+      this.audio.resume();
+      this.newRun();
+      this.state = 'playing';
+      this.hud.setScreen(null);
+      this.hud.flashBanner('SURVIVE', 'THE HORDE IS COMING');
+    }
+
+    /* ------------------------------------------------------------- juice */
+    shake(amount) { this.trauma = clamp01(this.trauma + amount); }
+    hitstop(t) { this.freeze = Math.max(this.freeze, t); }
+    flash(a, col) { this.flashAmt = Math.max(this.flashAmt, a); if (col) this.flashCol = col; }
+
+    damageNumber(x, y, z, amount, crit) {
+      if (!crit && amount < 14 && Math.random() > 0.22) return;
+      this.fx.text(x, y + 0.6, z, String(amount), crit ? '#ffd23a' : '#ffffff', crit ? 24 : 17);
+    }
+
+    /* ------------------------------------------------------------ combat */
+    explosion(x, z, radius, damage, source) {
+      const near = this.horde.grid.query(x, z, radius + 3, this.scratch);
+      for (let i = near.length - 1; i >= 0; i--) {
+        const e = near[i];
+        if (e.dead) continue;
+        const dx = e.x - x, dz = e.z - z;
+        const d = Math.hypot(dx, dz);
+        if (d > radius + e.radius) continue;
+        const fall = 1 - clamp01((d - e.radius) / radius) * 0.65;
+        const nx = d > 0.01 ? dx / d : rand(-1, 1), nz = d > 0.01 ? dz / d : rand(-1, 1);
+        e.vy = 6 + fall * 8;
+        e.airborne = true;
+        this.horde.damage(e, damage * fall, nx, nz, 42 * fall, this, true);
+      }
+      // barrels chain off explosions too
+      for (const p of this.world.props) {
+        if (p.dead || p.type !== 'barrel') continue;
+        if (Math.hypot(p.x - x, p.z - z) < radius + 1.5) {
+          const rid = this.world.runId;
+          setTimeout(() => this.world.explodeBarrel(p, this, rid), 70 + Math.random() * 120);
+        }
+      }
+      if (source === 'barrel') {
+        const d = Math.hypot(this.car.x - x, this.car.z - z);
+        if (d < radius * 0.75) this.car.hurt(14, this);
+      }
+    }
+
+    slamShock(x, z, power, airTime, auto) {
+      const L = this.weaponLevels.slam || 0;
+      const radius = (auto ? 8 : 9 + airTime * 6) * (1 + L * 0.22);
+      const dmg = (auto ? 26 : 34 + airTime * 40) * (1 + L * 0.55) * this.car.stats.damage * power;
+      if (!auto && L === 0 && airTime < 0.5) return;
+      this.fx.wave(x, 0.08, z, 1.4, radius * 2.1, 0.42, 0.85, 0.75, 1.5, 1.3);
+      this.fx.smoke(x, 0.3, z, 8, 1.1, 0.42, 0.4, 0.38, 1);
+      this.fx.sparks(x, 0.4, z, 14, 0.7, 0.7, 1.4, 1.2);
+      this.explosion(x, z, radius, dmg, 'slam');
+      this.shake(auto ? 0.18 : 0.45);
+      if (!auto) this.audio.explode(0.8);
+      else this.audio.zap();
+    }
+
+    onKill(e, power) {
+      this.kills++;
+      this.combo++;
+      this.comboTimer = COMBO_TIME;
+      this.bestCombo = Math.max(this.bestCombo, this.combo);
+      this.score += 10 + Math.floor(this.combo * 0.6) + (e.type === 'boss' ? 2500 : e.type === 'brute' ? 90 : 0);
+      this.spawnXp(e.x, e.z, e.type === 'boss' ? 26 : e.type === 'brute' ? 5 : 1, e.xp);
+
+      const c = this.combo;
+      if (c === 10 || c === 25 || c === 50 || c === 100 || c === 200 || (c > 200 && c % 100 === 0)) {
+        const msgs = { 10: 'ROADKILL!', 25: 'BLOODY MESS!', 50: 'MEAT GRINDER!', 100: 'APOCALYPSE!', 200: 'ABSOLUTE UNIT!' };
+        this.fx.text(this.car.x, 4.2, this.car.z, (msgs[c] || 'UNSTOPPABLE!') + ' x' + c, '#ff4d3d', 34, 'big');
+        this.audio.levelUp();
+        this.flash(0.22, [1, 0.5, 0.35]);
+        this.addXp(Math.floor(c * 0.55), this.car.x, this.car.z);
+      }
+      if (e.type === 'boss') this.bossAlive = null;
+    }
+
+    spawnXp(x, z, count, value) {
+      for (let i = 0; i < count; i++) {
+        this.orbs.push({
+          x: x + rand(-1.4, 1.4), y: 0.7 + rand(0, 0.6), z: z + rand(-1.4, 1.4),
+          vx: rand(-3, 3), vy: rand(2, 6), vz: rand(-3, 3),
+          value: value, t: rand(TAU), grabbed: false, life: 26,
+        });
+      }
+      if (this.orbs.length > 700) this.orbs.splice(0, this.orbs.length - 700);
+    }
+
+    dropHealth(x, z) {
+      this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'hp', life: 30 });
+    }
+
+    addXp(amount, x, z) {
+      this.xp += amount * this.car.stats.xpGain;
+      this.score += amount * 2;
+      while (this.xp >= this.xpNext) {
+        this.xp -= this.xpNext;
+        this.level++;
+        this.xpNext = Math.floor(6 + this.level * 3.4 + Math.pow(this.level, 1.42) * 2.4);
+        this.queueLevelUp();
+      }
+    }
+
+    queueLevelUp() {
+      this.pendingLevels = (this.pendingLevels || 0) + 1;
+    }
+
+    openLevelUp() {
+      this.pendingLevels--;
+      this.state = 'levelup';
+      this.audio.levelUp();
+      this.choices = BA.upgrades.roll(this, 3);
+      this.hud.showLevelUp(this.choices, this.level, (u) => this.chooseUpgrade(u));
+    }
+
+    chooseUpgrade(u) {
+      BA.upgrades.apply(this, u);
+      this.audio.ui();
+      this.hud.setScreen(null);
+      this.state = 'playing';
+      this.slowmo = 0.35;
+      this.flash(0.3, [0.6, 0.9, 1.0]);
+      this.fx.wave(this.car.x, 0.1, this.car.z, 1, 18, 0.55, 0.5, 1.0, 1.5, 1.2);
+    }
+
+    /* ---------------------------------------------------------- director */
+    difficulty() { return this.time / 60; }
+
+    spawnWave(dt) {
+      const d = this.difficulty();
+      const targetAlive = Math.min(70 + d * 62, this.horde.max);
+      const alive = this.horde.count;
+      if (alive >= targetAlive) return;
+
+      this.spawnAcc += dt * (9 + d * 12);
+      if (this.spawnAcc < 1) return;
+
+      const hpMul = 1 + d * 0.62 + Math.pow(d, 1.7) * 0.12;
+      const spMul = 1 + d * 0.05;
+
+      // spawn as clusters so the horde reads as a wall of bodies
+      const clusterSize = clamp(Math.floor(4 + d * 5), 4, 26);
+      const n = Math.min(Math.floor(this.spawnAcc), clusterSize);
+      this.spawnAcc -= n;
+
+      const car = this.car;
+      const vAng = Math.atan2(car.vx, car.vz);
+      const ahead = car.speed > 12 && Math.random() < 0.62;
+      const baseAng = ahead ? vAng + rand(-0.75, 0.75) : rand(TAU);
+      const dist = rand(56, 80);
+      const cxp = car.x + Math.sin(baseAng) * dist;
+      const czp = car.z + Math.cos(baseAng) * dist;
+
+      for (let i = 0; i < n; i++) {
+        let type = 'walker';
+        const r = Math.random();
+        if (d > 0.6 && r < 0.20 + d * 0.05) type = 'runner';
+        if (d > 1.4 && r > 0.86) type = 'bomber';
+        if (d > 2.2 && r > 0.955) type = 'brute';
+        const spread = 3 + clusterSize * 0.7;
+        this.horde.spawn(type, cxp + rand(-spread, spread), czp + rand(-spread, spread), hpMul, spMul);
+      }
+
+      if (this.time > this.nextBoss && !this.bossAlive) {
+        this.nextBoss = this.time + 115;
+        const a = rand(TAU);
+        const b = this.horde.spawn('boss', car.x + Math.sin(a) * 70, car.z + Math.cos(a) * 70, 1 + d * 0.85, 1 + d * 0.03);
+        if (b) {
+          this.bossAlive = b;
+          this.audio.bigBad();
+          this.hud.flashBanner('WARNING', 'A BEHEMOTH APPROACHES');
+          this.shake(0.5);
+        }
+      }
+    }
+
+    /* ------------------------------------------------------------ update */
+    update(dt) {
+      const inp = this.input;
+      inp.update();
+
+      if (this.state === 'title') {
+        this.time += dt * 0.2;
+        this.updateCameraTitle(dt);
+        this.fx.update(dt, null);
+        if (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyW') || this.hud.startRequested) {
+          this.hud.startRequested = false;
+          this.start();
+        }
+        return;
+      }
+
+      if (inp.consume('Escape') || inp.consume('KeyP')) {
+        if (this.state === 'playing') { this.state = 'paused'; this.hud.setScreen('pause'); this.audio.silenceEngine(); }
+        else if (this.state === 'paused') { this.state = 'playing'; this.hud.setScreen(null); }
+      }
+      if (inp.consume('KeyM')) {
+        this.audio.muted = !this.audio.muted;
+        if (this.audio.muted) this.audio.silenceEngine();
+        this.hud.toast(this.audio.muted ? 'SOUND OFF' : 'SOUND ON');
+      }
+
+      if (this.state === 'paused') return;
+
+      if (this.state === 'levelup') {
+        const pick_ = ['Digit1', 'Digit2', 'Digit3'].findIndex((k) => inp.consume(k));
+        if (pick_ >= 0 && this.choices[pick_]) this.chooseUpgrade(this.choices[pick_]);
+        this.updateCamera(dt * 0.25, true);
+        this.fx.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z));
+        return;
+      }
+
+      if (this.state === 'dead') {
+        this.deathTimer += dt;
+        this.updateCamera(dt, true);
+        this.fx.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z));
+        this.horde.update(dt * 0.35, this.car, this, this.world);
+        if (this.deathTimer > 1.1 && (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyR') || this.hud.startRequested)) {
+          this.hud.startRequested = false;
+          this.start();
+        }
+        return;
+      }
+
+      /* ---- playing ---- */
+      if (this.car.hp <= 0) { this.die(); return; }
+      if (this.pendingLevels > 0 && this.freeze <= 0) { this.openLevelUp(); return; }
+
+      this.time += dt;
+      if (this.comboTimer > 0) {
+        this.comboTimer -= dt;
+        if (this.comboTimer <= 0) this.combo = 0;
+      }
+
+      this.car.update(dt, inp, this.world, this);
+      this.world.update(dt, this.car, this);
+      this.horde.update(dt, this.car, this, this.world);
+      this.weapons.update(dt, this.car, this.horde, this);
+      this.spawnWave(dt);
+      this.updateOrbs(dt);
+      this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
+      this.updateCamera(dt, false);
+
+      if (this.car.hp <= 0) this.die();
+
+      // engine audio
+      const c = this.car;
+      const rpm = clamp01(Math.abs(c.vf) / c.stats.maxSpeed) * 0.75 + (inp.throttle > 0 ? 0.2 : 0) + (c.grounded ? 0 : 0.15);
+      this.audio.engine(clamp01(rpm), inp.throttle, clamp01(Math.abs(c.vr) / 14), c.speed01, !c.grounded);
+    }
+
+    die() {
+      this.state = 'dead';
+      this.deathTimer = 0;
+      this.audio.silenceEngine();
+      this.audio.gameOver();
+      this.audio.explode(2);
+      this.fx.fire(this.car.x, 1.2, this.car.z, 46, 1.8, 2.4);
+      this.fx.smoke(this.car.x, 1.6, this.car.z, 24, 2.0, 0.16, 0.15, 0.15, 1.5);
+      this.fx.shard(this.car.x, 1.2, this.car.z, 26, this.car.color[0], this.car.color[1], this.car.color[2]);
+      this.fx.wave(this.car.x, 0.1, this.car.z, 1, 30, 0.7, 1.4, 0.6, 0.2, 1.8);
+      this.shake(1.2);
+      this.flash(0.8, [1, 0.55, 0.3]);
+      this.score += Math.floor(this.time * 12);
+      if (this.score > this.best) {
+        this.best = this.score;
+        localStorage.setItem('ba_best', String(this.best));
+      }
+      this.hud.showGameOver(this);
+    }
+
+    updateOrbs(dt) {
+      const car = this.car;
+      const mag = car.stats.magnet;
+      for (let i = this.orbs.length - 1; i >= 0; i--) {
+        const o = this.orbs[i];
+        o.life -= dt;
+        o.t += dt * 4;
+        const dx = car.x - o.x, dz = car.z - o.z;
+        const d = Math.hypot(dx, dz);
+        if (!o.grabbed && d < mag) o.grabbed = true;
+        if (o.grabbed) {
+          const pull = 34 + (mag - Math.min(d, mag)) * 4;
+          o.vx += (dx / (d || 1)) * pull * dt;
+          o.vz += (dz / (d || 1)) * pull * dt;
+          o.vy += (1.0 - o.y) * 8 * dt;
+          o.vx *= Math.exp(-2.2 * dt); o.vz *= Math.exp(-2.2 * dt);
+        } else {
+          o.vy -= 26 * dt;
+          o.vx *= Math.exp(-3 * dt); o.vz *= Math.exp(-3 * dt);
+        }
+        o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt;
+        if (o.y < 0.45) { o.y = 0.45; if (o.vy < 0) o.vy = -o.vy * 0.35; }
+        if (d < 2.6 || o.life <= 0) {
+          if (o.life > 0) {
+            this.addXp(o.value, o.x, o.z);
+            this.audio.pickup(clamp01(this.level / 24));
+            this.fx.sparks(o.x, o.y, o.z, 3, 0.5, 1.2, 0.9, 0.5);
+          }
+          this.orbs.splice(i, 1);
+        }
+      }
+      for (let i = this.pickups.length - 1; i >= 0; i--) {
+        const p = this.pickups[i];
+        p.life -= dt; p.t += dt * 3;
+        if (Math.hypot(car.x - p.x, car.z - p.z) < 3.2) {
+          car.hp = Math.min(car.maxHp, car.hp + 32);
+          this.fx.text(p.x, 2.4, p.z, '+32 HP', '#7dffa0', 24, 'big');
+          this.audio.levelUp();
+          this.fx.sparks(p.x, 1, p.z, 14, 0.4, 1.4, 0.6, 1);
+          this.pickups.splice(i, 1);
+        } else if (p.life <= 0) this.pickups.splice(i, 1);
+      }
+    }
+
+    /* ------------------------------------------------------------ camera */
+    updateCamera(dt, soft) {
+      const car = this.car;
+      const cam = this.cam;
+      const sp = car.speed01;
+
+      let targetYaw = car.yaw;
+      if (car.drifting || Math.abs(car.vr) > 6) {
+        const moveYaw = Math.atan2(car.vx, car.vz);
+        targetYaw = car.yaw + angleDelta(car.yaw, moveYaw) * 0.35;
+      }
+      cam.yaw += angleDelta(cam.yaw, targetYaw) * clamp01(dt * (soft ? 2.2 : 5.4));
+
+      const fx_ = Math.sin(cam.yaw), fz = Math.cos(cam.yaw);
+      const boost = car.boostTime > 0 ? 1 : 0;
+      cam.dist = damp(cam.dist, 11.4 + sp * 3.6 + boost * 1.4 + clamp(car.y * 0.3, 0, 3.5), 6, dt);
+      cam.height = damp(cam.height, 4.9 + sp * 1.1 + car.y * 0.5, 6, dt);
+
+      const lookAhead = 4.0 + sp * 5.0;
+      const tx = car.x + fx_ * lookAhead + car.vx * 0.06;
+      const tz = car.z + fz * lookAhead + car.vz * 0.06;
+      const ty = car.y + 1.9;
+      cam.tx = damp(cam.tx, tx, 12, dt);
+      cam.ty = damp(cam.ty, ty, 9, dt);
+      cam.tz = damp(cam.tz, tz, 12, dt);
+
+      const ex = car.x - fx_ * cam.dist;
+      const ez = car.z - fz * cam.dist;
+      const ey = car.y + cam.height;
+      cam.x = damp(cam.x, ex, 11, dt);
+      cam.y = damp(cam.y, ey, 8, dt);
+      cam.z = damp(cam.z, ez, 11, dt);
+
+      cam.fov = damp(cam.fov, 1.05 + sp * 0.16 + boost * 0.14 + (car.drifting ? 0.03 : 0), 5, dt);
+      cam.roll = damp(cam.roll, -car.rollVis * 0.5 - car.vr * 0.006, 7, dt);
+      this.applyCamera();
+    }
+
+    updateCameraTitle(dt) {
+      const cam = this.cam;
+      const t = this.time;
+      cam.yaw = t * 0.25;
+      const d = 26;
+      cam.x = Math.sin(cam.yaw) * -d;
+      cam.z = Math.cos(cam.yaw) * -d;
+      cam.y = 9 + Math.sin(t * 0.4) * 1.5;
+      cam.tx = 0; cam.ty = 1.6; cam.tz = 0;
+      cam.fov = 0.95;
+      cam.roll = Math.sin(t * 0.3) * 0.04;
+      this.applyCamera();
+    }
+
+    applyCamera() {
+      const cam = this.cam;
+      const tr = this.trauma * this.trauma;
+      const t = performance.now() * 0.001;
+      const sx = Math.sin(t * 47.3) * tr * 1.5 + Math.sin(t * 91.7) * tr * 0.7;
+      const sy = Math.cos(t * 53.1) * tr * 1.4 + Math.cos(t * 83.3) * tr * 0.6;
+      const sz = Math.sin(t * 61.7) * tr * 1.1;
+      const rollN = Math.sin(t * 37.9) * tr * 0.14;
+      const roll = cam.roll + rollN;
+      const up = [Math.sin(roll), Math.cos(roll), 0];
+      this.R.setCamera(
+        [cam.x + sx, cam.y + sy, cam.z + sz],
+        [cam.tx + sx * 0.35, cam.ty + sy * 0.35, cam.tz + sz * 0.35],
+        up, cam.fov, 0.4, 900
+      );
+    }
+
+    /* ------------------------------------------------------------- draw */
+    draw() {
+      const R = this.R;
+      const car = this.car;
+      R.time = this.time;
+      R.beginFrame();
+
+      this.world.eyeX = this.cam.x;
+      this.world.eyeZ = this.cam.z;
+      this.world.draw(R, car.x, car.z);
+      this.horde.draw(R, car.x, car.z);
+      if (this.state !== 'dead') car.draw(R);
+      this.weapons.draw(R, car, this);
+      this.fx.draw(R);
+
+      // xp orbs
+      for (const o of this.orbs) {
+        const p = 0.42 + Math.sin(o.t) * 0.08;
+        R.push('sphere', 'glow', o.x, o.y, o.z, o.t * 0.7, o.t * 0.4, 0, p, p, p, 0.16, 0.62, 0.20, 1);
+        R.push('box', 'opaque', o.x, o.y, o.z, o.t * 0.7, o.t * 0.4, o.t * 0.3, p * 0.62, p * 0.62, p * 0.62, 0.35, 1.05, 0.42, 0.9);
+      }
+      for (const p of this.pickups) {
+        const b = 1 + Math.sin(p.t) * 0.12;
+        const y = p.y + Math.sin(p.t) * 0.18;
+        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 1.1 * b, 0.34, 0.34, 0.2, 1.5, 0.4, 0.9);
+        R.push('box', 'opaque', p.x, y, p.z, p.t * 0.5, 0, 0, 0.34, 1.1 * b, 0.34, 0.2, 1.5, 0.4, 0.9);
+        R.push('sphere', 'glow', p.x, y, p.z, 0, 0, 0, 2.2, 2.2, 2.2, 0.05, 0.35, 0.12, 1);
+        R.shadow(p.x, p.z, 1.4, 0.35);
+      }
+
+      const P = R.post;
+      const sp = car.speed01;
+      P.bloom = 0.72;
+      P.aberration = 0.0006 + sp * 0.0018 + this.trauma * 0.006 + (car.boostTime > 0 ? 0.002 : 0);
+      P.vignette = 1;
+      P.speedBlur = clamp01((sp - 0.45) / 0.55) * 1.1 + (car.boostTime > 0 ? 0.8 : 0);
+      P.flash = this.flashAmt;
+      P.flashCol = this.flashCol;
+      P.hurt = Math.max(this.hurtFlash, clamp01(1 - car.hp / (car.maxHp * 0.34)) * 0.35);
+
+      R.render([car.x, car.z]);
+
+      // 2D overlay
+      const ctx = this.octx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.overlay.width, this.overlay.height);
+      this.fx.drawText(ctx, R, this.overlay.width, this.overlay.height);
+    }
+
+    /* -------------------------------------------------------------- loop */
+    frame(now) {
+      requestAnimationFrame(this.frame);
+      let dt = (now - this.last) / 1000;
+      this.last = now;
+      if (!(dt > 0)) dt = 0.016;
+      dt = Math.min(dt, 0.05);
+      const realDt = dt;
+
+      if (this.freeze > 0) {
+        this.freeze -= realDt;
+        dt *= 0.03;
+      }
+      if (this.slowmo > 0) {
+        this.slowmo -= realDt;
+        dt *= 0.45;
+      }
+      if (this.state === 'dead') dt *= 0.55;
+
+      this.trauma = Math.max(0, this.trauma - realDt * 1.5);
+      this.flashAmt = Math.max(0, this.flashAmt - realDt * 3.2);
+      this.hurtFlash = Math.max(0, this.hurtFlash - realDt * 2.2);
+
+      this.update(dt);
+      this.draw();
+
+      const intensity = clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
+      this.audio.updateMusic(realDt, intensity, this.state === 'playing' || this.state === 'levelup');
+      this.hud.update(this, realDt);
+    }
+  }
+
+  BA.Game = Game;
+})();
+
+</script>
+<script>
+/* ---- src/boot.js ---- */
+/* BADASS APOCALYPSE - boot */
+(function () {
+  'use strict';
+  function fatal(msg) {
+    const el = document.getElementById('fatal');
+    el.style.display = 'grid';
+    el.innerHTML = '<div><div style="font-size:26px;color:#ff5b45;margin-bottom:14px">ENGINE STALLED</div>' +
+      '<div style="max-width:560px;color:#d8cccd">' + msg + '</div></div>';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const hud = new BA.Hud();
+      const game = new BA.Game(document.getElementById('gl'), document.getElementById('ov'), hud);
+      window.GAME = game;
+      hud.setScreen('title');
+
+      const kick = () => game.audio.resume();
+      window.addEventListener('pointerdown', kick, { once: true });
+      window.addEventListener('keydown', kick, { once: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && game.state === 'playing') {
+          game.state = 'paused';
+          hud.setScreen('pause');
+          game.audio.silenceEngine();
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      fatal((err && err.message ? err.message : String(err)) +
+        '<br><br>This game needs WebGL2. Try a recent Chrome, Edge, Firefox or Safari with hardware acceleration on.');
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

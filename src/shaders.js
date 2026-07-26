@@ -106,31 +106,91 @@ uniform vec3 uCam;
 uniform vec3 uFog;
 uniform float uFogDensity;
 uniform float uTime;
+uniform int uMode;        // 0 suburb, 1 mall, 2 forest, 3 waste
 layout(location=0) out vec4 oCol;
 layout(location=1) out vec4 oBright;
 ${COMMON}
+
+const float BLOCK = 62.0;
+const float ROADW = 13.0;
+
+float gridLines(vec2 p, float cell, float w){
+  vec2 g = abs(fract(p/cell + 0.5) - 0.5) * cell;
+  return 1.0 - smoothstep(0.0, w, min(g.x, g.y));
+}
+
 void main(){
   vec2 p = vWorld.xz;
   float grit = fbm(p*0.9)*0.5 + fbm(p*7.0)*0.12;
-  vec3 asphalt = mix(vec3(0.085,0.082,0.10), vec3(0.16,0.15,0.17), grit);
-  // patchy dead earth
-  float blot = smoothstep(0.52, 0.78, fbm(p*0.055));
-  asphalt = mix(asphalt, mix(vec3(0.22,0.15,0.09), vec3(0.30,0.22,0.11), grit), blot*0.85);
+  vec3 col;
 
-  // cracked slab grid
-  vec2 g = abs(fract(p/6.0 + 0.5) - 0.5) * 6.0;
-  float line = 1.0 - smoothstep(0.0, 0.16, min(g.x, g.y));
-  float wob = noise2(p*0.55)*0.5;
-  asphalt = mix(asphalt, vec3(0.03,0.03,0.04), line*(0.55+wob*0.4));
+  // distance to the nearest carriageway centreline
+  vec2 m = abs(mod(p, BLOCK) - BLOCK*0.5);
+  float road = min(m.x, m.y);
 
-  // faint road markings for speed reference
-  float lane = step(0.965, fract(p.x/24.0)) * step(0.35, fract(p.y*0.0+ p.y));
-  float dash = step(0.5, fract(p.y*0.0 + vWorld.z/7.0));
-  asphalt = mix(asphalt, vec3(0.45,0.42,0.28), lane*dash*0.5);
+  if(uMode == 0){                       // ------------- suburban streets
+    vec3 tarmac = mix(vec3(0.085,0.084,0.095), vec3(0.155,0.150,0.160), grit);
+    tarmac = mix(tarmac, vec3(0.05,0.05,0.055), gridLines(p, 6.0, 0.13)*0.5);
 
-  vec3 N = vec3(0.0,1.0,0.0);
-  float band = smoothstep(-0.1,0.05,SUN_DIR.y)*0.45 + 0.4;
-  vec3 col = asphalt * (mix(BOUNCE,SKY_COL,0.75)*0.8 + SUN_COL*band*0.75);
+    vec3 kerb = mix(vec3(0.40,0.39,0.38), vec3(0.52,0.51,0.49), grit);
+    kerb = mix(kerb, vec3(0.26,0.25,0.24), gridLines(p, 2.4, 0.10)*0.6);
+
+    float lawnN = fbm(p*0.35);
+    vec3 lawn = mix(vec3(0.09,0.16,0.07), vec3(0.16,0.25,0.10), lawnN);
+    lawn = mix(lawn, vec3(0.22,0.21,0.11), smoothstep(0.55,0.85,fbm(p*0.09)));
+    lawn += vec3(0.012,0.03,0.0) * noise2(p*3.2);
+
+    // driveways reaching from the kerb to each plot
+    vec2 q = mod(p, BLOCK) - BLOCK*0.5;
+    float drive = 0.0;
+    if(abs(abs(q.y) - 20.0) < 2.2 && abs(q.x) < ROADW + 9.0) drive = 1.0;
+    if(abs(abs(q.x) - 20.0) < 2.2 && abs(q.y) < ROADW + 9.0) drive = max(drive, 1.0);
+
+    col = lawn;
+    col = mix(col, kerb, smoothstep(ROADW + 3.4, ROADW + 2.0, road));
+    col = mix(col, tarmac, smoothstep(ROADW + 0.6, ROADW - 0.4, road));
+    col = mix(col, kerb*0.9, drive * step(road, ROADW + 12.0) * (1.0 - step(road, ROADW)));
+
+    // centre line dashes on each carriageway
+    float dashX = step(0.55, fract(p.y/9.0)) * (1.0 - smoothstep(0.0,0.42,m.x));
+    float dashZ = step(0.55, fract(p.x/9.0)) * (1.0 - smoothstep(0.0,0.42,m.y));
+    col = mix(col, vec3(0.62,0.58,0.34), clamp(dashX+dashZ,0.0,1.0)*0.75);
+    // kerbside gutter line
+    float gut = (1.0 - smoothstep(0.0,0.30,abs(road - ROADW)));
+    col = mix(col, vec3(0.30,0.29,0.28), gut*0.5);
+
+  } else if(uMode == 1){                // ------------------ mall car park
+    vec3 tarmac = mix(vec3(0.10,0.10,0.115), vec3(0.175,0.17,0.185), grit);
+    tarmac = mix(tarmac, vec3(0.055,0.055,0.06), gridLines(p, 9.0, 0.16)*0.55);
+    // parking bays: long stalls with a gap for the aisles
+    float bay = (1.0 - smoothstep(0.0, 0.20, abs(fract(p.x/3.2)-0.5)*3.2));
+    float band = step(0.30, fract(p.y/26.0)) * step(fract(p.y/26.0), 0.78);
+    float stallEnd = 1.0 - smoothstep(0.0,0.24, abs(fract(p.y/26.0)-0.54)*26.0);
+    col = mix(tarmac, vec3(0.66,0.64,0.58), clamp(bay*band + stallEnd*0.7, 0.0, 1.0) * 0.55);
+    col = mix(col, vec3(0.72,0.62,0.16), (1.0 - smoothstep(0.0,0.5,m.x))*0.35);
+
+  } else if(uMode == 2){                // -------------------- forest floor
+    float n1 = fbm(p*0.28), n2 = fbm(p*1.6);
+    vec3 loam = mix(vec3(0.07,0.09,0.05), vec3(0.15,0.17,0.08), n1);
+    loam = mix(loam, vec3(0.20,0.14,0.07), smoothstep(0.5,0.9,n2));
+    loam += vec3(0.03,0.05,0.01) * noise2(p*5.0);
+    // a rutted dirt track running north
+    float track = 1.0 - smoothstep(5.0, 11.0, abs(p.x + sin(p.y*0.012)*11.0));
+    vec3 dirt = mix(vec3(0.24,0.18,0.10), vec3(0.32,0.25,0.14), grit);
+    dirt = mix(dirt, vec3(0.16,0.12,0.07), gridLines(vec2(p.x,p.y*0.4), 3.0, 0.5)*0.4);
+    col = mix(loam, dirt, track);
+
+  } else {                              // ---------------------- wasteland
+    vec3 asphalt = mix(vec3(0.085,0.082,0.10), vec3(0.16,0.15,0.17), grit);
+    float blot = smoothstep(0.52, 0.78, fbm(p*0.055));
+    asphalt = mix(asphalt, mix(vec3(0.22,0.15,0.09), vec3(0.30,0.22,0.11), grit), blot*0.85);
+    asphalt = mix(asphalt, vec3(0.03,0.03,0.04), gridLines(p, 6.0, 0.16)*(0.55+noise2(p*0.55)*0.2));
+    float lane = step(0.965, fract(p.x/24.0)) * step(0.5, fract(p.y/7.0));
+    col = mix(asphalt, vec3(0.45,0.42,0.28), lane*0.5);
+  }
+
+  float band2 = smoothstep(-0.1,0.05,SUN_DIR.y)*0.45 + 0.4;
+  col *= (mix(BOUNCE,SKY_COL,0.75)*0.8 + SUN_COL*band2*0.75);
 
   float d = length(vWorld - uCam);
   float fg = 1.0 - exp(-pow(d*uFogDensity, 2.0));

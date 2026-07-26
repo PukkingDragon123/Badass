@@ -326,7 +326,18 @@
     justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
   #baseFoot > *{pointer-events:auto}
   #baseHint{font-size:11px;letter-spacing:.14em;color:#a99ea0}
-  .baserow{display:flex;gap:10px}
+  .baserow{display:flex;gap:10px;justify-content:flex-end}
+  .deploycol{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  #stagePick{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:min(620px,62vw)}
+  .scard{display:flex;gap:8px;align-items:center;padding:6px 10px 6px 7px;border-radius:10px;cursor:pointer;
+    background:rgba(12,7,9,.88);border:2px solid rgba(255,255,255,.12);border-left:4px solid var(--c,#fff);
+    max-width:210px;transition:transform .1s}
+  .scard:hover{transform:translateY(-2px)}
+  .scard.on{background:rgba(255,255,255,.13);border-color:var(--c,#fff)}
+  .scard.locked{opacity:.42;cursor:not-allowed}
+  .sinfo b{font-size:11px;display:block;color:var(--c,#fff);letter-spacing:.05em}
+  .sinfo i{font-style:normal;font-size:9.5px;color:#c9bdbf;display:block;margin-top:2px;
+    line-height:1.35;font-weight:700;letter-spacing:0}
   .bbtn{padding:13px 26px;border-radius:11px;cursor:pointer;font-size:15px;letter-spacing:.14em;
     border:3px solid rgba(255,255,255,.2);box-shadow:0 6px 0 rgba(0,0,0,.5);
     background:linear-gradient(180deg,#3d434e,#20242b);transition:transform .1s;text-align:center}
@@ -520,6 +531,8 @@
 <script src="src/enemies.js"></script>
 <script src="src/weapons.js"></script>
 <script src="src/upgrades.js"></script>
+<script src="src/stages.js"></script>
+<script src="src/allies.js"></script>
 <script src="src/meta.js"></script>
 <script src="src/base.js"></script>
 <script src="src/garage.js"></script>

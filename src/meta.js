@@ -81,9 +81,9 @@
     },
     {
       id: 'nos', name: 'NOS INJECTOR', icon: 'coolant', max: 5, color: '#9fe8ff',
-      desc: 'Direct-port nitrous. Terrifying.',
-      cost: (l) => ({ scrap: 60 + l * 66, fuel: 30 + l * 40 }),
-      effect: (l) => `Nitrous power +${l * 14}%`,
+      desc: 'UNLOCKS NITROUS. Direct-port injection. Terrifying.',
+      cost: (l) => (l === 0 ? { scrap: 100, fuel: 60 } : { scrap: 60 + l * 66, fuel: 30 + l * 40 }),
+      effect: (l) => (l === 0 ? 'Locked - no nitrous' : `Nitrous unlocked, power +${(l - 1) * 14}%`),
     },
   ];
 
@@ -145,6 +145,13 @@
       cost: (l) => ({ scrap: 90 + l * 100, steel: 35 + l * 45 }),
       slots: (l) => Math.ceil(l / 2), prod: null,
       effect: (l) => `+${l * 8}% run scrap, marks objectives further out`,
+    },
+    {
+      id: 'fueltank', name: 'FUEL TANK', icon: 'gas', max: 6, color: '#ff9c1e',
+      desc: 'A bulk tank. Every sortie rolls out with a fuller gas tank.',
+      cost: (l) => ({ scrap: 85 + l * 90, steel: 30 + l * 40 }),
+      slots: (l) => Math.ceil(l / 3), prod: { fuel: 6 },
+      effect: (l) => `+${6 * l} fuel/min, runs start with +${l * 8}% gas`,
     },
     {
       id: 'storage', name: 'DEPOT', icon: 'bld_storage', max: 6, color: '#b8c4d4',
@@ -433,6 +440,8 @@
       for (const t of this.tiles) if (t.id === 'infirmary') infirmary = t.level * 0.06;
       let towerBonus = 0;
       for (const t of this.tiles) if (t.id === 'watchtower') towerBonus = t.level * 0.08;
+      let startFuel = 0.55;
+      for (const t of this.tiles) if (t.id === 'fueltank') startFuel += t.level * 0.08;
 
       return {
         speedMul: 1 + L('engine') * 0.09,
@@ -440,6 +449,7 @@
         gripMul: 1 + L('tires') * 0.11,
         turnMul: 1 + L('tires') * 0.06,
         canJump: L('hydraulics') > 0,
+        canNitro: L('nos') > 0,
         jumpMul: 1 + Math.max(0, L('hydraulics') - 1) * 0.12,
         hp: 80 + L('plating') * 22 + garageHp,
         armor: L('plating') * 0.04,
@@ -450,7 +460,8 @@
         haulMul: 1 + L('bed') * 0.15 + L('magnet') * 0.12 + towerBonus,
         magnetMul: 1 + L('magnet') * 0.30,
         startWeapons: L('mount'),
-        nosMul: 1 + L('nos') * 0.14,
+        nosMul: 1 + Math.max(0, L('nos') - 1) * 0.14,
+        startFuel: startFuel,
         startHpMul: 1 + infirmary,
       };
     }

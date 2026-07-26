@@ -78,6 +78,7 @@
       this.fog = [0.40, 0.22, 0.19];
       this.fogDensity = 0.0040;
       this.time = 0;
+      this.groundMode = 3;
 
       this.post = { bloom: 1.0, aberration: 0.0, vignette: 1.0, flash: 0, flashCol: [1, 1, 1], speedBlur: 0, hurt: 0 };
 
@@ -319,6 +320,7 @@
       gl.uniform1f(this.progGround.u.uTime, this.time);
       gl.uniform3f(this.progGround.u.uCenter, groundCenter[0], 0, groundCenter[1]);
       gl.uniform1f(this.progGround.u.uSize, 1600);
+      gl.uniform1i(this.progGround.u.uMode, this.groundMode | 0);
       const gq = this.meshes.groundQuad;
       gl.bindVertexArray(gq.vao);
       gl.drawElements(gl.TRIANGLES, gq.count, gq.type, 0);

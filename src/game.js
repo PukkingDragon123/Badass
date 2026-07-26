@@ -25,6 +25,8 @@
       this.garage = new BA.Garage(this);
       this.survivors = [];
       this.loot = [];
+      this.allies = new BA.Allies(this.fx, this.audio);
+      this.stage = BA.stages.byId.suburb;
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -83,7 +85,16 @@
       };
       this.survivors.length = 0;
       this.loot.length = 0;
+      this.allies.reset();
       this.nextSurvivorZ = 90;
+      const st = this.stage;
+      this.run.garageZ = st.garageZ;
+      this.run.exitZ = st.exitZ;
+      this.run.stage = st.id;
+      this.world.setStage(st);
+      this.R.groundMode = st.ground;
+      this.R.fog = st.fog.slice();
+      this.R.fogDensity = st.fogDensity;
       this.time = 0;
       this.kills = 0;
       this.score = 0;
@@ -120,6 +131,8 @@
       }
       this.recalcStats();
       this.car.hp = this.car.maxHp;
+      this.car.fuel = this.car.maxFuel * (this.comp.startFuel || 0.55);
+      this.car.nitroWarned = false;
       this.cam.yaw = 0;
       this.trauma = 0;
       this.hurtFlash = 0;
@@ -131,6 +144,7 @@
       const T = this.meta.truckStats();
       this.comp = T;
       this.car.canJump = T.canJump;
+      this.car.canNitro = T.canNitro;
       this.recalcStats();
     }
 
@@ -163,6 +177,7 @@
       S.lifesteal = lv('vampire') * 0.5 + (lv('vampire') ? 0.5 : 0);
       S.chainDmg = lv('chain') ? 14 + lv('chain') * 12 : 0;
       this.car.canJump = T.canJump;
+      this.car.canNitro = T.canNitro;
       const prevFuelMax = this.car.maxFuel;
       this.car.maxFuel = S.fuelMax;
       if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
@@ -380,7 +395,8 @@
         if (o.y < 0.5) { o.y = 0.5; if (o.vy < 0) o.vy = -o.vy * 0.3; }
         if (d < 3.0 || o.life <= 0) {
           if (o.life > 0) {
-            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul));
+            const bias = (this.stage.reward && this.stage.reward[o.res]) || 1;
+            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul * bias));
             this.run.haul[o.res] = (this.run.haul[o.res] || 0) + gain;
             this.audio.pickup(0.3);
             const rr = BA.meta.RES.find((r) => r.id === o.res);
@@ -418,6 +434,10 @@
             r.aboard++;
             this.audio.levelUp();
             this.fx.text(sv.x, 3.4, sv.z, 'RESCUED! ' + r.aboard + '/' + r.cargo, '#7fd4ff', 26, 'big');
+            // they do not just sit in the bed - hand them a rifle
+            if (this.allies.addFighter(sv.x, sv.z, Math.min(3, this.meta.rank - 1))) {
+              this.hud.toast('SURVIVOR ARMED - THEY FIGHT WITH YOU NOW');
+            }
             this.fx.sparks(sv.x, 1.4, sv.z, 16, 0.4, 0.8, 1.4, 1.1);
             this.flash(0.2, [0.4, 0.8, 1.0]);
             this.checkObjectives();
@@ -652,6 +672,7 @@
       this.updateLoot(dt);
       this.updateSurvivors(dt);
       this.updateLandmarks(dt);
+      this.allies.update(dt, this.car, this.horde, this);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
       this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
@@ -817,6 +838,7 @@
 
       this.drawLandmarks(R);
       this.drawSurvivors(R);
+      this.allies.draw(R, car.x, car.z);
       for (const o of this.loot) {
         const rr = BA.meta.RES.find((r2) => r2.id === o.res) || { color: '#fff' };
         const c = [
@@ -915,6 +937,7 @@
         }
       }
 
+      if (near(r.exitZ + 40)) this.drawEndBuilding(R, r.exitZ + 46);
       if (near(r.exitZ)) {
         const ez = r.exitZ;
         const open = this.objectivesDone();
@@ -933,6 +956,72 @@
         const pulse = 0.6 + Math.sin(t * 3) * 0.4;
         R.push('disc', 'glow', 0, 0.07, ez, 0, 0, 0, 34, 1, 34, c[0] * 0.09 * pulse, c[1] * 0.09 * pulse, c[2] * 0.09 * pulse, 1);
         R.push('ring', 'glow', 0, 0.1, ez, 0, 0, 0, 36, 1.6, 36, c[0] * pulse, c[1] * pulse, c[2] * pulse, 1);
+      }
+    }
+
+    /* the thing you drove all this way to loot */
+    drawEndBuilding(R, ez) {
+      const kind = this.stage.landmark;
+      const B = (x, y, z, sx, sy, sz, r, g, b, e, yaw) =>
+        R.push('box', 'opaque', x, y, z, yaw || 0, 0, 0, sx, sy, sz, r, g, b, e || 0);
+      const t = this.time;
+
+      if (kind === 'supermarket' || kind === 'mall') {
+        const big = kind === 'mall';
+        const w = big ? 96 : 62, d = big ? 46 : 30, h = big ? 15 : 10;
+        B(0, h / 2, ez + d / 2, w, h, d, 0.60, 0.58, 0.55);
+        B(0, h + 0.7, ez + d / 2, w + 3, 1.4, d + 3, 0.34, 0.33, 0.32);
+        // glazed shopfront
+        B(0, h * 0.34, ez + 0.3, w * 0.78, h * 0.5, 0.6, 0.10, 0.17, 0.22);
+        for (let i = 0; i < 7; i++) {
+          B(-w * 0.36 + i * (w * 0.12), h * 0.34, ez + 0.1, 0.7, h * 0.55, 0.7, 0.42, 0.41, 0.40);
+        }
+        // entrance canopy
+        B(0, h * 0.62, ez - 3.2, w * 0.4, 0.9, 7.0, 0.30, 0.30, 0.32);
+        for (const sx of [-1, 1]) B(sx * w * 0.17, h * 0.31, ez - 6.4, 0.8, h * 0.62, 0.8, 0.34, 0.33, 0.35);
+        // fascia sign
+        const sc = big ? [1.0, 0.72, 0.12] : [0.20, 0.62, 1.0];
+        B(0, h * 0.82, ez - 0.4, w * 0.56, 3.2, 0.6, sc[0], sc[1], sc[2], 0.9);
+        for (let i = 0; i < 8; i++) {
+          const f = 0.6 + Math.sin(t * 4 + i) * 0.4;
+          B(-w * 0.24 + i * (w * 0.068), h * 0.82, ez - 0.9, w * 0.045, 1.9, 0.3, 1.2 * f, 1.1 * f, 0.9 * f, 1);
+        }
+        // rooftop plant
+        for (let i = 0; i < (big ? 6 : 3); i++) {
+          B(-w * 0.3 + i * (w * 0.12), h + 2.4, ez + d * 0.6, 5.0, 2.6, 5.0, 0.40, 0.39, 0.41);
+        }
+        // trolley bays out front
+        for (let i = 0; i < 5; i++) {
+          B(-18 + i * 9, 0.9, ez - 12, 1.2, 1.6, 5.0, 0.5, 0.52, 0.56);
+        }
+        R.shadow(0, ez + d / 2, w * 0.5, 0.55);
+      } else if (kind === 'ranger') {
+        B(0, 3.4, ez + 8, 22, 6.6, 16, 0.40, 0.28, 0.17);
+        B(0, 7.4, ez + 8, 25, 1.6, 19, 0.24, 0.17, 0.11);
+        B(0, 9.0, ez + 8, 14, 2.0, 11, 0.28, 0.20, 0.13);
+        B(0, 1.6, ez - 0.4, 4.0, 3.2, 0.5, 0.16, 0.12, 0.09);
+        for (const sx of [-1, 1]) {
+          B(sx * 8, 1.7, ez - 1.0, 0.7, 3.4, 0.7, 0.34, 0.24, 0.15);
+          B(sx * 13, 5.0, ez + 8, 1.0, 10, 1.0, 0.30, 0.22, 0.14);
+        }
+        B(0, 4.2, ez - 1.2, 20, 0.6, 3.4, 0.26, 0.19, 0.12);
+        B(0, 5.4, ez - 0.6, 9, 1.6, 0.4, 0.16, 0.42, 0.20, 0.7);
+        for (let i = 0; i < 6; i++) {
+          const a = i * 1.6;
+          R.push('cone', 'opaque', Math.cos(a) * 26, 6, ez + 6 + Math.sin(a) * 20, a, 0, 0, 8, 14, 8, 0.10, 0.26, 0.11, 0);
+        }
+        R.shadow(0, ez + 8, 14, 0.55);
+      } else {
+        // fuel depot: tank farm behind a gantry
+        for (let i = 0; i < 4; i++) {
+          const x = -21 + i * 14;
+          R.push('cyl', 'opaque', x, 6, ez + 14, 0, 0, 0, 12, 12, 12, 0.46, 0.45, 0.42, 0);
+          R.push('cyl', 'opaque', x, 12.3, ez + 14, 0, 0, 0, 12.6, 0.8, 12.6, 0.30, 0.29, 0.27, 0);
+          B(x, 8, ez + 8.2, 10, 1.2, 0.5, 0.85, 0.45, 0.08, 0.35);
+        }
+        B(0, 8, ez + 2, 62, 1.2, 1.2, 0.34, 0.33, 0.35);
+        for (const sx of [-1, 1]) B(sx * 26, 4, ez + 2, 1.4, 8, 1.4, 0.36, 0.35, 0.37);
+        R.shadow(0, ez + 14, 30, 0.5);
       }
     }
 

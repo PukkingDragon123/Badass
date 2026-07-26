@@ -326,7 +326,18 @@
     justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
   #baseFoot > *{pointer-events:auto}
   #baseHint{font-size:11px;letter-spacing:.14em;color:#a99ea0}
-  .baserow{display:flex;gap:10px}
+  .baserow{display:flex;gap:10px;justify-content:flex-end}
+  .deploycol{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  #stagePick{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:min(620px,62vw)}
+  .scard{display:flex;gap:8px;align-items:center;padding:6px 10px 6px 7px;border-radius:10px;cursor:pointer;
+    background:rgba(12,7,9,.88);border:2px solid rgba(255,255,255,.12);border-left:4px solid var(--c,#fff);
+    max-width:210px;transition:transform .1s}
+  .scard:hover{transform:translateY(-2px)}
+  .scard.on{background:rgba(255,255,255,.13);border-color:var(--c,#fff)}
+  .scard.locked{opacity:.42;cursor:not-allowed}
+  .sinfo b{font-size:11px;display:block;color:var(--c,#fff);letter-spacing:.05em}
+  .sinfo i{font-style:normal;font-size:9.5px;color:#c9bdbf;display:block;margin-top:2px;
+    line-height:1.35;font-weight:700;letter-spacing:0}
   .bbtn{padding:13px 26px;border-radius:11px;cursor:pointer;font-size:15px;letter-spacing:.14em;
     border:3px solid rgba(255,255,255,.2);box-shadow:0 6px 0 rgba(0,0,0,.5);
     background:linear-gradient(180deg,#3d434e,#20242b);transition:transform .1s;text-align:center}
@@ -1928,31 +1939,91 @@ uniform vec3 uCam;
 uniform vec3 uFog;
 uniform float uFogDensity;
 uniform float uTime;
+uniform int uMode;        // 0 suburb, 1 mall, 2 forest, 3 waste
 layout(location=0) out vec4 oCol;
 layout(location=1) out vec4 oBright;
 ${COMMON}
+
+const float BLOCK = 62.0;
+const float ROADW = 13.0;
+
+float gridLines(vec2 p, float cell, float w){
+  vec2 g = abs(fract(p/cell + 0.5) - 0.5) * cell;
+  return 1.0 - smoothstep(0.0, w, min(g.x, g.y));
+}
+
 void main(){
   vec2 p = vWorld.xz;
   float grit = fbm(p*0.9)*0.5 + fbm(p*7.0)*0.12;
-  vec3 asphalt = mix(vec3(0.085,0.082,0.10), vec3(0.16,0.15,0.17), grit);
-  // patchy dead earth
-  float blot = smoothstep(0.52, 0.78, fbm(p*0.055));
-  asphalt = mix(asphalt, mix(vec3(0.22,0.15,0.09), vec3(0.30,0.22,0.11), grit), blot*0.85);
+  vec3 col;
 
-  // cracked slab grid
-  vec2 g = abs(fract(p/6.0 + 0.5) - 0.5) * 6.0;
-  float line = 1.0 - smoothstep(0.0, 0.16, min(g.x, g.y));
-  float wob = noise2(p*0.55)*0.5;
-  asphalt = mix(asphalt, vec3(0.03,0.03,0.04), line*(0.55+wob*0.4));
+  // distance to the nearest carriageway centreline
+  vec2 m = abs(mod(p, BLOCK) - BLOCK*0.5);
+  float road = min(m.x, m.y);
 
-  // faint road markings for speed reference
-  float lane = step(0.965, fract(p.x/24.0)) * step(0.35, fract(p.y*0.0+ p.y));
-  float dash = step(0.5, fract(p.y*0.0 + vWorld.z/7.0));
-  asphalt = mix(asphalt, vec3(0.45,0.42,0.28), lane*dash*0.5);
+  if(uMode == 0){                       // ------------- suburban streets
+    vec3 tarmac = mix(vec3(0.085,0.084,0.095), vec3(0.155,0.150,0.160), grit);
+    tarmac = mix(tarmac, vec3(0.05,0.05,0.055), gridLines(p, 6.0, 0.13)*0.5);
 
-  vec3 N = vec3(0.0,1.0,0.0);
-  float band = smoothstep(-0.1,0.05,SUN_DIR.y)*0.45 + 0.4;
-  vec3 col = asphalt * (mix(BOUNCE,SKY_COL,0.75)*0.8 + SUN_COL*band*0.75);
+    vec3 kerb = mix(vec3(0.40,0.39,0.38), vec3(0.52,0.51,0.49), grit);
+    kerb = mix(kerb, vec3(0.26,0.25,0.24), gridLines(p, 2.4, 0.10)*0.6);
+
+    float lawnN = fbm(p*0.35);
+    vec3 lawn = mix(vec3(0.09,0.16,0.07), vec3(0.16,0.25,0.10), lawnN);
+    lawn = mix(lawn, vec3(0.22,0.21,0.11), smoothstep(0.55,0.85,fbm(p*0.09)));
+    lawn += vec3(0.012,0.03,0.0) * noise2(p*3.2);
+
+    // driveways reaching from the kerb to each plot
+    vec2 q = mod(p, BLOCK) - BLOCK*0.5;
+    float drive = 0.0;
+    if(abs(abs(q.y) - 20.0) < 2.2 && abs(q.x) < ROADW + 9.0) drive = 1.0;
+    if(abs(abs(q.x) - 20.0) < 2.2 && abs(q.y) < ROADW + 9.0) drive = max(drive, 1.0);
+
+    col = lawn;
+    col = mix(col, kerb, smoothstep(ROADW + 3.4, ROADW + 2.0, road));
+    col = mix(col, tarmac, smoothstep(ROADW + 0.6, ROADW - 0.4, road));
+    col = mix(col, kerb*0.9, drive * step(road, ROADW + 12.0) * (1.0 - step(road, ROADW)));
+
+    // centre line dashes on each carriageway
+    float dashX = step(0.55, fract(p.y/9.0)) * (1.0 - smoothstep(0.0,0.42,m.x));
+    float dashZ = step(0.55, fract(p.x/9.0)) * (1.0 - smoothstep(0.0,0.42,m.y));
+    col = mix(col, vec3(0.62,0.58,0.34), clamp(dashX+dashZ,0.0,1.0)*0.75);
+    // kerbside gutter line
+    float gut = (1.0 - smoothstep(0.0,0.30,abs(road - ROADW)));
+    col = mix(col, vec3(0.30,0.29,0.28), gut*0.5);
+
+  } else if(uMode == 1){                // ------------------ mall car park
+    vec3 tarmac = mix(vec3(0.10,0.10,0.115), vec3(0.175,0.17,0.185), grit);
+    tarmac = mix(tarmac, vec3(0.055,0.055,0.06), gridLines(p, 9.0, 0.16)*0.55);
+    // parking bays: long stalls with a gap for the aisles
+    float bay = (1.0 - smoothstep(0.0, 0.20, abs(fract(p.x/3.2)-0.5)*3.2));
+    float band = step(0.30, fract(p.y/26.0)) * step(fract(p.y/26.0), 0.78);
+    float stallEnd = 1.0 - smoothstep(0.0,0.24, abs(fract(p.y/26.0)-0.54)*26.0);
+    col = mix(tarmac, vec3(0.66,0.64,0.58), clamp(bay*band + stallEnd*0.7, 0.0, 1.0) * 0.55);
+    col = mix(col, vec3(0.72,0.62,0.16), (1.0 - smoothstep(0.0,0.5,m.x))*0.35);
+
+  } else if(uMode == 2){                // -------------------- forest floor
+    float n1 = fbm(p*0.28), n2 = fbm(p*1.6);
+    vec3 loam = mix(vec3(0.07,0.09,0.05), vec3(0.15,0.17,0.08), n1);
+    loam = mix(loam, vec3(0.20,0.14,0.07), smoothstep(0.5,0.9,n2));
+    loam += vec3(0.03,0.05,0.01) * noise2(p*5.0);
+    // a rutted dirt track running north
+    float track = 1.0 - smoothstep(5.0, 11.0, abs(p.x + sin(p.y*0.012)*11.0));
+    vec3 dirt = mix(vec3(0.24,0.18,0.10), vec3(0.32,0.25,0.14), grit);
+    dirt = mix(dirt, vec3(0.16,0.12,0.07), gridLines(vec2(p.x,p.y*0.4), 3.0, 0.5)*0.4);
+    col = mix(loam, dirt, track);
+
+  } else {                              // ---------------------- wasteland
+    vec3 asphalt = mix(vec3(0.085,0.082,0.10), vec3(0.16,0.15,0.17), grit);
+    float blot = smoothstep(0.52, 0.78, fbm(p*0.055));
+    asphalt = mix(asphalt, mix(vec3(0.22,0.15,0.09), vec3(0.30,0.22,0.11), grit), blot*0.85);
+    asphalt = mix(asphalt, vec3(0.03,0.03,0.04), gridLines(p, 6.0, 0.16)*(0.55+noise2(p*0.55)*0.2));
+    float lane = step(0.965, fract(p.x/24.0)) * step(0.5, fract(p.y/7.0));
+    col = mix(asphalt, vec3(0.45,0.42,0.28), lane*0.5);
+  }
+
+  float band2 = smoothstep(-0.1,0.05,SUN_DIR.y)*0.45 + 0.4;
+  col *= (mix(BOUNCE,SKY_COL,0.75)*0.8 + SUN_COL*band2*0.75);
 
   float d = length(vWorld - uCam);
   float fg = 1.0 - exp(-pow(d*uFogDensity, 2.0));
@@ -2260,6 +2331,7 @@ void main(){
       this.fog = [0.40, 0.22, 0.19];
       this.fogDensity = 0.0040;
       this.time = 0;
+      this.groundMode = 3;
 
       this.post = { bloom: 1.0, aberration: 0.0, vignette: 1.0, flash: 0, flashCol: [1, 1, 1], speedBlur: 0, hurt: 0 };
 
@@ -2501,6 +2573,7 @@ void main(){
       gl.uniform1f(this.progGround.u.uTime, this.time);
       gl.uniform3f(this.progGround.u.uCenter, groundCenter[0], 0, groundCenter[1]);
       gl.uniform1f(this.progGround.u.uSize, 1600);
+      gl.uniform1i(this.progGround.u.uMode, this.groundMode | 0);
       const gq = this.meshes.groundQuad;
       gl.bindVertexArray(gq.vao);
       gl.drawElements(gl.TRIANGLES, gq.count, gq.type, 0);
@@ -3658,6 +3731,7 @@ void main(){
         lifesteal: 0, chainDmg: 0,
       };
       this.canJump = false;
+      this.canNitro = false;
       this.spikeLevel = 0;
       this.color = [0.90, 0.13, 0.14];
     }
@@ -3685,7 +3759,7 @@ void main(){
       const prevVf = this.vf;
 
       /* ---- nitrous: burns gas for a held speed boost ---- */
-      const wantNitro = inp.nitro && this.fuel > 0.4;
+      const wantNitro = inp.nitro && this.canNitro && this.fuel > 0.4;
       if (wantNitro && !this.nitroActive) this.audio.boost();
       this.nitroActive = wantNitro;
       if (this.nitroActive) {
@@ -3791,6 +3865,11 @@ void main(){
       this.vz = fz * this.vf + rz * this.vr;
 
       /* ---- jump / slam ---- */
+      if (inp.nitro && !this.canNitro && game && !this.nitroWarned) {
+        this.nitroWarned = true;
+        game.hud.toast('NO NITROUS - INSTALL THE NOS INJECTOR AT THE GARAGE');
+        this.audio.hurt();
+      }
       if (inp.jumpPressed && !this.canJump && game) {
         game.hud.toast('JUMP LOCKED - INSTALL HYDRAULIC RAMS AT THE GARAGE');
         this.audio.hurt();
@@ -4224,6 +4303,11 @@ void main(){
       this.time = 0;
     }
 
+    setStage(stage) {
+      this.stage = stage;
+      this.reset();
+    }
+
     reset() {
       this.chunks.clear();
       this.props.length = 0;
@@ -4274,35 +4358,14 @@ void main(){
         if (p.type === 'ramp') this.ramps.push(p);
       };
 
-      const n = 4 + Math.floor(rng() * 4);
-      for (let i = 0; i < n; i++) {
-        const x = ox + (rng() - 0.5) * CHUNK;
-        const z = oz + (rng() - 0.5) * CHUNK;
-        const r = rng();
-        if (r < 0.09) {
-          const L = 9 + rng() * 5, W = 6 + rng() * 3, H = 3.0 + rng() * 2.2;
-          add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
-        } else if (r < 0.36) {
-          add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.42) {
-          add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.53) {
-          add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.60) {
-          add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
-        } else if (r < 0.68) {
-          add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
-        } else if (r < 0.76) {
-          add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, solid: false, loot: rng() });
-        } else if (r < 0.85) {
-          // salvage heaps: drive through them to strip resources
-          add({ type: 'pile', x, z, yaw: rng() * TAU, radius: 2.2, hp: 60, solid: false, kind: rng() });
-        } else if (r < 0.94) {
-          add({ type: 'shack', x, z, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
-        } else {
-          add({ type: 'silo', x, z, yaw: rng() * TAU, radius: 2.6, hp: 320, solid: true, mass: 2 });
-        }
-      }
+      const stage = this.stage || BA.stages.byId.waste;
+      stage.gen(rng, ox, oz, (p) => {
+        if (p.solid === undefined) p.solid = false;
+        if (p.hp === undefined) p.hp = 60;
+        if (p.radius === undefined) p.radius = 1.5;
+        add(p);
+      });
+
       this.chunks.set(k, ch);
     }
 
@@ -4549,6 +4612,153 @@ void main(){
               R.push('cyl', 'opaque', p.x, 1.4 + i * 2.0, p.z, p.yaw, 0, 0, 4.6, 0.3, 4.6, 0.36, 0.34, 0.30, 0);
             }
             R.shadow(p.x, p.z, 3.0, 0.55);
+            break;
+          }
+          case 'house': {
+            const hp01 = clamp01(p.hp / 900);
+            const wallPal = [[0.72, 0.68, 0.60], [0.60, 0.50, 0.42], [0.52, 0.56, 0.60], [0.68, 0.58, 0.48]];
+            const roofPal = [[0.34, 0.20, 0.16], [0.24, 0.24, 0.28], [0.30, 0.26, 0.18], [0.20, 0.28, 0.30]];
+            const wc = wallPal[(p.wall * wallPal.length) | 0] || wallPal[0];
+            const rc = roofPal[(p.roof * roofPal.length) | 0] || roofPal[0];
+            const dmg = lerp(0.55, 1, hp01);
+            const w = p.w, d = p.d, h = p.h;
+            const sy = Math.sin(p.yaw), cyw = Math.cos(p.yaw);
+            const P2 = (lx, lz) => [p.x + lx * cyw + lz * sy, p.z - lx * sy + lz * cyw];
+            for (let st = 0; st < (p.storey || 1); st++) {
+              const y0 = h / 2 + st * h * 0.92;
+              R.push('box', 'opaque', p.x, y0, p.z, p.yaw, 0, 0, w, h, d, wc[0] * dmg, wc[1] * dmg, wc[2] * dmg, 0);
+              // windows on the long faces
+              for (let i = -1; i <= 1; i++) {
+                if (i === 0 && st === 0) continue;
+                for (const face of [1, -1]) {
+                  const q = P2(i * w * 0.3, face * (d / 2 + 0.06));
+                  R.push('box', 'opaque', q[0], y0 + 0.3, q[1], p.yaw, 0, 0,
+                    w * 0.18, h * 0.34, 0.12, 0.10, 0.14, 0.18, 0);
+                }
+              }
+            }
+            const top = h * (p.storey || 1) * 0.92;
+            R.push('box', 'opaque', p.x, top + 0.35, p.z, p.yaw, 0, 0, w + 1.1, 0.7, d + 1.1, rc[0], rc[1], rc[2], 0);
+            R.push('box', 'opaque', p.x, top + 1.15, p.z, p.yaw, 0, 0, w * 0.72, 1.1, d * 0.72, rc[0] * 0.85, rc[1] * 0.85, rc[2] * 0.85, 0);
+            // porch + door + chimney
+            const dr = P2(0, d / 2 + 0.2);
+            R.push('box', 'opaque', dr[0], 1.2, dr[1], p.yaw, 0, 0, 1.5, 2.4, 0.2, 0.28, 0.18, 0.12, 0);
+            R.push('box', 'opaque', dr[0], 2.9, dr[1], p.yaw, 0, 0, w * 0.55, 0.28, 1.8, rc[0] * 0.8, rc[1] * 0.8, rc[2] * 0.8, 0);
+            const ch = P2(w * 0.3, -d * 0.25);
+            R.push('box', 'opaque', ch[0], top + 1.6, ch[1], p.yaw, 0, 0, 1.0, 2.2, 1.0, 0.34, 0.26, 0.24, 0);
+            if (hp01 < 0.55 && Math.random() < 0.04) this.fx.smoke(p.x, top + 2.4, p.z, 1, 0.9, 0.26, 0.24, 0.22, 1);
+            R.shadow(p.x, p.z, Math.max(w, d) * 0.6, 0.55);
+            break;
+          }
+          case 'tree': {
+            const hp01 = clamp01(p.hp / 240);
+            const h = p.h || 6;
+            const lean = (1 - hp01) * 0.24;
+            const conifer = p.kind < 0.45;
+            R.push('cyl', 'opaque', p.x, h * 0.3, p.z, p.yaw, lean, 0, 1.0, h * 0.62, 1.0, 0.24, 0.17, 0.11, 0);
+            if (conifer) {
+              for (let i = 0; i < 4; i++) {
+                const t2 = i / 4;
+                R.push('cone', 'opaque', p.x + Math.sin(p.yaw) * lean * i, h * (0.34 + t2 * 0.5), p.z,
+                  p.yaw + i, 0, 0, (4.4 - t2 * 2.6), h * 0.34, (4.4 - t2 * 2.6),
+                  0.10 + t2 * 0.05, 0.26 + t2 * 0.08, 0.11, 0);
+              }
+            } else {
+              for (let i = 0; i < 3; i++) {
+                const a = p.seed * 6 + i * 2.1;
+                R.push('sphere', 'opaque', p.x + Math.cos(a) * 1.1, h * 0.72 + Math.sin(a) * 0.7, p.z + Math.sin(a) * 1.1,
+                  a, 0, 0, 4.4 - i * 0.5, 3.6 - i * 0.4, 4.4 - i * 0.5,
+                  0.14 + i * 0.03, 0.30 + i * 0.04, 0.10, 0);
+              }
+            }
+            R.shadow(p.x, p.z, 2.8, 0.5);
+            break;
+          }
+          case 'bush': {
+            const c = p.kind < 0.6 ? [0.14, 0.30, 0.12] : [0.26, 0.30, 0.13];
+            for (let i = 0; i < 3; i++) {
+              const a = p.seed * 6 + i * 2.1;
+              R.push('sphere', 'opaque', p.x + Math.cos(a) * 0.6, 0.7 + (i % 2) * 0.3, p.z + Math.sin(a) * 0.6,
+                a, 0, 0, 1.9, 1.5, 1.9, c[0], c[1], c[2], 0);
+            }
+            R.shadow(p.x, p.z, 1.5, 0.4);
+            break;
+          }
+          case 'fence': {
+            const sy2 = Math.sin(p.yaw), cy2 = Math.cos(p.yaw);
+            for (let i = -1; i <= 1; i++) {
+              R.push('box', 'opaque', p.x + cy2 * i * 0.9, 0.8, p.z - sy2 * i * 0.9, p.yaw, 0, 0,
+                0.18, 1.5, 0.18, 0.66, 0.62, 0.54, 0);
+            }
+            R.push('box', 'opaque', p.x, 1.1, p.z, p.yaw, 0, 0, 2.9, 0.16, 0.1, 0.62, 0.58, 0.5, 0);
+            R.push('box', 'opaque', p.x, 0.6, p.z, p.yaw, 0, 0, 2.9, 0.16, 0.1, 0.62, 0.58, 0.5, 0);
+            break;
+          }
+          case 'parked': {
+            const pal = [[0.30, 0.42, 0.58], [0.55, 0.50, 0.46], [0.48, 0.24, 0.22], [0.22, 0.40, 0.28], [0.62, 0.58, 0.26]];
+            const c = pal[(p.kind * pal.length) | 0] || pal[0];
+            const hp01 = clamp01(p.hp / 210);
+            const dim = lerp(0.6, 1, hp01);
+            R.push('box', 'opaque', p.x, 0.85, p.z, p.yaw, 0, 0, 2.2, 0.9, 4.6, c[0] * dim, c[1] * dim, c[2] * dim, 0);
+            R.push('box', 'opaque', p.x, 1.5, p.z - 0.2, p.yaw, 0, 0, 1.9, 0.75, 2.2, c[0] * dim * 0.8, c[1] * dim * 0.8, c[2] * dim * 0.8, 0);
+            R.push('box', 'opaque', p.x, 1.55, p.z + 0.9, p.yaw, 0, 0, 1.75, 0.6, 0.2, 0.09, 0.14, 0.2, 0);
+            for (const fw of [1, -1]) for (const sd of [1, -1]) {
+              R.push('cylX', 'opaque', p.x + Math.cos(p.yaw) * sd * 1.0 + Math.sin(p.yaw) * fw * 1.5, 0.42,
+                p.z - Math.sin(p.yaw) * sd * 1.0 + Math.cos(p.yaw) * fw * 1.5, p.yaw, 0, 0,
+                0.3, 0.84, 0.84, 0.07, 0.07, 0.08, 0);
+            }
+            R.shadow(p.x, p.z, 2.6, 0.5);
+            break;
+          }
+          case 'hydrant': {
+            R.push('cyl', 'opaque', p.x, 0.45, p.z, p.yaw, 0, 0, 0.7, 0.9, 0.7, 0.72, 0.14, 0.10, 0.05);
+            R.push('sphere', 'opaque', p.x, 0.95, p.z, p.yaw, 0, 0, 0.7, 0.5, 0.7, 0.75, 0.16, 0.12, 0.05);
+            for (const sd of [1, -1]) {
+              R.push('cylX', 'opaque', p.x + Math.cos(p.yaw) * sd * 0.4, 0.55, p.z - Math.sin(p.yaw) * sd * 0.4,
+                p.yaw, 0, 0, 0.3, 0.34, 0.34, 0.6, 0.12, 0.1, 0);
+            }
+            R.shadow(p.x, p.z, 0.7, 0.4);
+            break;
+          }
+          case 'bin': {
+            const c = p.kind < 0.5 ? [0.16, 0.32, 0.18] : [0.28, 0.26, 0.30];
+            R.push('cyl', 'opaque', p.x, 0.75, p.z, p.yaw, 0, 0, 1.5, 1.5, 1.5, c[0], c[1], c[2], 0);
+            R.push('cyl', 'opaque', p.x, 1.55, p.z, p.yaw, 0, 0, 1.6, 0.2, 1.6, c[0] * 0.7, c[1] * 0.7, c[2] * 0.7, 0);
+            R.shadow(p.x, p.z, 1.0, 0.45);
+            break;
+          }
+          case 'trolley': {
+            R.push('box', 'opaque', p.x, 0.9, p.z, p.yaw, 0, 0.1, 1.1, 0.9, 1.6, 0.62, 0.64, 0.70, 0);
+            R.push('box', 'opaque', p.x, 1.5, p.z - 0.7, p.yaw, 0, 0, 1.0, 0.5, 0.1, 0.55, 0.57, 0.62, 0);
+            R.shadow(p.x, p.z, 1.0, 0.35);
+            break;
+          }
+          case 'unit': {
+            const hp01 = clamp01(p.hp / 1400);
+            const dim = lerp(0.6, 1, hp01);
+            R.push('box', 'opaque', p.x, p.h / 2, p.z, p.yaw, 0, 0, p.w, p.h, p.d, 0.42 * dim, 0.41 * dim, 0.44 * dim, 0);
+            R.push('box', 'opaque', p.x, p.h + 0.35, p.z, p.yaw, 0, 0, p.w + 0.8, 0.7, p.d + 0.8, 0.28, 0.27, 0.30, 0);
+            const sy2 = Math.sin(p.yaw), cy2 = Math.cos(p.yaw);
+            const sc = [[1.0, 0.35, 0.2], [0.3, 0.7, 1.0], [1.0, 0.8, 0.2], [0.6, 0.35, 1.0]][(p.sign * 4) | 0] || [1, 0.5, 0.2];
+            R.push('box', 'opaque', p.x + sy2 * (p.d / 2 + 0.2), p.h * 0.72, p.z + cy2 * (p.d / 2 + 0.2),
+              p.yaw, 0, 0, p.w * 0.62, 1.5, 0.2, sc[0], sc[1], sc[2], 0.75);
+            for (let i = 0; i < 3; i++) {
+              R.push('box', 'opaque', p.x + cy2 * (i - 1) * p.w * 0.28 + sy2 * (p.d / 2 + 0.1), p.h * 0.28,
+                p.z - sy2 * (i - 1) * p.w * 0.28 + cy2 * (p.d / 2 + 0.1), p.yaw, 0, 0,
+                p.w * 0.2, p.h * 0.42, 0.16, 0.10, 0.14, 0.19, 0);
+            }
+            R.shadow(p.x, p.z, Math.max(p.w, p.d) * 0.55, 0.55);
+            break;
+          }
+          case 'planter': {
+            R.push('box', 'opaque', p.x, 0.6, p.z, p.yaw, 0, 0, 4.0, 1.2, 4.0, 0.48, 0.46, 0.44, 0);
+            R.push('box', 'opaque', p.x, 1.25, p.z, p.yaw, 0, 0, 3.6, 0.3, 3.6, 0.22, 0.16, 0.10, 0);
+            for (let i = 0; i < 4; i++) {
+              const a = p.seed * 6 + i * 1.7;
+              R.push('sphere', 'opaque', p.x + Math.cos(a) * 1.0, 2.0, p.z + Math.sin(a) * 1.0, a, 0, 0,
+                2.2, 1.9, 2.2, 0.14, 0.30, 0.12, 0);
+            }
+            R.shadow(p.x, p.z, 2.4, 0.5);
             break;
           }
           case 'wreck': {
@@ -6102,6 +6312,474 @@ void main(){
 
 </script>
 <script>
+/* ---- src/stages.js ---- */
+/* BADASS APOCALYPSE - stages. Each one generates a different place to drive
+   through and ends at a different landmark worth raiding. */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, TAU } = BA;
+
+  /* Every generator gets a seeded rng, the chunk origin, and an `add` callback.
+     Streets are laid on a fixed world grid so blocks line up across chunks. */
+
+  const BLOCK = 62;          // town block pitch, matches the chunk size
+  const ROAD_W = 13;         // half-width of a carriageway
+
+  const onRoad = (x, z) => {
+    const rx = Math.abs(((x % BLOCK) + BLOCK) % BLOCK - BLOCK / 2);
+    const rz = Math.abs(((z % BLOCK) + BLOCK) % BLOCK - BLOCK / 2);
+    return rx < ROAD_W || rz < ROAD_W;
+  };
+
+  /* --------------------------------------------------------- neighbourhood */
+  function genSuburb(rng, ox, oz, add) {
+    // four house plots per block, gardens facing the street
+    for (let qz = 0; qz < 2; qz++) {
+      for (let qx = 0; qx < 2; qx++) {
+        const cx = ox + (qx - 0.5) * 27;
+        const cz = oz + (qz - 0.5) * 27;
+        if (rng() < 0.18) {                       // occasional empty lot
+          for (let i = 0; i < 3; i++) {
+            add({ type: 'pile', x: cx + (rng() - 0.5) * 14, z: cz + (rng() - 0.5) * 14,
+              yaw: rng() * TAU, radius: 2.2, hp: 60, kind: rng() });
+          }
+          continue;
+        }
+        const yaw = Math.round(rng() * 3) * (Math.PI / 2);
+        add({
+          type: 'house', x: cx, z: cz, yaw, radius: 6.2, hp: 900, solid: true, mass: 4,
+          w: 9 + rng() * 3, d: 8 + rng() * 3, h: 4.2 + rng() * 2.2,
+          wall: rng(), roof: rng(), storey: rng() < 0.35 ? 2 : 1,
+        });
+        // picket fence along the plot edge
+        const fx = Math.sin(yaw), fz = Math.cos(yaw);
+        for (let i = -1; i <= 1; i++) {
+          add({ type: 'fence', x: cx + fx * 9 + fz * i * 4.6, z: cz + fz * 9 - fx * i * 4.6,
+            yaw, radius: 1.5, hp: 24, solid: false });
+        }
+        // garden greenery
+        for (let i = 0; i < 3 + (rng() * 3 | 0); i++) {
+          const gx = cx + (rng() - 0.5) * 18, gz = cz + (rng() - 0.5) * 18;
+          if (rng() < 0.45) add({ type: 'tree', x: gx, z: gz, yaw: rng() * TAU, radius: 1.9, hp: 220, solid: true, mass: 2.5, kind: rng(), h: 5 + rng() * 4 });
+          else add({ type: 'bush', x: gx, z: gz, yaw: rng() * TAU, radius: 1.4, hp: 18, solid: false, kind: rng() });
+        }
+        if (rng() < 0.5) add({ type: 'parked', x: cx + fx * 12, z: cz + fz * 12, yaw: yaw + Math.PI / 2, radius: 2.4, hp: 210, solid: true, mass: 1, kind: rng() });
+      }
+    }
+    // street furniture along the kerb
+    for (let i = 0; i < 6; i++) {
+      const along = (rng() - 0.5) * BLOCK;
+      const side = rng() < 0.5 ? -1 : 1;
+      const vert = rng() < 0.5;
+      const sx = vert ? ox + side * (ROAD_W + 2.4) : ox + along;
+      const sz = vert ? oz + along : oz + side * (ROAD_W + 2.4);
+      const r = rng();
+      if (r < 0.34) add({ type: 'lamp', x: sx, z: sz, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.3 });
+      else if (r < 0.55) add({ type: 'hydrant', x: sx, z: sz, yaw: rng() * TAU, radius: 0.7, hp: 22, solid: false });
+      else if (r < 0.78) add({ type: 'bin', x: sx, z: sz, yaw: rng() * TAU, radius: 1.0, hp: 26, solid: false, kind: rng() });
+      else add({ type: 'barrel', x: sx, z: sz, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
+    }
+    // wrecks abandoned mid-road
+    for (let i = 0; i < 2; i++) {
+      if (rng() > 0.55) continue;
+      const along = (rng() - 0.5) * BLOCK;
+      const vert = rng() < 0.5;
+      add({ type: 'wreck', yaw: vert ? 0 : Math.PI / 2, radius: 2.4, hp: 190, solid: true, mass: 1,
+        x: vert ? ox + (rng() - 0.5) * 12 : ox + along,
+        z: vert ? oz + along : oz + (rng() - 0.5) * 12 });
+    }
+  }
+
+  /* ------------------------------------------------------------- mall */
+  function genMall(rng, ox, oz, add) {
+    // vast parking aprons, light towers, big-box units around the edge
+    for (let i = 0; i < 5; i++) {
+      const px = ox + (rng() - 0.5) * BLOCK * 0.9;
+      const pz = oz + (rng() - 0.5) * BLOCK * 0.9;
+      const r = rng();
+      if (r < 0.34) add({ type: 'parked', x: px, z: pz, yaw: Math.round(rng()) * Math.PI / 2, radius: 2.4, hp: 210, solid: true, mass: 1, kind: rng() });
+      else if (r < 0.5) add({ type: 'trolley', x: px, z: pz, yaw: rng() * TAU, radius: 1.1, hp: 14, solid: false });
+      else if (r < 0.62) add({ type: 'lamp', x: px, z: pz, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.25 });
+      else if (r < 0.74) add({ type: 'pile', x: px, z: pz, yaw: rng() * TAU, radius: 2.2, hp: 60, kind: rng() });
+      else if (r < 0.86) add({ type: 'crate', x: px, z: pz, yaw: rng() * TAU, radius: 1.15, hp: 30, loot: rng() });
+      else add({ type: 'barrel', x: px, z: pz, yaw: rng() * TAU, radius: 1.05, hp: 1, bob: rng() * TAU });
+    }
+    if (rng() < 0.55) {
+      add({ type: 'unit', x: ox + (rng() - 0.5) * 30, z: oz + (rng() - 0.5) * 30,
+        yaw: Math.round(rng()) * Math.PI / 2, radius: 8, hp: 1400, solid: true, mass: 6,
+        w: 16 + rng() * 8, d: 11 + rng() * 5, h: 6 + rng() * 2, sign: rng() });
+    }
+    for (let i = 0; i < 2; i++) {
+      add({ type: 'planter', x: ox + (rng() - 0.5) * 46, z: oz + (rng() - 0.5) * 46, yaw: rng() * TAU, radius: 2.0, hp: 90, solid: true, mass: 2, kind: rng() });
+    }
+  }
+
+  /* ----------------------------------------------------------- forest */
+  function genForest(rng, ox, oz, add) {
+    const n = 12 + (rng() * 8 | 0);
+    for (let i = 0; i < n; i++) {
+      const px = ox + (rng() - 0.5) * BLOCK;
+      const pz = oz + (rng() - 0.5) * BLOCK;
+      const r = rng();
+      if (r < 0.62) add({ type: 'tree', x: px, z: pz, yaw: rng() * TAU, radius: 2.1, hp: 240, solid: true, mass: 2.6, kind: rng() * 0.5, h: 7 + rng() * 7 });
+      else if (r < 0.76) add({ type: 'bush', x: px, z: pz, yaw: rng() * TAU, radius: 1.5, hp: 18, kind: rng() });
+      else if (r < 0.84) add({ type: 'rock', x: px, z: pz, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
+      else if (r < 0.9) add({ type: 'pile', x: px, z: pz, yaw: rng() * TAU, radius: 2.2, hp: 60, kind: rng() });
+      else if (r < 0.95) add({ type: 'ramp', x: px, z: pz, yaw: rng() * TAU, L: 10 + rng() * 5, W: 7 + rng() * 3, H: 3.2 + rng() * 2, radius: 0, hp: Infinity });
+      else add({ type: 'shack', x: px, z: pz, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
+    }
+    if (rng() < 0.3) add({ type: 'gascan', x: ox + (rng() - 0.5) * 40, z: oz + (rng() - 0.5) * 40, yaw: rng() * TAU, radius: 1.0, hp: 1, bob: rng() * TAU });
+  }
+
+  /* --------------------------------------------------------- wasteland */
+  function genWaste(rng, ox, oz, add) {
+    const n = 4 + (rng() * 4 | 0);
+    for (let i = 0; i < n; i++) {
+      const x = ox + (rng() - 0.5) * BLOCK;
+      const z = oz + (rng() - 0.5) * BLOCK;
+      const r = rng();
+      if (r < 0.10) add({ type: 'ramp', x, z, yaw: rng() * TAU, L: 9 + rng() * 5, W: 6 + rng() * 3, H: 3 + rng() * 2.2, radius: 0, hp: Infinity });
+      else if (r < 0.34) add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, bob: rng() * TAU });
+      else if (r < 0.42) add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, bob: rng() * TAU });
+      else if (r < 0.54) add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
+      else if (r < 0.62) add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
+      else if (r < 0.70) add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
+      else if (r < 0.78) add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, loot: rng() });
+      else if (r < 0.87) add({ type: 'pile', x, z, yaw: rng() * TAU, radius: 2.2, hp: 60, kind: rng() });
+      else if (r < 0.95) add({ type: 'shack', x, z, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
+      else add({ type: 'silo', x, z, yaw: rng() * TAU, radius: 2.6, hp: 320, solid: true, mass: 2 });
+    }
+  }
+
+  const STAGES = [
+    {
+      id: 'suburb', name: 'PINEWOOD ESTATE', icon: 'bld_house', color: '#9ad6ff',
+      blurb: 'Quiet streets, tidy lawns, and a SUPERMARKET at the end of the road.',
+      landmark: 'supermarket', landmarkName: 'SUPERMARKET',
+      streets: true, gen: genSuburb, exitZ: 1240, garageZ: 620,
+      fog: [0.38, 0.26, 0.28], fogDensity: 0.0042, ground: 0,
+      reward: { food: 1.6, meds: 1.3, scrap: 1.0, steel: 0.8 },
+      unlockRank: 1,
+    },
+    {
+      id: 'mall', name: 'CRESTVIEW MALL', icon: 'bld_storage', color: '#ffd23a',
+      blurb: 'Acres of car park, then a dead shopping centre stuffed with salvage.',
+      landmark: 'mall', landmarkName: 'MALL ATRIUM',
+      streets: true, gen: genMall, exitZ: 1420, garageZ: 700,
+      fog: [0.30, 0.26, 0.34], fogDensity: 0.0038, ground: 1,
+      reward: { scrap: 1.7, steel: 1.5, meds: 1.2, food: 0.8 },
+      unlockRank: 2,
+    },
+    {
+      id: 'forest', name: 'BLACKPINE WOODS', icon: 'bld_garden', color: '#7fffd4',
+      blurb: 'Tight tree lines and blind corners. A ranger station sits at the top.',
+      landmark: 'ranger', landmarkName: 'RANGER STATION',
+      streets: false, gen: genForest, exitZ: 1120, garageZ: 560,
+      fog: [0.16, 0.22, 0.20], fogDensity: 0.0060, ground: 2,
+      reward: { food: 2.0, fuel: 1.3, scrap: 0.9, steel: 0.6 },
+      unlockRank: 3,
+    },
+    {
+      id: 'waste', name: 'THE OUTER WASTE', icon: 'bld_tower', color: '#e0a06a',
+      blurb: 'Open ground, big ramps, nothing to hide behind. The old hunting run.',
+      landmark: 'depot', landmarkName: 'FUEL DEPOT',
+      streets: false, gen: genWaste, exitZ: 1240, garageZ: 620,
+      fog: [0.40, 0.22, 0.19], fogDensity: 0.0040, ground: 3,
+      reward: { fuel: 1.8, scrap: 1.2, steel: 1.0, meds: 0.6 },
+      unlockRank: 1,
+    },
+  ];
+
+  const byId = {};
+  for (const s of STAGES) byId[s.id] = s;
+
+  BA.stages = { STAGES, byId, BLOCK, ROAD_W, onRoad };
+})();
+
+</script>
+<script>
+/* ---- src/allies.js ---- */
+/* BADASS APOCALYPSE - friendlies: armed escorts, stray dogs, and cats that
+   want nothing to do with any of this. */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, rand, TAU, angleDelta } = BA;
+
+  const MAX_ESCORT = 6;
+
+  class Allies {
+    constructor(fx, audio) {
+      this.fx = fx;
+      this.audio = audio;
+      this.list = [];
+      this.shots = [];
+      this.nextSpawnZ = 60;
+    }
+
+    reset() {
+      this.list.length = 0;
+      this.shots.length = 0;
+      this.nextSpawnZ = 60;
+    }
+
+    get escorts() { return this.list.filter((a) => a.type === 'fighter').length; }
+
+    /* a rescued survivor grabs a rifle and rides shotgun */
+    addFighter(x, z, tier) {
+      if (this.escorts >= MAX_ESCORT) return null;
+      const a = {
+        type: 'fighter', x, z, y: 0, vx: 0, vz: 0, yaw: 0,
+        hp: 44 + tier * 18, maxHp: 44 + tier * 18, cd: rand(0, 1), tier: tier || 0,
+        phase: rand(TAU), orbit: rand(TAU), reload: 0,
+        skin: [rand(0.5, 0.92), rand(0.42, 0.75), rand(0.32, 0.6)],
+        shirt: [rand(0.18, 0.4), rand(0.26, 0.5), rand(0.2, 0.42)],
+      };
+      this.list.push(a);
+      return a;
+    }
+
+    addDog(x, z) {
+      const a = {
+        type: 'dog', x, z, y: 0, vx: 0, vz: 0, yaw: 0,
+        hp: 40, maxHp: 40, cd: 0, phase: rand(TAU), orbit: rand(TAU),
+        coat: [rand(0.28, 0.62), rand(0.2, 0.45), rand(0.12, 0.3)],
+      };
+      this.list.push(a);
+      return a;
+    }
+
+    addCat(x, z) {
+      this.list.push({
+        type: 'cat', x, z, y: 0, vx: 0, vz: 0, yaw: rand(TAU),
+        hp: 1, maxHp: 1, phase: rand(TAU), flee: 0,
+        coat: [[0.62, 0.34, 0.12], [0.38, 0.36, 0.34], [0.09, 0.08, 0.09],
+          [0.78, 0.74, 0.68], [0.46, 0.36, 0.22]][(Math.random() * 5) | 0],
+      });
+    }
+
+    /* strays and volunteers dotted along the route */
+    seed(car, stage) {
+      while (this.nextSpawnZ < car.z + 200) {
+        const x = rand(-50, 50);
+        const z = this.nextSpawnZ;
+        const r = Math.random();
+        if (r < 0.42) this.addDog(x, z);
+        else if (r < 0.72) this.addCat(x, z);
+        this.nextSpawnZ += rand(120, 240);
+      }
+    }
+
+    update(dt, car, horde, game) {
+      this.seed(car, game.stage);
+
+      for (let i = this.list.length - 1; i >= 0; i--) {
+        const a = this.list[i];
+        a.phase += dt * 6;
+        if (a.hp <= 0) {
+          this.fx.blood(a.x, 1.0, a.z, 0, 1, 0, 8, 6);
+          this.fx.text(a.x, 2.4, a.z, a.type === 'dog' ? 'DOG DOWN' : 'ESCORT DOWN', '#ff6b5e', 20, 'big');
+          this.list.splice(i, 1);
+          continue;
+        }
+        const dcx = car.x - a.x, dcz = car.z - a.z;
+        const dc = Math.hypot(dcx, dcz) || 1;
+
+        if (a.type === 'cat') {
+          // cats bolt from anything that moves and never fight
+          let fx_ = 0, fz = 0;
+          if (dc < 22) { fx_ -= dcx / dc; fz -= dcz / dc; a.flee = 1.4; }
+          const near = horde.grid.query(a.x, a.z, 16, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            const d = Math.hypot(e.x - a.x, e.z - a.z) || 1;
+            if (d < 16) { fx_ -= (e.x - a.x) / d; fz -= (e.z - a.z) / d; a.flee = 1.4; }
+          }
+          a.flee = Math.max(0, a.flee - dt);
+          const sp = a.flee > 0 ? 13 : 2.4;
+          a.vx = lerp(a.vx, fx_ * sp, clamp01(dt * 5));
+          a.vz = lerp(a.vz, fz * sp, clamp01(dt * 5));
+          a.x += a.vx * dt; a.z += a.vz * dt;
+          if (Math.hypot(a.vx, a.vz) > 0.4) a.yaw = Math.atan2(a.vx, a.vz);
+          if (dc > 200) this.list.splice(i, 1);
+          continue;
+        }
+
+        // fighters and dogs both hunt, but hold station near the truck
+        const target = this.nearestEnemy(horde, a.x, a.z, a.type === 'dog' ? 34 : 40);
+        let tx, tz, sp;
+        if (a.type === 'dog' && target) {
+          tx = target.x; tz = target.z; sp = 13;
+          if (Math.hypot(target.x - a.x, target.z - a.z) < target.radius + 1.6) {
+            a.cd -= dt;
+            if (a.cd <= 0) {
+              a.cd = 0.55;
+              const d = Math.hypot(target.x - a.x, target.z - a.z) || 1;
+              horde.damage(target, 16, (target.x - a.x) / d, (target.z - a.z) / d, 12, game);
+              this.fx.blood(target.x, 1.0, target.z, 0, 1, 0, 3, 4);
+              this.audio.squish();
+            }
+          }
+        } else {
+          // ring up behind the truck so they do not get run over
+          a.orbit += dt * 0.6;
+          const rad = a.type === 'dog' ? 7 : 9;
+          tx = car.x + Math.sin(a.orbit) * rad - Math.sin(car.yaw) * 3;
+          tz = car.z + Math.cos(a.orbit) * rad - Math.cos(car.yaw) * 3;
+          sp = a.type === 'dog' ? 14 : 12;
+        }
+
+        const dx = tx - a.x, dz = tz - a.z;
+        const d = Math.hypot(dx, dz) || 1;
+        // teleport stragglers rather than lose them behind the horde
+        if (dc > 120) { a.x = car.x + rand(-8, 8); a.z = car.z - 10 + rand(-4, 4); }
+        const move = d > 2 ? 1 : 0;
+        a.vx = lerp(a.vx, (dx / d) * sp * move, clamp01(dt * 6));
+        a.vz = lerp(a.vz, (dz / d) * sp * move, clamp01(dt * 6));
+        a.x += a.vx * dt; a.z += a.vz * dt;
+        const face = target ? Math.atan2(target.x - a.x, target.z - a.z) : Math.atan2(a.vx, a.vz);
+        a.yaw += angleDelta(a.yaw, face) * clamp01(dt * 9);
+
+        if (a.type === 'fighter') {
+          a.cd -= dt;
+          if (target && a.cd <= 0) {
+            a.cd = 0.62 - a.tier * 0.06;
+            const sx = a.x, sy = 1.5, sz = a.z;
+            const vx = target.x - sx, vy = 1.0 * target.scale - sy, vz = target.z - sz;
+            const dd = Math.hypot(vx, vy, vz) || 1;
+            const spread = 0.05;
+            this.shots.push({
+              x: sx, y: sy, z: sz,
+              vx: (vx / dd + rand(-spread, spread)) * 90,
+              vy: (vy / dd) * 90,
+              vz: (vz / dd + rand(-spread, spread)) * 90,
+              life: 0.8, dmg: 13 + a.tier * 6,
+            });
+            this.audio.shoot();
+            this.fx.sparks(sx + Math.sin(a.yaw), 1.6, sz + Math.cos(a.yaw), 2, 1.3, 1.0, 0.4, 0.5);
+          }
+        }
+
+        // the horde bites back
+        const near = horde.grid.query(a.x, a.z, 2.6, []);
+        for (const e of near) {
+          if (e.dead) continue;
+          if (Math.hypot(e.x - a.x, e.z - a.z) < e.radius + 0.9) {
+            a.bitten = (a.bitten || 0) - dt;
+            if (a.bitten <= 0) { a.bitten = 0.8; a.hp -= e.dmg * 0.5; this.fx.blood(a.x, 1.1, a.z, 0, 1, 0, 3, 3); }
+          }
+        }
+      }
+
+      /* friendly bullets */
+      for (let i = this.shots.length - 1; i >= 0; i--) {
+        const b = this.shots[i];
+        b.life -= dt;
+        b.px = b.x; b.py = b.y; b.pz = b.z;
+        b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
+        let done = b.life <= 0 || b.y < 0.1;
+        if (!done) {
+          const near = horde.grid.query(b.x, b.z, 2.2, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            if (Math.hypot(e.x - b.x, e.z - b.z) < e.radius + 0.4 && b.y < 2.2 * e.scale) {
+              const d = Math.hypot(b.vx, b.vz) || 1;
+              horde.damage(e, b.dmg, b.vx / d, b.vz / d, 6, game);
+              this.fx.blood(b.x, b.y, b.z, b.vx / d, 0.3, b.vz / d, 2, 3);
+              done = true;
+              break;
+            }
+          }
+        }
+        if (done) this.shots.splice(i, 1);
+      }
+    }
+
+    nearestEnemy(horde, x, z, maxDist) {
+      let best = null, bd = maxDist * maxDist;
+      for (const e of horde.list) {
+        if (e.dead) continue;
+        const d = (e.x - x) * (e.x - x) + (e.z - z) * (e.z - z);
+        if (d < bd) { bd = d; best = e; }
+      }
+      return best;
+    }
+
+    /* ------------------------------------------------------------- draw */
+    draw(R, camX, camZ) {
+      for (const b of this.shots) {
+        BA.beam(R, 'glow', b.px === undefined ? b.x : b.px, b.py === undefined ? b.y : b.py,
+          b.pz === undefined ? b.z : b.pz, b.x, b.y, b.z, 0.10, 0.5, 1.1, 1.3);
+      }
+      for (const a of this.list) {
+        if ((a.x - camX) ** 2 + (a.z - camZ) ** 2 > 190 * 190) continue;
+        const cy = Math.cos(a.yaw), sy = Math.sin(a.yaw);
+        const P = (lx, ly, lz) => [a.x + lx * cy + lz * sy, ly, a.z - lx * sy + lz * cy];
+        const put = (lx, ly, lz, sx, sy2, sz, c, pitch, roll) => {
+          const p = P(lx, ly, lz);
+          R.push('box', 'opaque', p[0], p[1], p[2], a.yaw, pitch || 0, roll || 0, sx, sy2, sz, c[0], c[1], c[2], 0);
+        };
+        const walk = Math.sin(a.phase);
+        const moving = Math.hypot(a.vx, a.vz) > 1;
+        const bob = moving ? Math.abs(walk) * 0.09 : 0;
+
+        if (a.type === 'cat') {
+          const c = a.coat;
+          put(0, 0.42 + bob, 0, 0.3, 0.3, 0.9, c);
+          put(0, 0.55 + bob, 0.5, 0.28, 0.28, 0.28, [c[0] * 1.1, c[1] * 1.1, c[2] * 1.1]);
+          put(-0.09, 0.72 + bob, 0.5, 0.1, 0.16, 0.08, c);
+          put(0.09, 0.72 + bob, 0.5, 0.1, 0.16, 0.08, c);
+          put(0, 0.6 + bob, -0.62, 0.1, 0.1, 0.5, c, -0.6 + walk * 0.3);
+          for (const side of [1, -1]) for (const fw of [1, -1]) {
+            put(side * 0.14, 0.2, fw * 0.3, 0.1, 0.42, 0.1, c, walk * side * fw * 0.6);
+          }
+          R.shadow(a.x, a.z, 0.6, 0.35);
+          continue;
+        }
+
+        if (a.type === 'dog') {
+          const c = a.coat;
+          put(0, 0.66 + bob, 0, 0.46, 0.46, 1.3, c);
+          put(0, 0.86 + bob, 0.78, 0.42, 0.42, 0.5, [c[0] * 1.1, c[1] * 1.08, c[2] * 1.05]);
+          put(0, 0.78 + bob, 1.06, 0.24, 0.2, 0.28, [c[0] * 0.6, c[1] * 0.5, c[2] * 0.45]);
+          for (const side of [1, -1]) put(side * 0.16, 1.1 + bob, 0.74, 0.12, 0.26, 0.1, c);
+          put(0, 0.9 + bob, -0.8, 0.12, 0.12, 0.6, c, -0.7 + Math.sin(a.phase * 2) * 0.4);
+          for (const side of [1, -1]) for (const fw of [1, -1]) {
+            put(side * 0.2, 0.3, fw * 0.42, 0.14, 0.62, 0.14, [c[0] * 0.85, c[1] * 0.85, c[2] * 0.85], walk * side * fw * 0.8);
+          }
+          R.shadow(a.x, a.z, 0.9, 0.4);
+          continue;
+        }
+
+        // fighter
+        const s = 1.0;
+        const hurt = 1 - clamp01(a.hp / a.maxHp) * 0.4;
+        put(0, (1.06 + bob) * s, 0, 0.68, 0.9, 0.44, a.shirt);
+        put(0, (1.56 + bob) * s, 0, 0.76, 0.22, 0.5, [a.shirt[0] * 0.7, a.shirt[1] * 0.7, a.shirt[2] * 0.7]);
+        put(0, (1.72 + bob) * s, 0.04, 0.48, 0.48, 0.46, a.skin);
+        put(0, (1.96 + bob) * s, 0, 0.54, 0.18, 0.52, [0.20, 0.24, 0.18]);
+        // rifle held across the chest, muzzle forward
+        const kick = a.cd > 0.5 ? 0.12 : 0;
+        put(0.3, (1.34 + bob) * s, 0.8 - kick, 0.14, 0.14, 1.5, [0.20, 0.18, 0.16], -0.08);
+        put(0.3, (1.44 + bob) * s, 0.3, 0.12, 0.22, 0.4, [0.32, 0.24, 0.16], -0.08);
+        for (const side of [1, -1]) {
+          put(side * 0.44, (1.3 + bob) * s, 0.34, 0.19, 0.6, 0.19, a.skin, -0.9);
+        }
+        for (const side of [1, -1]) {
+          put(side * 0.2, 0.44, 0, 0.22, 0.86, 0.22, [0.20, 0.22, 0.26], walk * side * 0.6 * (moving ? 1 : 0));
+        }
+        // little green pip so you can tell them from the horde at speed
+        R.push('sphere', 'glow', a.x, 2.5, a.z, 0, 0, 0, 0.5, 0.5, 0.5,
+          0.1 * hurt, 0.55 * hurt, 0.16 * hurt, 1);
+        R.shadow(a.x, a.z, 1.0, 0.45);
+      }
+    }
+  }
+
+  BA.Allies = Allies;
+})();
+
+</script>
+<script>
 /* ---- src/meta.js ---- */
 /* BADASS APOCALYPSE - persistent meta layer: resources, truck components,
    the settlement, and everything that survives a run. */
@@ -6186,9 +6864,9 @@ void main(){
     },
     {
       id: 'nos', name: 'NOS INJECTOR', icon: 'coolant', max: 5, color: '#9fe8ff',
-      desc: 'Direct-port nitrous. Terrifying.',
-      cost: (l) => ({ scrap: 60 + l * 66, fuel: 30 + l * 40 }),
-      effect: (l) => `Nitrous power +${l * 14}%`,
+      desc: 'UNLOCKS NITROUS. Direct-port injection. Terrifying.',
+      cost: (l) => (l === 0 ? { scrap: 100, fuel: 60 } : { scrap: 60 + l * 66, fuel: 30 + l * 40 }),
+      effect: (l) => (l === 0 ? 'Locked - no nitrous' : `Nitrous unlocked, power +${(l - 1) * 14}%`),
     },
   ];
 
@@ -6250,6 +6928,13 @@ void main(){
       cost: (l) => ({ scrap: 90 + l * 100, steel: 35 + l * 45 }),
       slots: (l) => Math.ceil(l / 2), prod: null,
       effect: (l) => `+${l * 8}% run scrap, marks objectives further out`,
+    },
+    {
+      id: 'fueltank', name: 'FUEL TANK', icon: 'gas', max: 6, color: '#ff9c1e',
+      desc: 'A bulk tank. Every sortie rolls out with a fuller gas tank.',
+      cost: (l) => ({ scrap: 85 + l * 90, steel: 30 + l * 40 }),
+      slots: (l) => Math.ceil(l / 3), prod: { fuel: 6 },
+      effect: (l) => `+${6 * l} fuel/min, runs start with +${l * 8}% gas`,
     },
     {
       id: 'storage', name: 'DEPOT', icon: 'bld_storage', max: 6, color: '#b8c4d4',
@@ -6538,6 +7223,8 @@ void main(){
       for (const t of this.tiles) if (t.id === 'infirmary') infirmary = t.level * 0.06;
       let towerBonus = 0;
       for (const t of this.tiles) if (t.id === 'watchtower') towerBonus = t.level * 0.08;
+      let startFuel = 0.55;
+      for (const t of this.tiles) if (t.id === 'fueltank') startFuel += t.level * 0.08;
 
       return {
         speedMul: 1 + L('engine') * 0.09,
@@ -6545,6 +7232,7 @@ void main(){
         gripMul: 1 + L('tires') * 0.11,
         turnMul: 1 + L('tires') * 0.06,
         canJump: L('hydraulics') > 0,
+        canNitro: L('nos') > 0,
         jumpMul: 1 + Math.max(0, L('hydraulics') - 1) * 0.12,
         hp: 80 + L('plating') * 22 + garageHp,
         armor: L('plating') * 0.04,
@@ -6555,7 +7243,8 @@ void main(){
         haulMul: 1 + L('bed') * 0.15 + L('magnet') * 0.12 + towerBonus,
         magnetMul: 1 + L('magnet') * 0.30,
         startWeapons: L('mount'),
-        nosMul: 1 + L('nos') * 0.14,
+        nosMul: 1 + Math.max(0, L('nos') - 1) * 0.14,
+        startFuel: startFuel,
         startHpMul: 1 + infirmary,
       };
     }
@@ -6806,9 +7495,12 @@ void main(){
         <div id="baseInspect"><div id="inspectBody"></div></div>
         <div id="baseFoot">
           <div id="baseHint">DRAG TO ORBIT · CLICK A PLOT TO BUILD</div>
-          <div class="baserow">
-            <div class="bbtn ghost" id="btnGarage">GARAGE</div>
-            <div class="bbtn go" id="btnDeploy">DEPLOY <span>▶</span></div>
+          <div class="deploycol">
+            <div id="stagePick"></div>
+            <div class="baserow">
+              <div class="bbtn ghost" id="btnGarage">GARAGE</div>
+              <div class="bbtn go" id="btnDeploy">DEPLOY <span>▶</span></div>
+            </div>
           </div>
         </div>
         <div id="baseToast"></div>`;
@@ -6927,6 +7619,25 @@ void main(){
         return `<div class="rchip" title="${r.name}">${BA.icons.img(r.icon, 22)}
           <b style="color:${r.color}">${v}</b><i>/${Math.floor(cap)}</i>${rateTxt}</div>`;
       }).join('');
+
+      const rank = meta.rank;
+      this.root.querySelector('#stagePick').innerHTML = BA.stages.STAGES.map((st) => {
+        const locked = rank < st.unlockRank;
+        const on = this.game.stage.id === st.id;
+        return `<div class="scard${on ? ' on' : ''}${locked ? ' locked' : ''}" data-s="${st.id}" style="--c:${st.color}">
+          ${BA.icons.img(st.icon, 26)}
+          <div class="sinfo"><b>${st.name}</b><i>${locked ? 'NEEDS RANK ' + st.unlockRank : st.blurb}</i></div>
+        </div>`;
+      }).join('');
+      for (const el of this.root.querySelectorAll('.scard')) {
+        el.addEventListener('click', () => {
+          const st = BA.stages.byId[el.dataset.s];
+          if (meta.rank < st.unlockRank) { this.toast('LOCKED - RAISE YOUR COMMAND POST'); return; }
+          this.game.stage = st;
+          this.game.audio.ui();
+          this.refresh();
+        });
+      }
 
       this.root.querySelector('#baseRank').innerHTML =
         `<b>RANK ${meta.rank}</b> · ${meta.assigned}/${meta.workerSlots} WORKING · ${meta.idleWorkers} IDLE · BEDS ${Math.floor(meta.res.people)}/${meta.housing}`;
@@ -7630,6 +8341,8 @@ void main(){
       this.garage = new BA.Garage(this);
       this.survivors = [];
       this.loot = [];
+      this.allies = new BA.Allies(this.fx, this.audio);
+      this.stage = BA.stages.byId.suburb;
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -7688,7 +8401,16 @@ void main(){
       };
       this.survivors.length = 0;
       this.loot.length = 0;
+      this.allies.reset();
       this.nextSurvivorZ = 90;
+      const st = this.stage;
+      this.run.garageZ = st.garageZ;
+      this.run.exitZ = st.exitZ;
+      this.run.stage = st.id;
+      this.world.setStage(st);
+      this.R.groundMode = st.ground;
+      this.R.fog = st.fog.slice();
+      this.R.fogDensity = st.fogDensity;
       this.time = 0;
       this.kills = 0;
       this.score = 0;
@@ -7725,6 +8447,8 @@ void main(){
       }
       this.recalcStats();
       this.car.hp = this.car.maxHp;
+      this.car.fuel = this.car.maxFuel * (this.comp.startFuel || 0.55);
+      this.car.nitroWarned = false;
       this.cam.yaw = 0;
       this.trauma = 0;
       this.hurtFlash = 0;
@@ -7736,6 +8460,7 @@ void main(){
       const T = this.meta.truckStats();
       this.comp = T;
       this.car.canJump = T.canJump;
+      this.car.canNitro = T.canNitro;
       this.recalcStats();
     }
 
@@ -7768,6 +8493,7 @@ void main(){
       S.lifesteal = lv('vampire') * 0.5 + (lv('vampire') ? 0.5 : 0);
       S.chainDmg = lv('chain') ? 14 + lv('chain') * 12 : 0;
       this.car.canJump = T.canJump;
+      this.car.canNitro = T.canNitro;
       const prevFuelMax = this.car.maxFuel;
       this.car.maxFuel = S.fuelMax;
       if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
@@ -7985,7 +8711,8 @@ void main(){
         if (o.y < 0.5) { o.y = 0.5; if (o.vy < 0) o.vy = -o.vy * 0.3; }
         if (d < 3.0 || o.life <= 0) {
           if (o.life > 0) {
-            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul));
+            const bias = (this.stage.reward && this.stage.reward[o.res]) || 1;
+            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul * bias));
             this.run.haul[o.res] = (this.run.haul[o.res] || 0) + gain;
             this.audio.pickup(0.3);
             const rr = BA.meta.RES.find((r) => r.id === o.res);
@@ -8023,6 +8750,10 @@ void main(){
             r.aboard++;
             this.audio.levelUp();
             this.fx.text(sv.x, 3.4, sv.z, 'RESCUED! ' + r.aboard + '/' + r.cargo, '#7fd4ff', 26, 'big');
+            // they do not just sit in the bed - hand them a rifle
+            if (this.allies.addFighter(sv.x, sv.z, Math.min(3, this.meta.rank - 1))) {
+              this.hud.toast('SURVIVOR ARMED - THEY FIGHT WITH YOU NOW');
+            }
             this.fx.sparks(sv.x, 1.4, sv.z, 16, 0.4, 0.8, 1.4, 1.1);
             this.flash(0.2, [0.4, 0.8, 1.0]);
             this.checkObjectives();
@@ -8257,6 +8988,7 @@ void main(){
       this.updateLoot(dt);
       this.updateSurvivors(dt);
       this.updateLandmarks(dt);
+      this.allies.update(dt, this.car, this.horde, this);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
       this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
@@ -8422,6 +9154,7 @@ void main(){
 
       this.drawLandmarks(R);
       this.drawSurvivors(R);
+      this.allies.draw(R, car.x, car.z);
       for (const o of this.loot) {
         const rr = BA.meta.RES.find((r2) => r2.id === o.res) || { color: '#fff' };
         const c = [
@@ -8520,6 +9253,7 @@ void main(){
         }
       }
 
+      if (near(r.exitZ + 40)) this.drawEndBuilding(R, r.exitZ + 46);
       if (near(r.exitZ)) {
         const ez = r.exitZ;
         const open = this.objectivesDone();
@@ -8538,6 +9272,72 @@ void main(){
         const pulse = 0.6 + Math.sin(t * 3) * 0.4;
         R.push('disc', 'glow', 0, 0.07, ez, 0, 0, 0, 34, 1, 34, c[0] * 0.09 * pulse, c[1] * 0.09 * pulse, c[2] * 0.09 * pulse, 1);
         R.push('ring', 'glow', 0, 0.1, ez, 0, 0, 0, 36, 1.6, 36, c[0] * pulse, c[1] * pulse, c[2] * pulse, 1);
+      }
+    }
+
+    /* the thing you drove all this way to loot */
+    drawEndBuilding(R, ez) {
+      const kind = this.stage.landmark;
+      const B = (x, y, z, sx, sy, sz, r, g, b, e, yaw) =>
+        R.push('box', 'opaque', x, y, z, yaw || 0, 0, 0, sx, sy, sz, r, g, b, e || 0);
+      const t = this.time;
+
+      if (kind === 'supermarket' || kind === 'mall') {
+        const big = kind === 'mall';
+        const w = big ? 96 : 62, d = big ? 46 : 30, h = big ? 15 : 10;
+        B(0, h / 2, ez + d / 2, w, h, d, 0.60, 0.58, 0.55);
+        B(0, h + 0.7, ez + d / 2, w + 3, 1.4, d + 3, 0.34, 0.33, 0.32);
+        // glazed shopfront
+        B(0, h * 0.34, ez + 0.3, w * 0.78, h * 0.5, 0.6, 0.10, 0.17, 0.22);
+        for (let i = 0; i < 7; i++) {
+          B(-w * 0.36 + i * (w * 0.12), h * 0.34, ez + 0.1, 0.7, h * 0.55, 0.7, 0.42, 0.41, 0.40);
+        }
+        // entrance canopy
+        B(0, h * 0.62, ez - 3.2, w * 0.4, 0.9, 7.0, 0.30, 0.30, 0.32);
+        for (const sx of [-1, 1]) B(sx * w * 0.17, h * 0.31, ez - 6.4, 0.8, h * 0.62, 0.8, 0.34, 0.33, 0.35);
+        // fascia sign
+        const sc = big ? [1.0, 0.72, 0.12] : [0.20, 0.62, 1.0];
+        B(0, h * 0.82, ez - 0.4, w * 0.56, 3.2, 0.6, sc[0], sc[1], sc[2], 0.9);
+        for (let i = 0; i < 8; i++) {
+          const f = 0.6 + Math.sin(t * 4 + i) * 0.4;
+          B(-w * 0.24 + i * (w * 0.068), h * 0.82, ez - 0.9, w * 0.045, 1.9, 0.3, 1.2 * f, 1.1 * f, 0.9 * f, 1);
+        }
+        // rooftop plant
+        for (let i = 0; i < (big ? 6 : 3); i++) {
+          B(-w * 0.3 + i * (w * 0.12), h + 2.4, ez + d * 0.6, 5.0, 2.6, 5.0, 0.40, 0.39, 0.41);
+        }
+        // trolley bays out front
+        for (let i = 0; i < 5; i++) {
+          B(-18 + i * 9, 0.9, ez - 12, 1.2, 1.6, 5.0, 0.5, 0.52, 0.56);
+        }
+        R.shadow(0, ez + d / 2, w * 0.5, 0.55);
+      } else if (kind === 'ranger') {
+        B(0, 3.4, ez + 8, 22, 6.6, 16, 0.40, 0.28, 0.17);
+        B(0, 7.4, ez + 8, 25, 1.6, 19, 0.24, 0.17, 0.11);
+        B(0, 9.0, ez + 8, 14, 2.0, 11, 0.28, 0.20, 0.13);
+        B(0, 1.6, ez - 0.4, 4.0, 3.2, 0.5, 0.16, 0.12, 0.09);
+        for (const sx of [-1, 1]) {
+          B(sx * 8, 1.7, ez - 1.0, 0.7, 3.4, 0.7, 0.34, 0.24, 0.15);
+          B(sx * 13, 5.0, ez + 8, 1.0, 10, 1.0, 0.30, 0.22, 0.14);
+        }
+        B(0, 4.2, ez - 1.2, 20, 0.6, 3.4, 0.26, 0.19, 0.12);
+        B(0, 5.4, ez - 0.6, 9, 1.6, 0.4, 0.16, 0.42, 0.20, 0.7);
+        for (let i = 0; i < 6; i++) {
+          const a = i * 1.6;
+          R.push('cone', 'opaque', Math.cos(a) * 26, 6, ez + 6 + Math.sin(a) * 20, a, 0, 0, 8, 14, 8, 0.10, 0.26, 0.11, 0);
+        }
+        R.shadow(0, ez + 8, 14, 0.55);
+      } else {
+        // fuel depot: tank farm behind a gantry
+        for (let i = 0; i < 4; i++) {
+          const x = -21 + i * 14;
+          R.push('cyl', 'opaque', x, 6, ez + 14, 0, 0, 0, 12, 12, 12, 0.46, 0.45, 0.42, 0);
+          R.push('cyl', 'opaque', x, 12.3, ez + 14, 0, 0, 0, 12.6, 0.8, 12.6, 0.30, 0.29, 0.27, 0);
+          B(x, 8, ez + 8.2, 10, 1.2, 0.5, 0.85, 0.45, 0.08, 0.35);
+        }
+        B(0, 8, ez + 2, 62, 1.2, 1.2, 0.34, 0.33, 0.35);
+        for (const sx of [-1, 1]) B(sx * 26, 4, ez + 2, 1.4, 8, 1.4, 0.36, 0.35, 0.37);
+        R.shadow(0, ez + 14, 30, 0.5);
       }
     }
 

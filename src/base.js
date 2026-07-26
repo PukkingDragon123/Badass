@@ -237,9 +237,12 @@
         <div id="baseInspect"><div id="inspectBody"></div></div>
         <div id="baseFoot">
           <div id="baseHint">DRAG TO ORBIT · CLICK A PLOT TO BUILD</div>
-          <div class="baserow">
-            <div class="bbtn ghost" id="btnGarage">GARAGE</div>
-            <div class="bbtn go" id="btnDeploy">DEPLOY <span>▶</span></div>
+          <div class="deploycol">
+            <div id="stagePick"></div>
+            <div class="baserow">
+              <div class="bbtn ghost" id="btnGarage">GARAGE</div>
+              <div class="bbtn go" id="btnDeploy">DEPLOY <span>▶</span></div>
+            </div>
           </div>
         </div>
         <div id="baseToast"></div>`;
@@ -358,6 +361,25 @@
         return `<div class="rchip" title="${r.name}">${BA.icons.img(r.icon, 22)}
           <b style="color:${r.color}">${v}</b><i>/${Math.floor(cap)}</i>${rateTxt}</div>`;
       }).join('');
+
+      const rank = meta.rank;
+      this.root.querySelector('#stagePick').innerHTML = BA.stages.STAGES.map((st) => {
+        const locked = rank < st.unlockRank;
+        const on = this.game.stage.id === st.id;
+        return `<div class="scard${on ? ' on' : ''}${locked ? ' locked' : ''}" data-s="${st.id}" style="--c:${st.color}">
+          ${BA.icons.img(st.icon, 26)}
+          <div class="sinfo"><b>${st.name}</b><i>${locked ? 'NEEDS RANK ' + st.unlockRank : st.blurb}</i></div>
+        </div>`;
+      }).join('');
+      for (const el of this.root.querySelectorAll('.scard')) {
+        el.addEventListener('click', () => {
+          const st = BA.stages.byId[el.dataset.s];
+          if (meta.rank < st.unlockRank) { this.toast('LOCKED - RAISE YOUR COMMAND POST'); return; }
+          this.game.stage = st;
+          this.game.audio.ui();
+          this.refresh();
+        });
+      }
 
       this.root.querySelector('#baseRank').innerHTML =
         `<b>RANK ${meta.rank}</b> · ${meta.assigned}/${meta.workerSlots} WORKING · ${meta.idleWorkers} IDLE · BEDS ${Math.floor(meta.res.people)}/${meta.housing}`;

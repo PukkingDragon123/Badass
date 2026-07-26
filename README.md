@@ -44,6 +44,20 @@ straight left/right drag as a fallback if you grab the hub — plus GAS, BRAKE, 
 and JUMP buttons under your right thumb. The HUD reflows out of the thumbs' way while
 the pad is up.
 
+## Stages
+
+Four places to drive through, picked at the settlement and gated on your Command Post rank:
+
+| Stage | Ends at | Feels like |
+| --- | --- | --- |
+| **PINEWOOD ESTATE** | Supermarket | Real streets: tarmac with centre lines, kerbs and pavements, front lawns, houses with windows and chimneys, picket fences, driveways, hydrants, wheelie bins, parked cars |
+| **CRESTVIEW MALL** | Mall atrium | Acres of marked-out car park, light towers, trolley bays, big-box retail units |
+| **BLACKPINE WOODS** | Ranger station | Dense conifers and blind corners on a rutted dirt track through the loam |
+| **THE OUTER WASTE** | Fuel depot | The original open hunting run: ramps, wrecks, silos |
+
+Each one has its own ground shader, fog, prop mix and loot bias — the woods pay in food and
+fuel, the mall in scrap and steel.
+
 ## The loop
 
 **Settlement → sortie → extraction → settlement.**
@@ -61,18 +75,24 @@ Halfway up the road there is a **roadside garage**. Slow down inside it and you 
 parts mid-run with what you have hauled so far. Reach the extraction and everything banks.
 Die and you lose every passenger and half the haul.
 
+**Friendlies.** Every survivor you pull off the road grabs a rifle and fights alongside you
+for the rest of the run — up to six escorts ringing the truck, picking their own targets.
+Stray **dogs** join up and charge the horde; **cats** want no part of it and bolt from
+everything that moves.
+
 **Six resources.** Scrap and steel build and upgrade; food feeds the settlement (survivors
 eat, so a farm is not optional); meds and fuel gate the better components; survivors are
 both the reward and the workforce. You get them by ploughing through salvage heaps,
 flattening shacks and grain silos, popping crates and jerry cans, and off the horde itself.
 
 **Eleven truck components** at the garage, each six levels: engine, turbo, tires,
-**hydraulic rams (this is what unlocks JUMP)**, armour, ram plow, fuel cell, cargo bed,
-salvage rig, weapon hardpoints and a nitrous injector. They persist between runs.
+**hydraulic rams (unlocks JUMP)**, armour, ram plow, fuel cell, cargo bed, salvage rig,
+weapon hardpoints and the **NOS injector (unlocks NITROUS)**. A stock truck has neither —
+it cannot jump and it cannot boost until you have gone out and paid for both.
 
-**Thirteen buildings** in the settlement: command post, bunkhouse, hydro farm, workshop,
-foundry, refinery, infirmary, watchtower, depot and home garage, plus a campfire, garden
-and memorial that exist purely to make the place yours and nudge production. Producing
+**Fourteen buildings** in the settlement: command post, bunkhouse, hydro farm, workshop,
+foundry, refinery, infirmary, watchtower, **fuel tank** (bulk gas — every sortie rolls out
+with a fuller tank), depot and home garage, plus a campfire, garden and memorial that exist purely to make the place yours and nudge production. Producing
 buildings take workers; workers are the survivors you dragged home. Production keeps
 running while you are on a run, and accrues (capped) while the tab is closed.
 
@@ -157,6 +177,8 @@ src/upgrades.js    the roguelite card pool
 src/meta.js        persistent save: resources, components, settlement, production
 src/base.js        isometric settlement: plots, buildings, workers, villagers
 src/garage.js      component shop, opened from base or the roadside workshop
+src/stages.js      stage table and the per-stage procedural generators
+src/allies.js      armed escorts, stray dogs, and cats
 src/mobile.js      on-screen steering wheel, pedals and buttons
 src/hud.js         DOM HUD, level-up cards, results screen
 src/game.js        loop, director, camera, hitstop / shake / slow-mo

@@ -25,6 +25,11 @@
       this.time = 0;
     }
 
+    setStage(stage) {
+      this.stage = stage;
+      this.reset();
+    }
+
     reset() {
       this.chunks.clear();
       this.props.length = 0;
@@ -75,35 +80,14 @@
         if (p.type === 'ramp') this.ramps.push(p);
       };
 
-      const n = 4 + Math.floor(rng() * 4);
-      for (let i = 0; i < n; i++) {
-        const x = ox + (rng() - 0.5) * CHUNK;
-        const z = oz + (rng() - 0.5) * CHUNK;
-        const r = rng();
-        if (r < 0.09) {
-          const L = 9 + rng() * 5, W = 6 + rng() * 3, H = 3.0 + rng() * 2.2;
-          add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
-        } else if (r < 0.36) {
-          add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.42) {
-          add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.53) {
-          add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.60) {
-          add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
-        } else if (r < 0.68) {
-          add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
-        } else if (r < 0.76) {
-          add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, solid: false, loot: rng() });
-        } else if (r < 0.85) {
-          // salvage heaps: drive through them to strip resources
-          add({ type: 'pile', x, z, yaw: rng() * TAU, radius: 2.2, hp: 60, solid: false, kind: rng() });
-        } else if (r < 0.94) {
-          add({ type: 'shack', x, z, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
-        } else {
-          add({ type: 'silo', x, z, yaw: rng() * TAU, radius: 2.6, hp: 320, solid: true, mass: 2 });
-        }
-      }
+      const stage = this.stage || BA.stages.byId.waste;
+      stage.gen(rng, ox, oz, (p) => {
+        if (p.solid === undefined) p.solid = false;
+        if (p.hp === undefined) p.hp = 60;
+        if (p.radius === undefined) p.radius = 1.5;
+        add(p);
+      });
+
       this.chunks.set(k, ch);
     }
 
@@ -350,6 +334,153 @@
               R.push('cyl', 'opaque', p.x, 1.4 + i * 2.0, p.z, p.yaw, 0, 0, 4.6, 0.3, 4.6, 0.36, 0.34, 0.30, 0);
             }
             R.shadow(p.x, p.z, 3.0, 0.55);
+            break;
+          }
+          case 'house': {
+            const hp01 = clamp01(p.hp / 900);
+            const wallPal = [[0.72, 0.68, 0.60], [0.60, 0.50, 0.42], [0.52, 0.56, 0.60], [0.68, 0.58, 0.48]];
+            const roofPal = [[0.34, 0.20, 0.16], [0.24, 0.24, 0.28], [0.30, 0.26, 0.18], [0.20, 0.28, 0.30]];
+            const wc = wallPal[(p.wall * wallPal.length) | 0] || wallPal[0];
+            const rc = roofPal[(p.roof * roofPal.length) | 0] || roofPal[0];
+            const dmg = lerp(0.55, 1, hp01);
+            const w = p.w, d = p.d, h = p.h;
+            const sy = Math.sin(p.yaw), cyw = Math.cos(p.yaw);
+            const P2 = (lx, lz) => [p.x + lx * cyw + lz * sy, p.z - lx * sy + lz * cyw];
+            for (let st = 0; st < (p.storey || 1); st++) {
+              const y0 = h / 2 + st * h * 0.92;
+              R.push('box', 'opaque', p.x, y0, p.z, p.yaw, 0, 0, w, h, d, wc[0] * dmg, wc[1] * dmg, wc[2] * dmg, 0);
+              // windows on the long faces
+              for (let i = -1; i <= 1; i++) {
+                if (i === 0 && st === 0) continue;
+                for (const face of [1, -1]) {
+                  const q = P2(i * w * 0.3, face * (d / 2 + 0.06));
+                  R.push('box', 'opaque', q[0], y0 + 0.3, q[1], p.yaw, 0, 0,
+                    w * 0.18, h * 0.34, 0.12, 0.10, 0.14, 0.18, 0);
+                }
+              }
+            }
+            const top = h * (p.storey || 1) * 0.92;
+            R.push('box', 'opaque', p.x, top + 0.35, p.z, p.yaw, 0, 0, w + 1.1, 0.7, d + 1.1, rc[0], rc[1], rc[2], 0);
+            R.push('box', 'opaque', p.x, top + 1.15, p.z, p.yaw, 0, 0, w * 0.72, 1.1, d * 0.72, rc[0] * 0.85, rc[1] * 0.85, rc[2] * 0.85, 0);
+            // porch + door + chimney
+            const dr = P2(0, d / 2 + 0.2);
+            R.push('box', 'opaque', dr[0], 1.2, dr[1], p.yaw, 0, 0, 1.5, 2.4, 0.2, 0.28, 0.18, 0.12, 0);
+            R.push('box', 'opaque', dr[0], 2.9, dr[1], p.yaw, 0, 0, w * 0.55, 0.28, 1.8, rc[0] * 0.8, rc[1] * 0.8, rc[2] * 0.8, 0);
+            const ch = P2(w * 0.3, -d * 0.25);
+            R.push('box', 'opaque', ch[0], top + 1.6, ch[1], p.yaw, 0, 0, 1.0, 2.2, 1.0, 0.34, 0.26, 0.24, 0);
+            if (hp01 < 0.55 && Math.random() < 0.04) this.fx.smoke(p.x, top + 2.4, p.z, 1, 0.9, 0.26, 0.24, 0.22, 1);
+            R.shadow(p.x, p.z, Math.max(w, d) * 0.6, 0.55);
+            break;
+          }
+          case 'tree': {
+            const hp01 = clamp01(p.hp / 240);
+            const h = p.h || 6;
+            const lean = (1 - hp01) * 0.24;
+            const conifer = p.kind < 0.45;
+            R.push('cyl', 'opaque', p.x, h * 0.3, p.z, p.yaw, lean, 0, 1.0, h * 0.62, 1.0, 0.24, 0.17, 0.11, 0);
+            if (conifer) {
+              for (let i = 0; i < 4; i++) {
+                const t2 = i / 4;
+                R.push('cone', 'opaque', p.x + Math.sin(p.yaw) * lean * i, h * (0.34 + t2 * 0.5), p.z,
+                  p.yaw + i, 0, 0, (4.4 - t2 * 2.6), h * 0.34, (4.4 - t2 * 2.6),
+                  0.10 + t2 * 0.05, 0.26 + t2 * 0.08, 0.11, 0);
+              }
+            } else {
+              for (let i = 0; i < 3; i++) {
+                const a = p.seed * 6 + i * 2.1;
+                R.push('sphere', 'opaque', p.x + Math.cos(a) * 1.1, h * 0.72 + Math.sin(a) * 0.7, p.z + Math.sin(a) * 1.1,
+                  a, 0, 0, 4.4 - i * 0.5, 3.6 - i * 0.4, 4.4 - i * 0.5,
+                  0.14 + i * 0.03, 0.30 + i * 0.04, 0.10, 0);
+              }
+            }
+            R.shadow(p.x, p.z, 2.8, 0.5);
+            break;
+          }
+          case 'bush': {
+            const c = p.kind < 0.6 ? [0.14, 0.30, 0.12] : [0.26, 0.30, 0.13];
+            for (let i = 0; i < 3; i++) {
+              const a = p.seed * 6 + i * 2.1;
+              R.push('sphere', 'opaque', p.x + Math.cos(a) * 0.6, 0.7 + (i % 2) * 0.3, p.z + Math.sin(a) * 0.6,
+                a, 0, 0, 1.9, 1.5, 1.9, c[0], c[1], c[2], 0);
+            }
+            R.shadow(p.x, p.z, 1.5, 0.4);
+            break;
+          }
+          case 'fence': {
+            const sy2 = Math.sin(p.yaw), cy2 = Math.cos(p.yaw);
+            for (let i = -1; i <= 1; i++) {
+              R.push('box', 'opaque', p.x + cy2 * i * 0.9, 0.8, p.z - sy2 * i * 0.9, p.yaw, 0, 0,
+                0.18, 1.5, 0.18, 0.66, 0.62, 0.54, 0);
+            }
+            R.push('box', 'opaque', p.x, 1.1, p.z, p.yaw, 0, 0, 2.9, 0.16, 0.1, 0.62, 0.58, 0.5, 0);
+            R.push('box', 'opaque', p.x, 0.6, p.z, p.yaw, 0, 0, 2.9, 0.16, 0.1, 0.62, 0.58, 0.5, 0);
+            break;
+          }
+          case 'parked': {
+            const pal = [[0.30, 0.42, 0.58], [0.55, 0.50, 0.46], [0.48, 0.24, 0.22], [0.22, 0.40, 0.28], [0.62, 0.58, 0.26]];
+            const c = pal[(p.kind * pal.length) | 0] || pal[0];
+            const hp01 = clamp01(p.hp / 210);
+            const dim = lerp(0.6, 1, hp01);
+            R.push('box', 'opaque', p.x, 0.85, p.z, p.yaw, 0, 0, 2.2, 0.9, 4.6, c[0] * dim, c[1] * dim, c[2] * dim, 0);
+            R.push('box', 'opaque', p.x, 1.5, p.z - 0.2, p.yaw, 0, 0, 1.9, 0.75, 2.2, c[0] * dim * 0.8, c[1] * dim * 0.8, c[2] * dim * 0.8, 0);
+            R.push('box', 'opaque', p.x, 1.55, p.z + 0.9, p.yaw, 0, 0, 1.75, 0.6, 0.2, 0.09, 0.14, 0.2, 0);
+            for (const fw of [1, -1]) for (const sd of [1, -1]) {
+              R.push('cylX', 'opaque', p.x + Math.cos(p.yaw) * sd * 1.0 + Math.sin(p.yaw) * fw * 1.5, 0.42,
+                p.z - Math.sin(p.yaw) * sd * 1.0 + Math.cos(p.yaw) * fw * 1.5, p.yaw, 0, 0,
+                0.3, 0.84, 0.84, 0.07, 0.07, 0.08, 0);
+            }
+            R.shadow(p.x, p.z, 2.6, 0.5);
+            break;
+          }
+          case 'hydrant': {
+            R.push('cyl', 'opaque', p.x, 0.45, p.z, p.yaw, 0, 0, 0.7, 0.9, 0.7, 0.72, 0.14, 0.10, 0.05);
+            R.push('sphere', 'opaque', p.x, 0.95, p.z, p.yaw, 0, 0, 0.7, 0.5, 0.7, 0.75, 0.16, 0.12, 0.05);
+            for (const sd of [1, -1]) {
+              R.push('cylX', 'opaque', p.x + Math.cos(p.yaw) * sd * 0.4, 0.55, p.z - Math.sin(p.yaw) * sd * 0.4,
+                p.yaw, 0, 0, 0.3, 0.34, 0.34, 0.6, 0.12, 0.1, 0);
+            }
+            R.shadow(p.x, p.z, 0.7, 0.4);
+            break;
+          }
+          case 'bin': {
+            const c = p.kind < 0.5 ? [0.16, 0.32, 0.18] : [0.28, 0.26, 0.30];
+            R.push('cyl', 'opaque', p.x, 0.75, p.z, p.yaw, 0, 0, 1.5, 1.5, 1.5, c[0], c[1], c[2], 0);
+            R.push('cyl', 'opaque', p.x, 1.55, p.z, p.yaw, 0, 0, 1.6, 0.2, 1.6, c[0] * 0.7, c[1] * 0.7, c[2] * 0.7, 0);
+            R.shadow(p.x, p.z, 1.0, 0.45);
+            break;
+          }
+          case 'trolley': {
+            R.push('box', 'opaque', p.x, 0.9, p.z, p.yaw, 0, 0.1, 1.1, 0.9, 1.6, 0.62, 0.64, 0.70, 0);
+            R.push('box', 'opaque', p.x, 1.5, p.z - 0.7, p.yaw, 0, 0, 1.0, 0.5, 0.1, 0.55, 0.57, 0.62, 0);
+            R.shadow(p.x, p.z, 1.0, 0.35);
+            break;
+          }
+          case 'unit': {
+            const hp01 = clamp01(p.hp / 1400);
+            const dim = lerp(0.6, 1, hp01);
+            R.push('box', 'opaque', p.x, p.h / 2, p.z, p.yaw, 0, 0, p.w, p.h, p.d, 0.42 * dim, 0.41 * dim, 0.44 * dim, 0);
+            R.push('box', 'opaque', p.x, p.h + 0.35, p.z, p.yaw, 0, 0, p.w + 0.8, 0.7, p.d + 0.8, 0.28, 0.27, 0.30, 0);
+            const sy2 = Math.sin(p.yaw), cy2 = Math.cos(p.yaw);
+            const sc = [[1.0, 0.35, 0.2], [0.3, 0.7, 1.0], [1.0, 0.8, 0.2], [0.6, 0.35, 1.0]][(p.sign * 4) | 0] || [1, 0.5, 0.2];
+            R.push('box', 'opaque', p.x + sy2 * (p.d / 2 + 0.2), p.h * 0.72, p.z + cy2 * (p.d / 2 + 0.2),
+              p.yaw, 0, 0, p.w * 0.62, 1.5, 0.2, sc[0], sc[1], sc[2], 0.75);
+            for (let i = 0; i < 3; i++) {
+              R.push('box', 'opaque', p.x + cy2 * (i - 1) * p.w * 0.28 + sy2 * (p.d / 2 + 0.1), p.h * 0.28,
+                p.z - sy2 * (i - 1) * p.w * 0.28 + cy2 * (p.d / 2 + 0.1), p.yaw, 0, 0,
+                p.w * 0.2, p.h * 0.42, 0.16, 0.10, 0.14, 0.19, 0);
+            }
+            R.shadow(p.x, p.z, Math.max(p.w, p.d) * 0.55, 0.55);
+            break;
+          }
+          case 'planter': {
+            R.push('box', 'opaque', p.x, 0.6, p.z, p.yaw, 0, 0, 4.0, 1.2, 4.0, 0.48, 0.46, 0.44, 0);
+            R.push('box', 'opaque', p.x, 1.25, p.z, p.yaw, 0, 0, 3.6, 0.3, 3.6, 0.22, 0.16, 0.10, 0);
+            for (let i = 0; i < 4; i++) {
+              const a = p.seed * 6 + i * 1.7;
+              R.push('sphere', 'opaque', p.x + Math.cos(a) * 1.0, 2.0, p.z + Math.sin(a) * 1.0, a, 0, 0,
+                2.2, 1.9, 2.2, 0.14, 0.30, 0.12, 0);
+            }
+            R.shadow(p.x, p.z, 2.4, 0.5);
             break;
           }
           case 'wreck': {

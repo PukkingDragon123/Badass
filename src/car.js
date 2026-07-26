@@ -72,6 +72,7 @@
         lifesteal: 0, chainDmg: 0,
       };
       this.canJump = false;
+      this.canNitro = false;
       this.spikeLevel = 0;
       this.color = [0.90, 0.13, 0.14];
     }
@@ -99,7 +100,7 @@
       const prevVf = this.vf;
 
       /* ---- nitrous: burns gas for a held speed boost ---- */
-      const wantNitro = inp.nitro && this.fuel > 0.4;
+      const wantNitro = inp.nitro && this.canNitro && this.fuel > 0.4;
       if (wantNitro && !this.nitroActive) this.audio.boost();
       this.nitroActive = wantNitro;
       if (this.nitroActive) {
@@ -205,6 +206,11 @@
       this.vz = fz * this.vf + rz * this.vr;
 
       /* ---- jump / slam ---- */
+      if (inp.nitro && !this.canNitro && game && !this.nitroWarned) {
+        this.nitroWarned = true;
+        game.hud.toast('NO NITROUS - INSTALL THE NOS INJECTOR AT THE GARAGE');
+        this.audio.hurt();
+      }
       if (inp.jumpPressed && !this.canJump && game) {
         game.hud.toast('JUMP LOCKED - INSTALL HYDRAULIC RAMS AT THE GARAGE');
         this.audio.hurt();

@@ -54,7 +54,7 @@
       this.boostPower = 0;
       this.boostStage = 0;
 
-      this.hp = 100; this.maxHp = 100;
+      this.hp = 80; this.maxHp = 80;
       this.fuel = 100; this.maxFuel = 100;
       this.nitroActive = false;
       this.fuelIdle = 0;
@@ -62,12 +62,16 @@
       this.hurtFlash = 0;
       this.damageSmoke = 0;
 
+      // a stock truck is deliberately slow and weak - everything good about it
+      // is bolted on in the garage or picked up during a run
       this.stats = {
-        maxSpeed: 44, accel: 34, grip: 14, driftGrip: 2.7, turn: 2.45,
-        jump: 14.5, airControl: 2.4, magnet: 5.5, damage: 1, cooldown: 1,
-        xpGain: 1, ramDamage: 26, armor: 0, boostMul: 1,
-        nitroPower: 24, fuelBurn: 26, fuelRegen: 4.5, fuelMax: 100,
+        maxSpeed: 30, accel: 22, grip: 12, driftGrip: 2.5, turn: 2.2,
+        jump: 13, airControl: 2.0, magnet: 5.0, damage: 1, cooldown: 1,
+        xpGain: 1, ramDamage: 16, armor: 0, boostMul: 1,
+        nitroPower: 20, fuelBurn: 26, fuelRegen: 4.0, fuelMax: 100,
+        lifesteal: 0, chainDmg: 0,
       };
+      this.canJump = false;
       this.spikeLevel = 0;
       this.color = [0.90, 0.13, 0.14];
     }
@@ -201,7 +205,11 @@
       this.vz = fz * this.vf + rz * this.vr;
 
       /* ---- jump / slam ---- */
-      if (inp.jumpPressed) {
+      if (inp.jumpPressed && !this.canJump && game) {
+        game.hud.toast('JUMP LOCKED - INSTALL HYDRAULIC RAMS AT THE GARAGE');
+        this.audio.hurt();
+      }
+      if (inp.jumpPressed && this.canJump) {
         if (this.grounded) {
           this.vy = S.jump;
           this.grounded = false;

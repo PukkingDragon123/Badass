@@ -20,6 +20,11 @@
       this.weapons = new BA.Weapons(this.fx, this.audio);
       this.ragdolls = new BA.Ragdolls(this.fx, this.audio);
       this.touch = new BA.TouchControls(this.input, this.audio);
+      this.meta = new BA.meta.Meta();
+      this.base = new BA.BaseScene(this);
+      this.garage = new BA.Garage(this);
+      this.survivors = [];
+      this.loot = [];
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -59,6 +64,26 @@
 
     /* ------------------------------------------------------------- setup */
     newRun() {
+      const rank = this.meta.rank;
+      const T = this.meta.truckStats();
+      this.run = {
+        rescueNeed: Math.min(2 + rank, T.cargo),
+        aboard: 0,
+        waveNeed: 3,
+        waveIdx: 0,
+        waveKills: 0,
+        waveKillNeed: 22 + rank * 6,
+        garageZ: 620,
+        exitZ: 1240,
+        garageUsed: false,
+        haul: { scrap: 0, steel: 0, food: 0, meds: 0, fuel: 0 },
+        cargo: T.cargo,
+        haulMul: T.haulMul,
+        complete: false,
+      };
+      this.survivors.length = 0;
+      this.loot.length = 0;
+      this.nextSurvivorZ = 90;
       this.time = 0;
       this.kills = 0;
       this.score = 0;
@@ -85,6 +110,14 @@
       this.world.reset();
       this.weapons.reset();
       this.car.reset();
+      this.applyComponents();
+      // hardpoints come pre-loaded with weapons
+      const mounts = this.meta.truckStats().startWeapons;
+      const pool = BA.upgrades.WEAPONS.filter((w) => w.id !== 'spikes').map((w) => w.id);
+      for (let i = 0; i < mounts && pool.length; i++) {
+        const pick_ = pool.splice((Math.random() * pool.length) | 0, 1)[0];
+        this.weaponLevels[pick_] = 1;
+      }
       this.recalcStats();
       this.car.hp = this.car.maxHp;
       this.cam.yaw = 0;
@@ -93,47 +126,114 @@
       this.deathTimer = 0;
     }
 
+    /* fold the garage components into the truck's baseline */
+    applyComponents() {
+      const T = this.meta.truckStats();
+      this.comp = T;
+      this.car.canJump = T.canJump;
+      this.recalcStats();
+    }
+
+    hpMul() { const d = this.difficulty(); return 1 + d * 0.66 + Math.pow(d, 1.7) * 0.14; }
+    spMul() { const d = this.difficulty(); return 1 + d * 0.06; }
+
     recalcStats() {
+      const T = this.comp || this.meta.truckStats();
       const P = this.passiveLevels;
       const lv = (k) => P[k] || 0;
       const S = this.car.stats;
-      S.maxSpeed = 44 * (1 + lv('engine') * 0.12);
-      S.accel = 34 * (1 + lv('turbo') * 0.18);
+      const apex = lv('apex');
+      S.maxSpeed = 30 * T.speedMul * (1 + lv('engine') * 0.12 + apex * 0.07);
+      S.accel = 22 * T.accelMul * (1 + lv('turbo') * 0.18);
       S.boostMul = 1 + lv('turbo') * 0.12;
-      S.grip = 14 * (1 + lv('grip') * 0.16);
-      S.driftGrip = 2.7 * (1 + lv('grip') * 0.05);
-      S.turn = 2.45 * (1 + lv('grip') * 0.08);
-      S.jump = 14.5 * (1 + lv('hydraulics') * 0.14);
-      S.airControl = 2.4 * (1 + lv('hydraulics') * 0.22);
-      S.magnet = 5.5 * (1 + lv('magnet') * 0.5);
-      S.damage = 1 + lv('overdrive') * 0.18;
+      S.grip = 12 * T.gripMul * (1 + lv('grip') * 0.16);
+      S.driftGrip = 2.5 * (1 + lv('grip') * 0.05);
+      S.turn = 2.2 * T.turnMul * (1 + lv('grip') * 0.08);
+      S.jump = 13 * T.jumpMul * (1 + lv('hydraulics') * 0.14);
+      S.airControl = 2.0 * (1 + lv('hydraulics') * 0.22);
+      S.magnet = 5.0 * T.magnetMul * (1 + lv('magnet') * 0.5);
+      S.damage = (1 + lv('overdrive') * 0.18 + apex * 0.12);
       S.cooldown = 1 + lv('coolant') * 0.16;
       S.xpGain = 1 + lv('lucky') * 0.25;
-      S.armor = lv('armor') * 0.06;
-      S.fuelMax = 100 * (1 + lv('tank') * 0.22);
-      S.fuelRegen = 4.5 * (1 + lv('tank') * 0.35);
+      S.armor = T.armor + lv('armor') * 0.06;
+      S.fuelMax = 100 * T.fuelMul * (1 + lv('tank') * 0.22);
+      S.fuelRegen = 4.0 * T.fuelRegenMul * (1 + lv('tank') * 0.35);
       S.fuelBurn = 26 * (1 - lv('tank') * 0.07);
-      S.nitroPower = 24 * (1 + lv('turbo') * 0.08);
+      S.nitroPower = 20 * T.nosMul * (1 + lv('turbo') * 0.08);
+      S.lifesteal = lv('vampire') * 0.5 + (lv('vampire') ? 0.5 : 0);
+      S.chainDmg = lv('chain') ? 14 + lv('chain') * 12 : 0;
+      this.car.canJump = T.canJump;
       const prevFuelMax = this.car.maxFuel;
       this.car.maxFuel = S.fuelMax;
       if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
       this.car.fuel = Math.min(this.car.fuel, this.car.maxFuel);
       const spikes = this.weaponLevels.spikes || 0;
-      S.ramDamage = 26 * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
+      S.ramDamage = 16 * T.ramMul * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
       this.car.spikeLevel = spikes;
 
-      const newMax = 100 + lv('armor') * 28;
+      const newMax = Math.round((T.hp + lv('armor') * 28) * T.startHpMul);
       if (newMax > this.car.maxHp) this.car.hp += Math.min(20, newMax - this.car.maxHp);
       this.car.maxHp = newMax;
       this.car.hp = Math.min(this.car.hp, this.car.maxHp);
     }
 
-    start() {
+    /* the settlement is the home screen; runs launch from it */
+    enterBase() {
+      this.state = 'base';
+      this.hud.setScreen(null);
+      this.hud.el.hud.classList.remove('on');
+      this.base.enter();
+      this.audio.silenceEngine();
+    }
+
+    startRun() {
       this.audio.resume();
+      this.base.exit();
       this.newRun();
       this.state = 'playing';
       this.hud.setScreen(null);
-      this.hud.flashBanner('SURVIVE', 'THE HORDE IS COMING');
+      this.hud.el.hud.classList.add('on');
+      this.hud.flashBanner('ROLL OUT', 'RESCUE · CLEAR · EXTRACT');
+      this.meta.runs++;
+      this.meta.save();
+    }
+
+    start() { this.enterBase(); }
+
+    /* ------------------------------------------------------- run flow */
+    endRun(success) {
+      if (this.run.complete) return;
+      this.run.complete = true;
+      this.state = 'results';
+      this.audio.silenceEngine();
+      const m = this.meta;
+      const keep = success ? 1 : 0.5;
+      const gained = {};
+      for (const k in this.run.haul) {
+        const v = Math.floor(this.run.haul[k] * keep);
+        if (v > 0) { m.add(k, v); gained[k] = v; }
+      }
+      const people = success ? this.run.aboard : 0;
+      if (people > 0) { m.add('people', people); m.totalRescued += people; }
+      m.totalKills += this.kills;
+      this.score += Math.floor(this.time * 10) + this.run.aboard * 400 + this.run.waveIdx * 250;
+      if (success) this.score = Math.floor(this.score * 1.4);
+      if (this.score > m.bestScore) m.bestScore = this.score;
+      this.best = m.bestScore;
+      m.save();
+      this.hud.showResults(this, success, gained, people);
+    }
+
+    resumeFromGarage() {
+      if (this.state === 'garage') {
+        this.state = 'playing';
+        this.hud.toast('BACK ON THE ROAD');
+      }
+    }
+
+    objectivesDone() {
+      const r = this.run;
+      return r.aboard >= r.rescueNeed && r.waveIdx >= r.waveNeed;
     }
 
     /* ------------------------------------------------------------- juice */
@@ -192,6 +292,33 @@
 
     onKill(e, power) {
       this.kills++;
+      const S = this.car.stats;
+      if (S.lifesteal > 0 && this.car.hp > 0) {
+        this.car.hp = Math.min(this.car.maxHp, this.car.hp + S.lifesteal);
+      }
+      if (S.chainDmg > 0) {
+        this.fx.fire(e.x, 1.0 * e.scale, e.z, 6, 0.6, 1.0);
+        this.fx.wave(e.x, 0.1, e.z, 1, 7, 0.3, 1.0, 0.5, 0.15, 0.8);
+        this.explosion(e.x, e.z, 5.5, S.chainDmg, 'chain');
+      }
+      if (this.run && !this.run.complete) {
+        const r = this.run;
+        if (r.waveIdx < r.waveNeed) {
+          r.waveKills++;
+          if (r.waveKills >= r.waveKillNeed) {
+            r.waveKills = 0;
+            r.waveIdx++;
+            r.waveKillNeed = Math.round(r.waveKillNeed * 1.35);
+            this.audio.levelUp();
+            this.hud.flashBanner('WAVE ' + r.waveIdx + ' CLEARED',
+              r.waveIdx >= r.waveNeed ? 'ALL WAVES DOWN' : 'NEXT WAVE INCOMING');
+            this.flash(0.25, [1, 0.8, 0.3]);
+            this.checkObjectives();
+          }
+        }
+        // resources also drop straight off the horde
+        if (Math.random() < 0.16) this.dropLoot(e.x, e.z, Math.random() < 0.75 ? 'scrap' : 'meds', 1);
+      }
       this.combo++;
       this.comboTimer = COMBO_TIME;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
@@ -218,6 +345,119 @@
         });
       }
       if (this.orbs.length > 700) this.orbs.splice(0, this.orbs.length - 700);
+    }
+
+    /* a scrap of a resource, flung out of whatever you just destroyed */
+    dropLoot(x, z, res, amount) {
+      if (this.loot.length > 260) this.loot.shift();
+      this.loot.push({
+        x, y: 1.0 + rand(0, 0.6), z, res, amount,
+        vx: rand(-4, 4), vy: rand(3, 7), vz: rand(-4, 4),
+        t: rand(TAU), grabbed: false, life: 30,
+      });
+    }
+
+    updateLoot(dt) {
+      const car = this.car;
+      const mag = car.stats.magnet * 1.3;
+      for (let i = this.loot.length - 1; i >= 0; i--) {
+        const o = this.loot[i];
+        o.life -= dt; o.t += dt * 3;
+        const dx = car.x - o.x, dz = car.z - o.z;
+        const d = Math.hypot(dx, dz);
+        if (!o.grabbed && d < mag) o.grabbed = true;
+        if (o.grabbed) {
+          const pull = 40 + (mag - Math.min(d, mag)) * 4;
+          o.vx += (dx / (d || 1)) * pull * dt;
+          o.vz += (dz / (d || 1)) * pull * dt;
+          o.vy += (1.4 - o.y) * 9 * dt;
+          o.vx *= Math.exp(-2.4 * dt); o.vz *= Math.exp(-2.4 * dt);
+        } else {
+          o.vy -= 26 * dt;
+          o.vx *= Math.exp(-3 * dt); o.vz *= Math.exp(-3 * dt);
+        }
+        o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt;
+        if (o.y < 0.5) { o.y = 0.5; if (o.vy < 0) o.vy = -o.vy * 0.3; }
+        if (d < 3.0 || o.life <= 0) {
+          if (o.life > 0) {
+            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul));
+            this.run.haul[o.res] = (this.run.haul[o.res] || 0) + gain;
+            this.audio.pickup(0.3);
+            const rr = BA.meta.RES.find((r) => r.id === o.res);
+            this.fx.sparks(o.x, o.y, o.z, 2, 1.0, 0.9, 0.4, 0.5);
+            if (Math.random() < 0.28) this.fx.text(o.x, 2.2, o.z, '+' + gain + ' ' + (rr ? rr.name : ''), rr ? rr.color : '#fff', 15);
+          }
+          this.loot.splice(i, 1);
+        }
+      }
+    }
+
+    /* ------------------------------------------------------- survivors */
+    updateSurvivors(dt) {
+      const car = this.car;
+      const r = this.run;
+      // seed the road ahead with people waving a flare
+      while (this.nextSurvivorZ < car.z + 220 && this.survivors.length < 4) {
+        this.survivors.push({
+          x: rand(-46, 46), z: this.nextSurvivorZ, t: rand(TAU),
+          skin: [rand(0.5, 0.92), rand(0.4, 0.75), rand(0.3, 0.6)],
+          shirt: [rand(0.2, 0.6), rand(0.2, 0.6), rand(0.25, 0.65)],
+          picked: false, panic: 0,
+        });
+        this.nextSurvivorZ += rand(110, 190);
+      }
+      for (let i = this.survivors.length - 1; i >= 0; i--) {
+        const sv = this.survivors[i];
+        sv.t += dt * 3;
+        if (sv.z < car.z - 140) { this.survivors.splice(i, 1); continue; }
+        const d = Math.hypot(car.x - sv.x, car.z - sv.z);
+        if (d < 60) sv.panic = 1;
+        if (d < 6.5) {
+          this.survivors.splice(i, 1);
+          if (r.aboard < r.cargo) {
+            r.aboard++;
+            this.audio.levelUp();
+            this.fx.text(sv.x, 3.4, sv.z, 'RESCUED! ' + r.aboard + '/' + r.cargo, '#7fd4ff', 26, 'big');
+            this.fx.sparks(sv.x, 1.4, sv.z, 16, 0.4, 0.8, 1.4, 1.1);
+            this.flash(0.2, [0.4, 0.8, 1.0]);
+            this.checkObjectives();
+          } else {
+            this.hud.toast('CARGO BED FULL - UPGRADE IT AT THE GARAGE');
+            this.fx.text(sv.x, 3.4, sv.z, 'NO ROOM', '#ff6b5e', 22, 'big');
+          }
+        }
+      }
+    }
+
+    checkObjectives() {
+      if (this.objectivesDone() && !this.run.exitOpen) {
+        this.run.exitOpen = true;
+        this.hud.flashBanner('EXTRACTION OPEN', 'DRIVE NORTH TO THE GATE');
+        this.audio.levelUp();
+      }
+    }
+
+    /* garage pit-stop and the extraction gate sit on the road north */
+    updateLandmarks(dt) {
+      const car = this.car, r = this.run;
+      if (!r.garageUsed && Math.abs(car.z - r.garageZ) < 13 && Math.abs(car.x) < 15) {
+        if (car.speed < 9) {
+          r.garageUsed = true;
+          this.state = 'garage';
+          this.audio.silenceEngine();
+          this.garage.open('road');
+        } else if (!r.garageHint) {
+          r.garageHint = true;
+          this.hud.toast('SLOW DOWN IN THE GARAGE TO FIT PARTS');
+        }
+      }
+      if (Math.abs(car.z - r.exitZ) < 14 && Math.abs(car.x) < 20) {
+        if (this.objectivesDone()) this.endRun(true);
+        else if (!r.exitHint) {
+          r.exitHint = true;
+          this.hud.toast('OBJECTIVES INCOMPLETE - THE GATE STAYS SHUT');
+        }
+      }
     }
 
     dropHealth(x, z) {
@@ -262,19 +502,20 @@
     }
 
     /* ---------------------------------------------------------- director */
-    difficulty() { return this.time / 60; }
+    // difficulty tracks both clock and distance, so pushing north hurts
+    difficulty() { return Math.max(this.time / 60, this.car.z / 260) * (1 + this.meta.rank * 0.06); }
 
     spawnWave(dt) {
       const d = this.difficulty();
-      const targetAlive = Math.min(70 + d * 62, this.horde.max);
+      const targetAlive = Math.min(80 + d * 72, this.horde.max);
       const alive = this.horde.count;
       if (alive >= targetAlive) return;
 
-      this.spawnAcc += dt * (9 + d * 12);
+      this.spawnAcc += dt * (11 + d * 14);
       if (this.spawnAcc < 1) return;
 
-      const hpMul = 1 + d * 0.62 + Math.pow(d, 1.7) * 0.12;
-      const spMul = 1 + d * 0.05;
+      const hpMul = this.hpMul();
+      const spMul = this.spMul();
 
       // spawn as clusters so the horde reads as a wall of bodies
       const clusterSize = clamp(Math.floor(4 + d * 5), 4, 26);
@@ -292,9 +533,12 @@
       for (let i = 0; i < n; i++) {
         let type = 'walker';
         const r = Math.random();
-        if (d > 0.6 && r < 0.20 + d * 0.05) type = 'runner';
-        if (d > 1.4 && r > 0.86) type = 'bomber';
-        if (d > 2.2 && r > 0.955) type = 'brute';
+        if (d > 0.4 && r < 0.22 + d * 0.06) type = 'runner';
+        if (d > 0.8 && r > 0.80 && r < 0.86) type = 'spitter';
+        if (d > 1.2 && r > 0.86 && r < 0.90) type = 'bomber';
+        if (d > 1.6 && r > 0.90 && r < 0.94) type = 'sniper';
+        if (d > 2.0 && r > 0.94 && r < 0.965) type = 'screamer';
+        if (d > 2.2 && r > 0.965) type = 'brute';
         const spread = 3 + clusterSize * 0.7;
         this.horde.spawn(type, cxp + rand(-spread, spread), czp + rand(-spread, spread), hpMul, spMul);
       }
@@ -323,7 +567,34 @@
         this.fx.update(dt, null);
         if (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyW') || this.hud.startRequested) {
           this.hud.startRequested = false;
-          this.start();
+          this.audio.resume();
+          this.enterBase();
+        }
+        return;
+      }
+
+      if (this.state === 'base') {
+        this.base.update(dt);
+        this.fx.update(dt, null);
+        if (inp.consume('KeyG')) this.garage.open('base');
+        return;
+      }
+
+      if (this.state === 'garage') {
+        // the world holds its breath while you are under the truck
+        this.fx.update(dt * 0.1, (x, z) => this.world.groundHeight(x, z));
+        this.updateCamera(dt * 0.4, true);
+        return;
+      }
+
+      if (this.state === 'results') {
+        this.deathTimer += dt;
+        this.updateCamera(dt, true);
+        this.fx.update(dt * 0.4, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.4, (x, z) => this.world.groundHeight(x, z), null);
+        if (this.deathTimer > 0.8 && (inp.consume('Space') || inp.consume('Enter') || this.hud.startRequested)) {
+          this.hud.startRequested = false;
+          this.enterBase();
         }
         return;
       }
@@ -358,10 +629,7 @@
         this.fx.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z));
         this.ragdolls.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z), null);
         this.horde.update(dt * 0.35, this.car, this, this.world);
-        if (this.deathTimer > 1.1 && (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyR') || this.hud.startRequested)) {
-          this.hud.startRequested = false;
-          this.start();
-        }
+        if (this.deathTimer > 1.2 && !this.run.complete) this.endRun(false);
         return;
       }
 
@@ -381,6 +649,9 @@
       this.weapons.update(dt, this.car, this.horde, this);
       this.spawnWave(dt);
       this.updateOrbs(dt);
+      this.updateLoot(dt);
+      this.updateSurvivors(dt);
+      this.updateLandmarks(dt);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
       this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
@@ -406,11 +677,6 @@
       this.shake(1.2);
       this.flash(0.8, [1, 0.55, 0.3]);
       this.score += Math.floor(this.time * 12);
-      if (this.score > this.best) {
-        this.best = this.score;
-        localStorage.setItem('ba_best', String(this.best));
-      }
-      this.hud.showGameOver(this);
     }
 
     updateOrbs(dt) {
@@ -534,6 +800,7 @@
 
     /* ------------------------------------------------------------- draw */
     draw() {
+      if (this.state === 'base') { this.base.draw(this.R); return; }
       const R = this.R;
       const car = this.car;
       R.time = this.time;
@@ -547,6 +814,20 @@
       if (this.state !== 'dead') car.draw(R);
       this.weapons.draw(R, car, this);
       this.fx.draw(R);
+
+      this.drawLandmarks(R);
+      this.drawSurvivors(R);
+      for (const o of this.loot) {
+        const rr = BA.meta.RES.find((r2) => r2.id === o.res) || { color: '#fff' };
+        const c = [
+          parseInt(rr.color.slice(1, 3), 16) / 255,
+          parseInt(rr.color.slice(3, 5), 16) / 255,
+          parseInt(rr.color.slice(5, 7), 16) / 255,
+        ];
+        const p = 0.5 + Math.sin(o.t) * 0.08;
+        R.push('box', 'opaque', o.x, o.y, o.z, o.t * 0.8, o.t * 0.5, o.t * 0.3, p, p, p, c[0], c[1], c[2], 0.55);
+        R.push('sphere', 'glow', o.x, o.y, o.z, 0, 0, 0, p * 2.6, p * 2.6, p * 2.6, c[0] * 0.22, c[1] * 0.22, c[2] * 0.22, 1);
+      }
 
       // xp orbs
       for (const o of this.orbs) {
@@ -589,6 +870,72 @@
       this.fx.drawText(ctx, R, this.overlay.width, this.overlay.height);
     }
 
+    drawSurvivors(R) {
+      for (const sv of this.survivors) {
+        const bob = Math.abs(Math.sin(sv.t)) * 0.12;
+        const wave = Math.sin(sv.t * 2.2) * 0.7;
+        const y = 0;
+        R.push('box', 'opaque', sv.x, y + 1.05 + bob, sv.z, 0, 0, 0, 0.66, 0.9, 0.44, sv.shirt[0], sv.shirt[1], sv.shirt[2], 0);
+        R.push('box', 'opaque', sv.x, y + 1.66 + bob, sv.z, 0, 0, 0, 0.48, 0.48, 0.46, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        R.push('box', 'opaque', sv.x - 0.42, y + 1.5 + bob, sv.z, 0, wave, 0, 0.2, 0.75, 0.2, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        R.push('box', 'opaque', sv.x + 0.42, y + 1.5 + bob, sv.z, 0, -wave, 0, 0.2, 0.75, 0.2, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', sv.x + side * 0.2, y + 0.42, sv.z, 0, 0, 0, 0.24, 0.85, 0.24, 0.2, 0.2, 0.26, 0);
+        }
+        // signal flare so you can find them at speed
+        const f = 0.7 + Math.sin(sv.t * 6) * 0.3;
+        R.push('cone', 'glow', sv.x + 0.6, y + 2.6 + bob, sv.z, 0, Math.PI, 0, 1.2 * f, 2.2 * f, 1.2 * f, 1.4 * f, 0.5 * f, 0.15, 1);
+        R.push('cyl', 'glow', sv.x, 14, sv.z, 0, 0, 0, 0.7, 28, 0.7, 0.10 * f, 0.34 * f, 0.62 * f, 1);
+        R.push('ring', 'glow', sv.x, 0.08, sv.z, 0, 0, 0, 9, 1.2, 9, 0.2 * f, 0.45 * f, 0.7 * f, 1);
+        R.shadow(sv.x, sv.z, 1.1, 0.45);
+      }
+    }
+
+    drawLandmarks(R) {
+      const r = this.run;
+      if (!r) return;
+      const t = this.time;
+      const near = (z) => Math.abs(this.car.z - z) < 260;
+
+      if (near(r.garageZ) && !r.garageUsed) {
+        const gz = r.garageZ;
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', side * 12, 3.0, gz, 0, 0, 0, 3.0, 6.0, 12.0, 0.34, 0.18, 0.16, 0);
+        }
+        R.push('box', 'opaque', 0, 6.4, gz, 0, 0, 0, 27, 1.2, 13, 0.26, 0.14, 0.13, 0);
+        R.push('box', 'opaque', 0, 7.6, gz - 6.6, 0, 0, 0, 20, 1.8, 0.6, 0.9, 0.72, 0.1, 0.55);
+        for (let i = 0; i < 5; i++) {
+          R.push('box', 'glow', -8 + i * 4, 7.6, gz - 6.9, 0, 0, 0, 2.6, 0.9, 0.2,
+            1.2, 0.9, 0.2, 1);
+        }
+        R.push('disc', 'glow', 0, 0.07, gz, 0, 0, 0, 26, 1, 26, 0.14, 0.09, 0.02, 1);
+        R.push('ring', 'glow', 0, 0.1, gz, 0, 0, 0, 26 + Math.sin(t * 2) * 2, 1.4, 26, 0.5, 0.35, 0.06, 1);
+        for (let i = 0; i < 4; i++) {
+          R.push('cone', 'opaque', -9 + i * 6, 0.9, gz + 7, 0, 0, 0, 1.6, 1.8, 1.6, 0.9, 0.4, 0.06, 0.2);
+        }
+      }
+
+      if (near(r.exitZ)) {
+        const ez = r.exitZ;
+        const open = this.objectivesDone();
+        const c = open ? [0.2, 1.0, 0.35] : [1.0, 0.2, 0.15];
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', side * 18, 5.0, ez, 0, 0, 0, 4.0, 10.0, 4.0, 0.3, 0.29, 0.32, 0);
+          R.push('box', 'opaque', side * 18, 10.4, ez, 0, 0, 0, 5.0, 1.2, 5.0, 0.22, 0.21, 0.24, 0);
+        }
+        R.push('box', 'opaque', 0, 10.6, ez, 0, 0, 0, 40, 1.6, 2.0, 0.26, 0.25, 0.28, 0);
+        R.push('box', 'glow', 0, 10.6, ez - 1.2, 0, 0, 0, 34, 1.0, 0.3, c[0], c[1], c[2], 1);
+        if (!open) {
+          for (let i = 0; i < 6; i++) {
+            R.push('box', 'opaque', -15 + i * 6, 3.0, ez, 0, 0, 0, 1.0, 6.0, 1.0, 0.35, 0.34, 0.36, 0);
+          }
+        }
+        const pulse = 0.6 + Math.sin(t * 3) * 0.4;
+        R.push('disc', 'glow', 0, 0.07, ez, 0, 0, 0, 34, 1, 34, c[0] * 0.09 * pulse, c[1] * 0.09 * pulse, c[2] * 0.09 * pulse, 1);
+        R.push('ring', 'glow', 0, 0.1, ez, 0, 0, 0, 36, 1.6, 36, c[0] * pulse, c[1] * pulse, c[2] * pulse, 1);
+      }
+    }
+
     /* -------------------------------------------------------------- loop */
     frame(now) {
       requestAnimationFrame(this.frame);
@@ -615,8 +962,9 @@
       this.update(dt);
       this.draw();
 
-      const intensity = clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
-      this.audio.updateMusic(realDt, intensity, this.state === 'playing' || this.state === 'levelup');
+      const intensity = this.state === 'base' ? 0.12
+        : clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
+      this.audio.updateMusic(realDt, intensity, this.state !== 'title');
       this.touch.update(realDt, this);
       this.hud.update(this, realDt);
     }

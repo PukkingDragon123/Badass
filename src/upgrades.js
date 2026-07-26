@@ -33,6 +33,18 @@
       desc: (l) => l === 0 ? 'Drop proximity mines out the back. Rude.' : `Faster drops, bigger blast (Lv${l + 1})`,
     },
     {
+      id: 'laser', name: 'LASER ARRAY', icon: 'laser', max: 5, color: '#d47bff',
+      desc: (l) => l === 0 ? 'Roof emitter burns a continuous beam through the horde.' : `Wider beam, +damage, longer reach (Lv${l + 1})`,
+    },
+    {
+      id: 'rail', name: 'RAILGUN', icon: 'railgun', max: 5, color: '#7fb0ff',
+      desc: (l) => l === 0 ? 'Charges, then deletes everything in a straight line.' : `Faster charge, +damage, wider bore (Lv${l + 1})`,
+    },
+    {
+      id: 'drone', name: 'DRONE SWARM', icon: 'drone', max: 5, color: '#63d3ff',
+      desc: (l) => l === 0 ? 'Gun drones orbit overhead and pick their own targets.' : `+1 drone, faster fire (Lv${l + 1})`,
+    },
+    {
       id: 'slam', name: 'SHOCK SLAM', icon: 'slam', max: 5, color: '#c68bff',
       desc: (l) => l === 0 ? 'Landing from a jump detonates a shockwave. Auto-pulses too.' : `Bigger wave, more damage, faster pulse (Lv${l + 1})`,
     },
@@ -50,6 +62,9 @@
     { id: 'hydraulics', name: 'HYDRAULICS', icon: 'hydraulics', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
     { id: 'ramplate', name: 'RAM PLATE', icon: 'ramplate', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
     { id: 'tank', name: 'BIG TANK', icon: 'gas', max: 5, color: '#ffb03a', desc: () => '+22% gas capacity, +35% refill, nitrous burns slower' },
+    { id: 'vampire', name: 'BLOOD PUMP', icon: 'res_meds', max: 5, color: '#ff4d5e', desc: (l) => `Every kill repairs ${(0.5 + l * 0.5).toFixed(1)} HP` },
+    { id: 'chain', name: 'CHAIN REACTION', icon: 'bld_fire', max: 5, color: '#ff8a1e', desc: (l) => `Corpses detonate for ${14 + l * 12} damage` },
+    { id: 'apex', name: 'APEX PREDATOR', icon: 'overdrive', max: 5, color: '#ff2f6d', desc: () => '+12% ALL damage and +7% top speed' },
   ];
 
   const HEAL = {

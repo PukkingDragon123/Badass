@@ -9,6 +9,19 @@
     bomber: { hp: 26, speed: 5.4, radius: 0.78, scale: 1.15, xp: 3, dmg: 10, mass: 1.1, col: [0.35, 0.75, 0.22] },
     brute: { hp: 190, speed: 3.6, radius: 1.5, scale: 1.95, xp: 8, dmg: 22, mass: 5, col: [0.30, 0.19, 0.21] },
     boss: { hp: 1500, speed: 4.2, radius: 2.7, scale: 3.4, xp: 90, dmg: 34, mass: 22, col: [0.42, 0.10, 0.12] },
+    // ---- ranged / support horde
+    spitter: {
+      hp: 38, speed: 4.2, radius: 0.72, scale: 1.08, xp: 3, dmg: 13, mass: 1.1,
+      col: [0.30, 0.50, 0.24], range: 24, keep: 15, cd: 2.4,
+    },
+    sniper: {
+      hp: 34, speed: 3.6, radius: 0.62, scale: 1.06, xp: 5, dmg: 24, mass: 1,
+      col: [0.28, 0.32, 0.24], range: 58, keep: 34, cd: 4.0, windup: 1.15,
+    },
+    screamer: {
+      hp: 72, speed: 5.2, radius: 0.82, scale: 1.22, xp: 6, dmg: 9, mass: 1.2,
+      col: [0.52, 0.26, 0.42], range: 0, cd: 9.0,
+    },
   };
 
   const SKINS = [
@@ -61,12 +74,18 @@
       this.grid = new Grid(3.2);
       this.tmp = [];
       this.max = 400;
+      this.shots = [];      // spitter globs
+      this.beams = [];      // sniper tracers / laser sights
+      this.hazards = [];    // acid pools
     }
 
     reset() {
       for (const e of this.list) this.pool.push(e);
       this.list.length = 0;
       this.grid.clear();
+      this.shots.length = 0;
+      this.beams.length = 0;
+      this.hazards.length = 0;
     }
 
     get count() { return this.list.length; }
@@ -124,7 +143,12 @@
       e.phase = rand(TAU);
       e.flash = 0;
       e.stun = 0;
-      e.attackCd = 0;
+      e.attackCd = rand(0.4, 2.0);
+      e.range = T.range || 0;
+      e.keep = T.keep || 0;
+      e.fireCd = T.cd || 0;
+      e.windup = 0;
+      e.aiming = 0;
       e.burn = 0;
       e.slow = 0;
       e.airborne = false;
@@ -207,10 +231,13 @@
       const halfW = 1.62;
       const carAirborne = car.y > 1.8;
 
+      this.updateShots(dt, car, game, world);
+
       for (let i = this.list.length - 1; i >= 0; i--) {
         const e = this.list[i];
         if (e.dead) continue;
 
+        if (e.screamT > 0) e.screamT -= dt;
         e.flash = Math.max(0, e.flash - dt * 5.5);
         if (e.stun > 0) e.stun -= dt;
         if (e.slow > 0) e.slow -= dt;
@@ -231,7 +258,10 @@
         const nx = dx / dist, nz = dz / dist;
 
         const stunned = e.stun > 0;
-        const spd = e.speed * (e.slow > 0 ? 0.42 : 1) * (stunned ? 0 : 1);
+        let approach = 1;
+        if (e.range > 0 && !stunned) approach = this.rangedAI(e, dt, dist, nx, nz, car, game);
+        else if (e.type === 'screamer' && !stunned) this.screamAI(e, dt, game);
+        const spd = e.speed * (e.slow > 0 ? 0.42 : 1) * (stunned ? 0 : 1) * approach;
         const accel = stunned ? 0 : 26;
         e.vx += (nx * spd - e.vx) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
         e.vz += (nz * spd - e.vz) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
@@ -333,8 +363,130 @@
       }
     }
 
+    /* ------------------------------------------------------ ranged AI */
+    // returns a movement multiplier: 1 chase, 0 hold, -1 back off
+    rangedAI(e, dt, dist, nx, nz, car, game) {
+      e.attackCd -= dt;
+      const inRange = dist < e.range;
+
+      if (e.type === 'sniper') {
+        if (e.aiming > 0) {
+          e.aiming -= dt;
+          e.beamX = car.x; e.beamZ = car.z;
+          if (e.aiming <= 0) this.snipe(e, car, game);
+          return 0;
+        }
+        if (inRange && e.attackCd <= 0 && dist > 8) {
+          e.aiming = 1.15;
+          e.attackCd = e.fireCd;
+          this.audio.ui();
+          return 0;
+        }
+      } else if (e.type === 'spitter') {
+        if (inRange && e.attackCd <= 0) {
+          e.attackCd = e.fireCd * rand(0.85, 1.2);
+          const lead = 0.35;
+          this.shots.push({
+            x: e.x, y: 1.3 * e.scale, z: e.z,
+            vx: (car.x + car.vx * lead - e.x) * 0.55 + rand(-1.5, 1.5),
+            vy: 9.5,
+            vz: (car.z + car.vz * lead - e.z) * 0.55 + rand(-1.5, 1.5),
+            dmg: e.dmg, life: 3.5,
+          });
+          this.audio.squish();
+          this.fx.fire(e.x, 1.4 * e.scale, e.z, 3, 0.3, 0.5);
+          return 0;
+        }
+      }
+      if (dist < e.keep) return -0.7;      // back away to stay at range
+      return inRange ? 0.15 : 1;
+    }
+
+    snipe(e, car, game) {
+      const dx = car.x - e.x, dz = car.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      this.beams.push({ x1: e.x, y1: 1.6 * e.scale, z1: e.z, x2: car.x, y2: 1.6, z2: car.z, life: 0.16, max: 0.16 });
+      this.audio.shoot();
+      this.fx.sparks(e.x + dx / d * 1.4, 1.6 * e.scale, e.z + dz / d * 1.4, 6, 1.3, 1.0, 0.4, 1.0);
+      if (car.hurt(e.dmg, game)) {
+        this.fx.sparks(car.x, 1.6, car.z, 12, 1.2, 0.8, 0.3, 1.3);
+        game.shake(0.3);
+      }
+    }
+
+    screamAI(e, dt, game) {
+      e.attackCd -= dt;
+      if (e.attackCd > 0) return;
+      e.attackCd = e.fireCd;
+      e.screamT = 0.9;
+      this.audio.bigBad();
+      this.fx.wave(e.x, 0.1, e.z, 1, 22, 0.7, 0.9, 0.3, 0.8, 1.2);
+      const d = game.difficulty();
+      const n = 5 + Math.floor(d * 3);
+      for (let i = 0; i < n; i++) {
+        const a = rand(TAU), r = rand(6, 16);
+        this.spawn(Math.random() < 0.3 ? 'runner' : 'walker',
+          e.x + Math.sin(a) * r, e.z + Math.cos(a) * r, game.hpMul(), game.spMul());
+      }
+      game.hud.toast('A SCREAMER CALLED THE HORDE');
+    }
+
+    /* ------------------------------------------------- enemy projectiles */
+    updateShots(dt, car, game, world) {
+      for (let i = this.shots.length - 1; i >= 0; i--) {
+        const s2 = this.shots[i];
+        s2.life -= dt;
+        s2.vy -= 22 * dt;
+        s2.x += s2.vx * dt; s2.y += s2.vy * dt; s2.z += s2.vz * dt;
+        if (Math.random() < dt * 30) this.fx.sparks(s2.x, s2.y, s2.z, 1, 0.3, 0.8, 0.15, 0.4);
+        const gh = world ? world.groundHeight(s2.x, s2.z) : 0;
+        if (s2.y <= gh + 0.2 || s2.life <= 0) {
+          this.shots.splice(i, 1);
+          this.hazards.push({ x: s2.x, z: s2.z, r: 3.4, life: 5.5, max: 5.5, dps: s2.dmg * 0.9 });
+          this.fx.fire(s2.x, 0.4, s2.z, 8, 0.5, 0.8);
+          this.fx.splat(s2.x, s2.z, 3.0, 0.12, 0.30, 0.06, 0.7);
+          this.audio.squish();
+        }
+      }
+      for (let i = this.hazards.length - 1; i >= 0; i--) {
+        const h = this.hazards[i];
+        h.life -= dt;
+        if (h.life <= 0) { this.hazards.splice(i, 1); continue; }
+        if (Math.random() < dt * 6) this.fx.fire(h.x + rand(-h.r, h.r) * 0.6, 0.2, h.z + rand(-h.r, h.r) * 0.6, 1, 0.35, 0.3);
+        if (Math.hypot(car.x - h.x, car.z - h.z) < h.r + 1.6) {
+          h.tick = (h.tick || 0) - dt;
+          if (h.tick <= 0) { h.tick = 0.5; car.hurt(h.dps * 0.5, game); }
+        }
+      }
+      for (let i = this.beams.length - 1; i >= 0; i--) {
+        this.beams[i].life -= dt;
+        if (this.beams[i].life <= 0) this.beams.splice(i, 1);
+      }
+    }
+
+    drawShots(R) {
+      for (const s2 of this.shots) {
+        R.push('sphere', 'opaque', s2.x, s2.y, s2.z, 0, 0, 0, 0.7, 0.7, 0.7, 0.22, 0.52, 0.10, 0.35);
+        R.push('sphere', 'glow', s2.x, s2.y, s2.z, 0, 0, 0, 1.3, 1.3, 1.3, 0.16, 0.42, 0.06, 1);
+      }
+      for (const h of this.hazards) {
+        const k = clamp01(h.life / h.max);
+        R.push('disc', 'glow', h.x, 0.07, h.z, 0, 0, 0, h.r * 2, 1, h.r * 2, 0.08 * k, 0.22 * k, 0.04 * k, 1);
+      }
+      for (const b of this.beams) {
+        const k = clamp01(b.life / b.max);
+        BA.beam(R, 'glow', b.x1, b.y1, b.z1, b.x2, b.y2, b.z2, 0.14 * k + 0.03, 1.3 * k, 0.35 * k, 0.2 * k);
+      }
+      // sniper laser sights
+      for (const e of this.list) {
+        if (e.dead || e.aiming <= 0) continue;
+        BA.beam(R, 'glow', e.x, 1.6 * e.scale, e.z, e.beamX || e.x, 1.4, e.beamZ || e.z, 0.05, 0.9, 0.06, 0.05);
+      }
+    }
+
     /* ------------------------------------------------------------- draw */
     draw(R, camX, camZ) {
+      this.drawShots(R);
       for (const e of this.list) {
         if (e.dead) continue;
         const dx = e.x - camX, dz = e.z - camZ;
@@ -474,6 +626,46 @@
           if (!far) B(side * 0.78 * g * s, 1.82 * s, 0, 0.3 * s, 0.22 * s, 0.3 * s, [0.55, 0.56, 0.6], 0, side * 0.25);
         }
         B(0, 1.2 * s, -0.34 * g * s, 0.9 * s, 0.9 * s, 0.16 * s, [0.20, 0.19, 0.21], lean);
+      }
+      if (e.type === 'spitter') {
+        // distended acid gut and a split jaw
+        const pulse = 0.55 + Math.sin(e.phase * 2.6) * 0.35;
+        const p2 = P(0, (1.05 + bob) * s, 0.34 * g * s);
+        R.push('sphere', 'opaque', p2[0], p2[1], p2[2], yaw, 0, 0, 1.05 * s, 0.95 * s, 0.9 * s,
+          0.24, 0.44, 0.16, em);
+        R.push('sphere', 'glow', p2[0], p2[1], p2[2], 0, 0, 0, 1.2 * s, 1.1 * s, 1.0 * s,
+          0.10 * pulse, 0.34 * pulse, 0.05 * pulse, 1);
+        B(0, headY - 0.3 * s, 0.4 * s, 0.42 * s, 0.34 * s, 0.34 * s, [0.24, 0.5, 0.14], lean * 1.5, 0, hyaw);
+      }
+      if (e.type === 'sniper') {
+        // scavenged rifle held across the body
+        const gx = 0.34 * s, gy = (1.35 + bob) * s;
+        B(gx, gy, 0.85 * s, 0.16 * s, 0.16 * s, 1.7 * s, [0.20, 0.18, 0.16], -0.15, 0, 0);
+        B(gx, gy + 0.18 * s, 0.3 * s, 0.14 * s, 0.24 * s, 0.5 * s, [0.30, 0.24, 0.16], -0.15, 0, 0);
+        B(gx, gy + 0.3 * s, 0.55 * s, 0.1 * s, 0.12 * s, 0.4 * s, [0.4, 0.42, 0.46], -0.15, 0, 0);
+        // long coat
+        B(0, (0.86 + bob) * s, -0.06 * s, 0.94 * g * s, 0.9 * s, 0.6 * g * s,
+          [shirt[0] * 0.7, shirt[1] * 0.7, shirt[2] * 0.7], lean * 0.6);
+        if (e.aiming > 0) {
+          const q = P(0, headY, 0.4 * s);
+          R.push('sphere', 'glow', q[0], q[1], q[2], 0, 0, 0, 0.9 * s, 0.9 * s, 0.9 * s, 0.7, 0.06, 0.05, 1);
+        }
+      }
+      if (e.type === 'screamer') {
+        const open = e.screamT > 0 ? 1 : 0.25 + Math.sin(e.phase * 2) * 0.1;
+        B(0, headY - 0.26 * s, 0.34 * s, 0.44 * s, 0.5 * s * open + 0.1 * s, 0.3 * s,
+          [0.7, 0.12, 0.22], lean * 1.5, 0, hyaw);
+        const q = P(0, headY - 0.24 * s, 0.5 * s);
+        R.push('sphere', 'glow', q[0], q[1], q[2], 0, 0, 0,
+          (0.7 + open) * s, (0.7 + open) * s, (0.7 + open) * s, 0.55 * open, 0.10 * open, 0.28 * open, 1);
+        if (e.screamT > 0) {
+          R.push('ring', 'glow', e.x, 0.1, e.z, 0, 0, 0,
+            (1 - e.screamT / 0.9) * 40, 1.6, (1 - e.screamT / 0.9) * 40,
+            0.5 * e.screamT, 0.14 * e.screamT, 0.4 * e.screamT, 1);
+        }
+        for (const side of [1, -1]) {
+          B(side * 0.5 * g * s, (1.68 + bob) * s, 0, 0.3 * s, 0.4 * s, 0.3 * s, [0.5, 0.2, 0.34], 0, side * 0.4);
+        }
       }
       if (e.type === 'bomber') {
         // pulsing sacs

@@ -23,6 +23,8 @@
         banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
         toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
         fuelWrap: $('fuelwrap'), fuelBar: $('fuelbar'), fuelLbl: $('fuellbl'),
+        obj: $('objectives'), haul: $('haulbar'),
+        distFill: $('distfill'), distGar: $('distgar'), distTxt: $('disttxt'),
         screens: {
           title: $('scTitle'), levelup: $('scLevel'),
           pause: $('scPause'), over: $('scOver'),
@@ -86,6 +88,26 @@
       this.setScreen('levelup');
     }
 
+    showResults(game, success, gained, people) {
+      const M = BA.meta;
+      $('overT').textContent = success ? 'EXTRACTED' : 'WASTED';
+      $('overT').style.color = success ? '#8dff3a' : '#fff';
+      $('ovScore').textContent = game.score.toLocaleString();
+      $('ovKills').textContent = game.kills.toLocaleString();
+      $('ovTime').textContent = fmtTime(game.time);
+      $('ovLevel').textContent = game.level;
+      $('ovCombo').textContent = game.bestCombo;
+      const haulTxt = M.RES.filter((r) => gained[r.id]).map((r) =>
+        `<div class="hgain">${BA.icons.img(r.icon, 26)}<b style="color:${r.color}">+${gained[r.id]}</b></div>`).join('');
+      $('newbest').innerHTML =
+        `<div class="hauline">${people > 0 ? `<div class="hgain">${BA.icons.img('res_people', 26)}<b style="color:#7fd4ff">+${people}</b></div>` : ''}${haulTxt || '<span style="opacity:.6">NOTHING HAULED BACK</span>'}</div>` +
+        (success ? '' : '<div class="lostwarn">HALF THE HAUL AND EVERY PASSENGER LOST</div>') +
+        (game.meta.res.people >= game.meta.housing
+          ? '<div class="lostwarn" style="color:#ffd23a">NO SPARE BEDS - BUILD A BUNKHOUSE OR NEW ARRIVALS TURN AWAY</div>' : '');
+      $('againBtn').textContent = 'RETURN TO SETTLEMENT';
+      setTimeout(() => this.setScreen('over'), success ? 500 : 900);
+    }
+
     showGameOver(game) {
       $('ovScore').textContent = game.score.toLocaleString();
       $('ovKills').textContent = game.kills.toLocaleString();
@@ -136,6 +158,32 @@
       this.el.boost.style.background = col;
       this.el.boostLbl.textContent = lbl;
       this.el.boostLbl.style.color = col;
+
+      // objectives, haul and distance
+      const r = game.run;
+      if (r) {
+        const done = (ok) => ok ? 'done' : '';
+        const objHtml =
+          `<div class="obj ${done(r.aboard >= r.rescueNeed)}">
+             <i>${r.aboard >= r.rescueNeed ? '✔' : '●'}</i> RESCUE <b>${r.aboard}/${r.rescueNeed}</b></div>
+           <div class="obj ${done(r.waveIdx >= r.waveNeed)}">
+             <i>${r.waveIdx >= r.waveNeed ? '✔' : '●'}</i> CLEAR WAVES <b>${r.waveIdx}/${r.waveNeed}</b>
+             ${r.waveIdx < r.waveNeed ? `<em>${r.waveKills}/${r.waveKillNeed}</em>` : ''}</div>
+           <div class="obj ${done(game.objectivesDone())}">
+             <i>${game.objectivesDone() ? '▶' : '✖'}</i> EXTRACT NORTH</div>`;
+        if (objHtml !== this.objCache) { this.objCache = objHtml; this.el.obj.innerHTML = objHtml; }
+
+        const haulHtml = BA.meta.RES.filter((x) => r.haul[x.id]).map((x) =>
+          `<div class="hchip">${BA.icons.img(x.icon, 18)}<b style="color:${x.color}">${r.haul[x.id]}</b></div>`).join('')
+          + `<div class="hchip">${BA.icons.img('res_people', 18)}<b style="color:#7fd4ff">${r.aboard}/${r.cargo}</b></div>`;
+        if (haulHtml !== this.haulCache) { this.haulCache = haulHtml; this.el.haul.innerHTML = haulHtml; }
+
+        const prog = clamp01(car.z / r.exitZ) * 100;
+        this.el.distFill.style.width = prog + '%';
+        this.el.distGar.style.left = (r.garageZ / r.exitZ * 100) + '%';
+        this.el.distGar.classList.toggle('used', r.garageUsed);
+        this.el.distTxt.textContent = Math.max(0, Math.round(r.exitZ - car.z)) + 'm TO EXTRACTION';
+      }
 
       // gas / nitrous
       const fuel01 = clamp01(car.fuel / car.maxFuel);

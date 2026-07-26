@@ -24,7 +24,9 @@
       const kick = () => game.audio.resume();
       window.addEventListener('pointerdown', kick, { once: true });
       window.addEventListener('keydown', kick, { once: true });
+      window.addEventListener('beforeunload', () => { game.meta.lastTick = Date.now(); game.meta.save(); });
       document.addEventListener('visibilitychange', () => {
+        if (document.hidden) game.meta.save();
         if (document.hidden && game.state === 'playing') {
           game.state = 'paused';
           hud.setScreen('pause');

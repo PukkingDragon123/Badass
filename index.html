@@ -235,6 +235,151 @@
   body.touchmode #combon{font-size:38px}
   body.touchmode #bosswrap{top:182px;width:min(420px,60vw)}
   body.touchmode #toast{bottom:auto;top:182px}
+  body.touchmode #objectives{top:64px;left:10px;gap:4px}
+  body.touchmode .obj{font-size:11px;padding:4px 9px 4px 7px}
+  body.touchmode #haulbar{top:auto;bottom:8px;right:auto;left:50%;transform:translateX(-50%);max-width:56vw}
+
+
+  /* ------------------------------------------------------- run objectives */
+  #objectives{position:absolute;top:96px;left:20px;display:flex;flex-direction:column;gap:6px}
+  .obj{background:rgba(14,8,10,.78);border-left:4px solid #ffd23a;border-radius:0 8px 8px 0;
+    padding:6px 12px 6px 9px;font-size:12.5px;letter-spacing:.06em;color:#f2e6e0;
+    display:flex;align-items:center;gap:7px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .obj i{font-style:normal;color:#ffd23a;font-size:13px}
+  .obj b{color:#fff}
+  .obj em{font-style:normal;opacity:.65;font-size:11px;margin-left:4px}
+  .obj.done{border-left-color:#8dff3a;color:#bfe9a0}
+  .obj.done i{color:#8dff3a}
+
+  #haulbar{position:absolute;top:20px;right:24px;display:flex;gap:8px;flex-wrap:wrap;
+    justify-content:flex-end;max-width:40vw}
+  .hchip{display:flex;align-items:center;gap:4px;background:rgba(14,8,10,.78);
+    border:2px solid rgba(255,255,255,.12);border-radius:8px;padding:3px 8px 3px 5px;font-size:12px}
+  .hchip img{width:18px;height:18px}
+
+  #distwrap{position:absolute;top:96px;left:50%;transform:translateX(-50%);width:min(420px,44vw);text-align:center}
+  #distbar{height:10px;border-radius:5px;background:rgba(0,0,0,.6);
+    border:2px solid rgba(255,255,255,.16);position:relative;overflow:visible}
+  #distfill{height:100%;border-radius:4px;background:linear-gradient(90deg,#ff8a1e,#8dff3a);transition:width .2s}
+  #distgar{position:absolute;top:-5px;width:4px;height:16px;background:#ffd23a;
+    box-shadow:0 0 8px #ffd23a;border-radius:2px}
+  #distgar.used{background:#5a5f6b;box-shadow:none}
+  #disttxt{font-size:11px;letter-spacing:.18em;color:#ffce8a;margin-top:5px}
+
+  .hauline{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .hgain{display:flex;align-items:center;gap:6px;font-size:20px}
+  .lostwarn{margin-top:10px;font-size:12px;letter-spacing:.2em;color:#ff6b5e}
+
+  /* ------------------------------------------------------ settlement view */
+  #basescreen{position:absolute;inset:0;display:none;pointer-events:none;z-index:4}
+  #basescreen.on{display:block}
+  #basescreen > *{pointer-events:auto}
+
+  #baseTop{position:absolute;top:0;left:0;right:0;padding:10px 16px;
+    background:linear-gradient(180deg,rgba(8,4,6,.92),rgba(8,4,6,0));
+    display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  #resBar{display:flex;gap:9px;flex-wrap:wrap}
+  .rchip{display:flex;align-items:center;gap:5px;background:rgba(20,12,15,.85);
+    border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 9px 4px 6px;font-size:13px}
+  .rchip i{font-style:normal;opacity:.45;font-size:10px}
+  .rchip em{font-style:normal;font-size:10px;letter-spacing:.04em;margin-left:3px}
+  .rchip.small{padding:3px 7px 3px 5px;font-size:12px}
+  #baseRank{font-size:12px;letter-spacing:.12em;color:#ffce8a;padding-top:6px}
+  #baseRank b{color:#ffd23a}
+
+  #basePalette{position:absolute;left:14px;top:74px;bottom:96px;width:min(232px,30vw);
+    background:rgba(12,7,9,.86);border:2px solid rgba(255,255,255,.12);border-radius:12px;
+    display:flex;flex-direction:column;overflow:hidden}
+  .ptitle{font-size:12px;letter-spacing:.3em;color:#ffd23a;padding:10px 12px 8px;
+    border-bottom:2px solid rgba(255,255,255,.1)}
+  #paletteList{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+  .pitem{display:flex;gap:9px;align-items:center;padding:6px;border-radius:9px;cursor:pointer;
+    border:2px solid transparent;background:rgba(255,255,255,.04);transition:transform .1s,background .1s}
+  .pitem:hover{background:rgba(255,255,255,.10);transform:translateX(3px)}
+  .pitem.armed{border-color:#ffd23a;background:rgba(255,210,58,.14)}
+  .pitem.poor{opacity:.45}
+  .pinfo b{font-size:12px;display:block;letter-spacing:.04em}
+  .pcost{font-size:10.5px;color:#cfc4c6;display:flex;gap:7px;margin-top:3px}
+  .pcost .bad{color:#ff6b5e}
+  .pcost i{font-style:normal;margin-left:2px}
+
+  #baseInspect{position:absolute;right:14px;top:74px;width:min(272px,34vw);
+    background:rgba(12,7,9,.9);border:2px solid rgba(255,255,255,.12);border-radius:12px;
+    padding:14px;font-size:12px;opacity:.55}
+  #baseInspect.on{opacity:1}
+  .ihead{display:flex;gap:11px;align-items:center;margin-bottom:9px}
+  .ihead b{font-size:15px}
+  .isub{font-size:10.5px;letter-spacing:.16em;color:#c9bdbf;margin-top:3px}
+  #baseInspect p{font-size:11.5px;line-height:1.55;color:#ddd0d2;font-weight:700;letter-spacing:0;margin:8px 0}
+  .ieff{background:rgba(255,210,58,.12);border-left:3px solid #ffd23a;padding:6px 9px;
+    border-radius:0 6px 6px 0;font-size:11.5px;color:#ffe8b0;margin:8px 0}
+  .ieff.maxed{background:rgba(141,255,58,.12);border-left-color:#8dff3a;color:#d5ffb8}
+  .workers{display:flex;align-items:center;gap:7px;margin:9px 0;font-size:11.5px}
+  .wbtn{width:26px;height:26px;border-radius:7px;border:2px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.08);color:#fff;font-size:15px;cursor:pointer;font-family:inherit}
+  .wbtn:hover{background:rgba(255,255,255,.18)}
+  .upcost{font-size:11px;color:#cfc4c6;margin:8px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .upcost .bad{color:#ff6b5e}
+  .upcost i{font-style:normal}
+
+  #baseFoot{position:absolute;left:14px;right:14px;bottom:14px;display:flex;
+    justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
+  #baseFoot > *{pointer-events:auto}
+  #baseHint{font-size:11px;letter-spacing:.14em;color:#a99ea0}
+  .baserow{display:flex;gap:10px}
+  .bbtn{padding:13px 26px;border-radius:11px;cursor:pointer;font-size:15px;letter-spacing:.14em;
+    border:3px solid rgba(255,255,255,.2);box-shadow:0 6px 0 rgba(0,0,0,.5);
+    background:linear-gradient(180deg,#3d434e,#20242b);transition:transform .1s;text-align:center}
+  .bbtn:hover{transform:translateY(-2px)}
+  .bbtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+  .bbtn.go{background:linear-gradient(180deg,#ff5b45,#b41708)}
+  .bbtn.ghost{background:linear-gradient(180deg,#4a505c,#252a33)}
+  .bbtn.small{padding:9px 14px;font-size:12px;margin-top:8px;box-shadow:0 4px 0 rgba(0,0,0,.5)}
+  #baseToast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);opacity:0;
+    transition:opacity .3s;font-size:14px;letter-spacing:.2em;color:#ffd23a;
+    background:rgba(12,7,9,.9);padding:9px 18px;border-radius:9px;border:2px solid rgba(255,210,58,.35)}
+
+  /* --------------------------------------------------------------- garage */
+  #garagescreen{position:absolute;inset:0;display:none;place-items:center;z-index:6;
+    pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 40%,rgba(18,8,6,.9),rgba(5,3,4,.97))}
+  #garagescreen.on{display:grid}
+  .gwrap{width:min(940px,94vw);max-height:92vh;display:flex;flex-direction:column;gap:12px}
+  .ghead{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .gtitle{font-size:clamp(26px,5vw,46px);color:#fff;text-shadow:0 5px 0 #6b1b00,0 0 30px rgba(255,140,40,.5)}
+  .gsub{font-size:11px;letter-spacing:.24em;color:#ffb03a;margin-top:4px}
+  #gRes{display:flex;gap:7px;flex-wrap:wrap}
+  #gList{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+  .gcard{display:flex;gap:13px;align-items:center;padding:11px 13px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(30,18,20,.95),rgba(12,7,9,.97));
+    border:2px solid rgba(255,255,255,.1);border-left:5px solid var(--c,#fff)}
+  .gcard.poor{opacity:.55}
+  .gcard.maxed{border-left-color:#8dff3a}
+  .gbody{flex:1;min-width:0}
+  .gname{font-size:14px;letter-spacing:.06em}
+  .gname .lock{font-style:normal;font-size:10px;color:#ff6b5e;letter-spacing:.14em;margin-left:6px}
+  .gpips{display:flex;gap:3px;margin:5px 0}
+  .gpip{width:16px;height:5px;border-radius:2px;background:rgba(255,255,255,.16)}
+  .gdesc{font-size:11px;line-height:1.5;color:#cfc4c6;font-weight:700;letter-spacing:0}
+  .geff{font-size:11px;color:#ffe8b0;margin-top:4px}
+  .geff .dim{opacity:.5}
+  .geff .next{color:#8dff3a;margin-left:6px}
+  .gbuy{text-align:right;min-width:150px}
+  .gcost{font-size:11px;color:#cfc4c6;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .gcost .bad{color:#ff6b5e}
+  .gcost i{font-style:normal}
+  .gfoot{display:flex;justify-content:flex-end}
+
+  @media (max-width:820px){
+    #basePalette{width:44vw;top:96px;bottom:84px}
+    #baseInspect{width:44vw;top:96px;font-size:11px}
+    #objectives{top:80px;left:12px}
+    #distwrap{display:none}
+    #haulbar{max-width:52vw;top:14px;right:12px}
+    .gcard{flex-wrap:wrap}
+    .gbuy{min-width:0;text-align:left;width:100%}
+    .gcost{justify-content:flex-start}
+  }
 
   @media (max-width:820px){
     #hpouter{width:180px}#topleft{top:16px;left:14px}#clock{font-size:28px}
@@ -262,6 +407,13 @@
           <span id="stSpeed">0 KM/H</span><span id="stScrap">LV 1</span><span id="stScore">0 PTS</span>
         </div>
       </div>
+    </div>
+
+    <div id="objectives" class="sh"></div>
+    <div id="haulbar" class="sh"></div>
+    <div id="distwrap" class="sh">
+      <div id="distbar"><div id="distfill"></div><div id="distgar"></div></div>
+      <div id="disttxt"></div>
     </div>
 
     <div id="topcenter" class="sh">
@@ -312,8 +464,9 @@
         <div class="key"><b>P</b> PAUSE</div>
         <div class="key"><b>M</b> MUTE</div>
         <div class="key"><b>T</b> TOUCH PAD</div>
+        <div class="key"><b>G</b> GARAGE (AT BASE)</div>
       </div>
-      <div class="cta" id="startCta">PRESS SPACE TO FLOOR IT</div>
+      <div class="cta" id="startCta">PRESS SPACE TO ENTER THE SETTLEMENT</div>
     </div>
   </div>
 
@@ -367,6 +520,9 @@
 <script src="src/enemies.js"></script>
 <script src="src/weapons.js"></script>
 <script src="src/upgrades.js"></script>
+<script src="src/meta.js"></script>
+<script src="src/base.js"></script>
+<script src="src/garage.js"></script>
 <script src="src/mobile.js"></script>
 <script src="src/hud.js"></script>
 <script src="src/game.js"></script>

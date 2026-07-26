@@ -85,16 +85,23 @@
           add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
         } else if (r < 0.36) {
           add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.47) {
+        } else if (r < 0.42) {
           add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.64) {
+        } else if (r < 0.53) {
           add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.75) {
+        } else if (r < 0.60) {
           add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
-        } else if (r < 0.86) {
+        } else if (r < 0.68) {
           add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
-        } else {
+        } else if (r < 0.76) {
           add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, solid: false, loot: rng() });
+        } else if (r < 0.85) {
+          // salvage heaps: drive through them to strip resources
+          add({ type: 'pile', x, z, yaw: rng() * TAU, radius: 2.2, hp: 60, solid: false, kind: rng() });
+        } else if (r < 0.94) {
+          add({ type: 'shack', x, z, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
+        } else {
+          add({ type: 'silo', x, z, yaw: rng() * TAU, radius: 2.6, hp: 320, solid: true, mass: 2 });
         }
       }
       this.chunks.set(k, ch);
@@ -139,6 +146,7 @@
         if (p.type === 'barrel') { this.explodeBarrel(p, game); continue; }
         if (p.type === 'gascan') { this.grabGas(p, game); continue; }
         if (p.type === 'crate') { this.breakCrate(p, game); continue; }
+        if (p.type === 'pile') { this.stripPile(p, game, speed); continue; }
 
         const impact = speed * (car.vx * -nx + car.vz * -nz > 0 ? 1 : 0.25);
         const dmg = impact * 9 * (1 + car.stats.ramDamage / 60);
@@ -196,6 +204,22 @@
       }
     }
 
+    /* heaps come apart as you plough through them */
+    stripPile(p, game, speed) {
+      if (p.dead) return;
+      p.hp -= 20 + speed * 3;
+      this.fx.shard(p.x, 0.8, p.z, 4, 0.42, 0.40, 0.36);
+      this.fx.smoke(p.x, 0.7, p.z, 2, 0.7, 0.34, 0.31, 0.28, 0.8);
+      const res = p.kind < 0.55 ? 'scrap' : p.kind < 0.85 ? 'steel' : 'meds';
+      game.dropLoot(p.x + rand(-1.5, 1.5), p.z + rand(-1.5, 1.5), res, 1);
+      if (p.hp <= 0) {
+        p.dead = true;
+        this.audio.hit(0.5);
+        this.fx.shard(p.x, 1.0, p.z, 10, 0.42, 0.40, 0.36);
+        for (let i = 0; i < 4; i++) game.dropLoot(p.x + rand(-2, 2), p.z + rand(-2, 2), res, 2);
+      }
+    }
+
     grabGas(p, game) {
       if (p.dead) return;
       p.dead = true;
@@ -223,6 +247,24 @@
 
     destroyProp(p, game, dx, dz, impact) {
       p.dead = true;
+      if (p.type === 'shack' || p.type === 'silo') {
+        const isSilo = p.type === 'silo';
+        this.audio.explode(1.1);
+        this.fx.shard(p.x, 1.6, p.z, 26, isSilo ? 0.72 : 0.5, isSilo ? 0.62 : 0.38, isSilo ? 0.3 : 0.22);
+        this.fx.smoke(p.x, 2.0, p.z, 14, 1.6, 0.34, 0.30, 0.26, 1.3);
+        this.fx.wave(p.x, 0.1, p.z, 1, 12, 0.5, 0.9, 0.7, 0.4, 1.2);
+        game.shake(0.55);
+        const table = isSilo ? [['food', 5], ['scrap', 2]]
+          : p.kind < 0.4 ? [['steel', 4], ['scrap', 3]]
+            : p.kind < 0.7 ? [['scrap', 5], ['meds', 1]]
+              : [['meds', 3], ['food', 2]];
+        for (const [res, n] of table) {
+          for (let i = 0; i < n; i++) game.dropLoot(p.x + rand(-3, 3), p.z + rand(-3, 3), res, 2);
+        }
+        this.fx.text(p.x, 3.2, p.z, isSilo ? 'SILO DOWN!' : 'DEMOLISHED!', '#ffd84a', 24, 'big');
+        game.spawnXp(p.x, p.z, 4, 2);
+        return;
+      }
       const big = p.type === 'wreck';
       this.audio.explode(big ? 1.3 : 0.7);
       if (big) {
@@ -269,6 +311,45 @@
             R.push('box', 'opaque', p.x, 1.6 + bob, p.z, p.yaw, 0, 0, 0.45, 0.32, 0.32, 0.28, 0.28, 0.3, 0);
             R.push('sphere', 'glow', p.x, 0.9 + bob, p.z, 0, 0, 0, 2.4, 2.4, 2.4, 0.16, 0.09, 0.02, 1);
             R.shadow(p.x, p.z, 1.4, 0.5);
+            break;
+          }
+          case 'pile': {
+            const hp01 = clamp01(p.hp / 60);
+            const res = p.kind < 0.55 ? [0.55, 0.48, 0.22] : p.kind < 0.85 ? [0.5, 0.54, 0.6] : [0.7, 0.5, 0.55];
+            for (let i = 0; i < 5; i++) {
+              const a = p.seed * 6.28 + i * 1.9;
+              const rr = 0.5 + (i % 3) * 0.55;
+              R.push('box', 'opaque', p.x + Math.cos(a) * rr, 0.3 + (i % 2) * 0.4 * hp01, p.z + Math.sin(a) * rr,
+                a, 0.3, 0.4, 1.1 * hp01 + 0.3, 0.7 * hp01 + 0.2, 1.0 * hp01 + 0.3,
+                res[0], res[1], res[2], 0);
+            }
+            R.push('sphere', 'glow', p.x, 0.6, p.z, 0, 0, 0, 3.0, 1.4, 3.0, res[0] * 0.06, res[1] * 0.06, res[2] * 0.06, 1);
+            R.shadow(p.x, p.z, 2.4, 0.45);
+            break;
+          }
+          case 'shack': {
+            const hp01 = clamp01(p.hp / 260);
+            const lean = (1 - hp01) * 0.16;
+            const wood = p.kind < 0.4 ? [0.34, 0.36, 0.40] : [0.46, 0.30, 0.19];
+            R.push('box', 'opaque', p.x, 1.5, p.z, p.yaw, lean, 0, 5.0, 3.0, 4.2, wood[0], wood[1], wood[2], 0);
+            R.push('box', 'opaque', p.x, 3.2, p.z, p.yaw, lean, 0, 5.6, 0.5, 4.8, wood[0] * 0.7, wood[1] * 0.7, wood[2] * 0.7, 0);
+            R.push('box', 'opaque', p.x + Math.sin(p.yaw) * 2.1, 1.1, p.z + Math.cos(p.yaw) * 2.1, p.yaw, 0, 0,
+              1.4, 2.2, 0.2, 0.16, 0.14, 0.12, 0);
+            R.push('box', 'opaque', p.x + Math.sin(p.yaw + 1.6) * 2.5, 1.8, p.z + Math.cos(p.yaw + 1.6) * 2.5, p.yaw, 0, 0,
+              0.2, 1.0, 1.2, 0.5, 0.7, 0.85, 0.2);
+            if (hp01 < 0.6 && Math.random() < 0.05) this.fx.smoke(p.x, 3.4, p.z, 1, 0.8, 0.3, 0.28, 0.26, 1);
+            R.shadow(p.x, p.z, 3.6, 0.55);
+            break;
+          }
+          case 'silo': {
+            const hp01 = clamp01(p.hp / 320);
+            R.push('cyl', 'opaque', p.x, 3.4, p.z, p.yaw, 0, (1 - hp01) * 0.1, 4.4, 6.8, 4.4, 0.62, 0.58, 0.48, 0);
+            R.push('cyl', 'opaque', p.x, 6.9, p.z, p.yaw, 0, 0, 4.8, 0.4, 4.8, 0.42, 0.40, 0.34, 0);
+            R.push('cone', 'opaque', p.x, 7.1, p.z, p.yaw, 0, 0, 4.4, 1.8, 4.4, 0.5, 0.34, 0.18, 0);
+            for (let i = 0; i < 3; i++) {
+              R.push('cyl', 'opaque', p.x, 1.4 + i * 2.0, p.z, p.yaw, 0, 0, 4.6, 0.3, 4.6, 0.36, 0.34, 0.30, 0);
+            }
+            R.shadow(p.x, p.z, 3.0, 0.55);
             break;
           }
           case 'wreck': {

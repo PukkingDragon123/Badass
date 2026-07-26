@@ -241,6 +241,24 @@
       for (const layer in this.batches) for (const b of this.batches[layer].values()) b.count = 0;
     }
 
+    /* unproject a normalised device coord onto the y=0 plane */
+    screenToGround(ndcX, ndcY) {
+      const m = this.invViewProj;
+      const un = (z) => {
+        const x = m[0] * ndcX + m[4] * ndcY + m[8] * z + m[12];
+        const y = m[1] * ndcX + m[5] * ndcY + m[9] * z + m[13];
+        const w2 = m[2] * ndcX + m[6] * ndcY + m[10] * z + m[14];
+        const w = m[3] * ndcX + m[7] * ndcY + m[11] * z + m[15];
+        return [x / w, y / w, w2 / w];
+      };
+      const a = un(-1), b = un(1);
+      const dy = b[1] - a[1];
+      if (Math.abs(dy) < 1e-6) return null;
+      const t = (0 - a[1]) / dy;
+      if (t < 0) return null;
+      return [a[0] + (b[0] - a[0]) * t, a[2] + (b[2] - a[2]) * t];
+    }
+
     worldToScreen(x, y, z, out) {
       const m = this.viewProj;
       const cw = m[3] * x + m[7] * y + m[11] * z + m[15];

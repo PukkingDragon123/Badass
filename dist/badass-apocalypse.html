@@ -235,6 +235,151 @@
   body.touchmode #combon{font-size:38px}
   body.touchmode #bosswrap{top:182px;width:min(420px,60vw)}
   body.touchmode #toast{bottom:auto;top:182px}
+  body.touchmode #objectives{top:64px;left:10px;gap:4px}
+  body.touchmode .obj{font-size:11px;padding:4px 9px 4px 7px}
+  body.touchmode #haulbar{top:auto;bottom:8px;right:auto;left:50%;transform:translateX(-50%);max-width:56vw}
+
+
+  /* ------------------------------------------------------- run objectives */
+  #objectives{position:absolute;top:96px;left:20px;display:flex;flex-direction:column;gap:6px}
+  .obj{background:rgba(14,8,10,.78);border-left:4px solid #ffd23a;border-radius:0 8px 8px 0;
+    padding:6px 12px 6px 9px;font-size:12.5px;letter-spacing:.06em;color:#f2e6e0;
+    display:flex;align-items:center;gap:7px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .obj i{font-style:normal;color:#ffd23a;font-size:13px}
+  .obj b{color:#fff}
+  .obj em{font-style:normal;opacity:.65;font-size:11px;margin-left:4px}
+  .obj.done{border-left-color:#8dff3a;color:#bfe9a0}
+  .obj.done i{color:#8dff3a}
+
+  #haulbar{position:absolute;top:20px;right:24px;display:flex;gap:8px;flex-wrap:wrap;
+    justify-content:flex-end;max-width:40vw}
+  .hchip{display:flex;align-items:center;gap:4px;background:rgba(14,8,10,.78);
+    border:2px solid rgba(255,255,255,.12);border-radius:8px;padding:3px 8px 3px 5px;font-size:12px}
+  .hchip img{width:18px;height:18px}
+
+  #distwrap{position:absolute;top:96px;left:50%;transform:translateX(-50%);width:min(420px,44vw);text-align:center}
+  #distbar{height:10px;border-radius:5px;background:rgba(0,0,0,.6);
+    border:2px solid rgba(255,255,255,.16);position:relative;overflow:visible}
+  #distfill{height:100%;border-radius:4px;background:linear-gradient(90deg,#ff8a1e,#8dff3a);transition:width .2s}
+  #distgar{position:absolute;top:-5px;width:4px;height:16px;background:#ffd23a;
+    box-shadow:0 0 8px #ffd23a;border-radius:2px}
+  #distgar.used{background:#5a5f6b;box-shadow:none}
+  #disttxt{font-size:11px;letter-spacing:.18em;color:#ffce8a;margin-top:5px}
+
+  .hauline{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .hgain{display:flex;align-items:center;gap:6px;font-size:20px}
+  .lostwarn{margin-top:10px;font-size:12px;letter-spacing:.2em;color:#ff6b5e}
+
+  /* ------------------------------------------------------ settlement view */
+  #basescreen{position:absolute;inset:0;display:none;pointer-events:none;z-index:4}
+  #basescreen.on{display:block}
+  #basescreen > *{pointer-events:auto}
+
+  #baseTop{position:absolute;top:0;left:0;right:0;padding:10px 16px;
+    background:linear-gradient(180deg,rgba(8,4,6,.92),rgba(8,4,6,0));
+    display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  #resBar{display:flex;gap:9px;flex-wrap:wrap}
+  .rchip{display:flex;align-items:center;gap:5px;background:rgba(20,12,15,.85);
+    border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 9px 4px 6px;font-size:13px}
+  .rchip i{font-style:normal;opacity:.45;font-size:10px}
+  .rchip em{font-style:normal;font-size:10px;letter-spacing:.04em;margin-left:3px}
+  .rchip.small{padding:3px 7px 3px 5px;font-size:12px}
+  #baseRank{font-size:12px;letter-spacing:.12em;color:#ffce8a;padding-top:6px}
+  #baseRank b{color:#ffd23a}
+
+  #basePalette{position:absolute;left:14px;top:74px;bottom:96px;width:min(232px,30vw);
+    background:rgba(12,7,9,.86);border:2px solid rgba(255,255,255,.12);border-radius:12px;
+    display:flex;flex-direction:column;overflow:hidden}
+  .ptitle{font-size:12px;letter-spacing:.3em;color:#ffd23a;padding:10px 12px 8px;
+    border-bottom:2px solid rgba(255,255,255,.1)}
+  #paletteList{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+  .pitem{display:flex;gap:9px;align-items:center;padding:6px;border-radius:9px;cursor:pointer;
+    border:2px solid transparent;background:rgba(255,255,255,.04);transition:transform .1s,background .1s}
+  .pitem:hover{background:rgba(255,255,255,.10);transform:translateX(3px)}
+  .pitem.armed{border-color:#ffd23a;background:rgba(255,210,58,.14)}
+  .pitem.poor{opacity:.45}
+  .pinfo b{font-size:12px;display:block;letter-spacing:.04em}
+  .pcost{font-size:10.5px;color:#cfc4c6;display:flex;gap:7px;margin-top:3px}
+  .pcost .bad{color:#ff6b5e}
+  .pcost i{font-style:normal;margin-left:2px}
+
+  #baseInspect{position:absolute;right:14px;top:74px;width:min(272px,34vw);
+    background:rgba(12,7,9,.9);border:2px solid rgba(255,255,255,.12);border-radius:12px;
+    padding:14px;font-size:12px;opacity:.55}
+  #baseInspect.on{opacity:1}
+  .ihead{display:flex;gap:11px;align-items:center;margin-bottom:9px}
+  .ihead b{font-size:15px}
+  .isub{font-size:10.5px;letter-spacing:.16em;color:#c9bdbf;margin-top:3px}
+  #baseInspect p{font-size:11.5px;line-height:1.55;color:#ddd0d2;font-weight:700;letter-spacing:0;margin:8px 0}
+  .ieff{background:rgba(255,210,58,.12);border-left:3px solid #ffd23a;padding:6px 9px;
+    border-radius:0 6px 6px 0;font-size:11.5px;color:#ffe8b0;margin:8px 0}
+  .ieff.maxed{background:rgba(141,255,58,.12);border-left-color:#8dff3a;color:#d5ffb8}
+  .workers{display:flex;align-items:center;gap:7px;margin:9px 0;font-size:11.5px}
+  .wbtn{width:26px;height:26px;border-radius:7px;border:2px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.08);color:#fff;font-size:15px;cursor:pointer;font-family:inherit}
+  .wbtn:hover{background:rgba(255,255,255,.18)}
+  .upcost{font-size:11px;color:#cfc4c6;margin:8px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .upcost .bad{color:#ff6b5e}
+  .upcost i{font-style:normal}
+
+  #baseFoot{position:absolute;left:14px;right:14px;bottom:14px;display:flex;
+    justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
+  #baseFoot > *{pointer-events:auto}
+  #baseHint{font-size:11px;letter-spacing:.14em;color:#a99ea0}
+  .baserow{display:flex;gap:10px}
+  .bbtn{padding:13px 26px;border-radius:11px;cursor:pointer;font-size:15px;letter-spacing:.14em;
+    border:3px solid rgba(255,255,255,.2);box-shadow:0 6px 0 rgba(0,0,0,.5);
+    background:linear-gradient(180deg,#3d434e,#20242b);transition:transform .1s;text-align:center}
+  .bbtn:hover{transform:translateY(-2px)}
+  .bbtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+  .bbtn.go{background:linear-gradient(180deg,#ff5b45,#b41708)}
+  .bbtn.ghost{background:linear-gradient(180deg,#4a505c,#252a33)}
+  .bbtn.small{padding:9px 14px;font-size:12px;margin-top:8px;box-shadow:0 4px 0 rgba(0,0,0,.5)}
+  #baseToast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);opacity:0;
+    transition:opacity .3s;font-size:14px;letter-spacing:.2em;color:#ffd23a;
+    background:rgba(12,7,9,.9);padding:9px 18px;border-radius:9px;border:2px solid rgba(255,210,58,.35)}
+
+  /* --------------------------------------------------------------- garage */
+  #garagescreen{position:absolute;inset:0;display:none;place-items:center;z-index:6;
+    pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 40%,rgba(18,8,6,.9),rgba(5,3,4,.97))}
+  #garagescreen.on{display:grid}
+  .gwrap{width:min(940px,94vw);max-height:92vh;display:flex;flex-direction:column;gap:12px}
+  .ghead{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .gtitle{font-size:clamp(26px,5vw,46px);color:#fff;text-shadow:0 5px 0 #6b1b00,0 0 30px rgba(255,140,40,.5)}
+  .gsub{font-size:11px;letter-spacing:.24em;color:#ffb03a;margin-top:4px}
+  #gRes{display:flex;gap:7px;flex-wrap:wrap}
+  #gList{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+  .gcard{display:flex;gap:13px;align-items:center;padding:11px 13px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(30,18,20,.95),rgba(12,7,9,.97));
+    border:2px solid rgba(255,255,255,.1);border-left:5px solid var(--c,#fff)}
+  .gcard.poor{opacity:.55}
+  .gcard.maxed{border-left-color:#8dff3a}
+  .gbody{flex:1;min-width:0}
+  .gname{font-size:14px;letter-spacing:.06em}
+  .gname .lock{font-style:normal;font-size:10px;color:#ff6b5e;letter-spacing:.14em;margin-left:6px}
+  .gpips{display:flex;gap:3px;margin:5px 0}
+  .gpip{width:16px;height:5px;border-radius:2px;background:rgba(255,255,255,.16)}
+  .gdesc{font-size:11px;line-height:1.5;color:#cfc4c6;font-weight:700;letter-spacing:0}
+  .geff{font-size:11px;color:#ffe8b0;margin-top:4px}
+  .geff .dim{opacity:.5}
+  .geff .next{color:#8dff3a;margin-left:6px}
+  .gbuy{text-align:right;min-width:150px}
+  .gcost{font-size:11px;color:#cfc4c6;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .gcost .bad{color:#ff6b5e}
+  .gcost i{font-style:normal}
+  .gfoot{display:flex;justify-content:flex-end}
+
+  @media (max-width:820px){
+    #basePalette{width:44vw;top:96px;bottom:84px}
+    #baseInspect{width:44vw;top:96px;font-size:11px}
+    #objectives{top:80px;left:12px}
+    #distwrap{display:none}
+    #haulbar{max-width:52vw;top:14px;right:12px}
+    .gcard{flex-wrap:wrap}
+    .gbuy{min-width:0;text-align:left;width:100%}
+    .gcost{justify-content:flex-start}
+  }
 
   @media (max-width:820px){
     #hpouter{width:180px}#topleft{top:16px;left:14px}#clock{font-size:28px}
@@ -262,6 +407,13 @@
           <span id="stSpeed">0 KM/H</span><span id="stScrap">LV 1</span><span id="stScore">0 PTS</span>
         </div>
       </div>
+    </div>
+
+    <div id="objectives" class="sh"></div>
+    <div id="haulbar" class="sh"></div>
+    <div id="distwrap" class="sh">
+      <div id="distbar"><div id="distfill"></div><div id="distgar"></div></div>
+      <div id="disttxt"></div>
     </div>
 
     <div id="topcenter" class="sh">
@@ -312,8 +464,9 @@
         <div class="key"><b>P</b> PAUSE</div>
         <div class="key"><b>M</b> MUTE</div>
         <div class="key"><b>T</b> TOUCH PAD</div>
+        <div class="key"><b>G</b> GARAGE (AT BASE)</div>
       </div>
-      <div class="cta" id="startCta">PRESS SPACE TO FLOOR IT</div>
+      <div class="cta" id="startCta">PRESS SPACE TO ENTER THE SETTLEMENT</div>
     </div>
   </div>
 
@@ -1165,6 +1318,453 @@
         '                ',
       ],
     },
+
+    /* ------------------------------------------------------- resources */
+    res_scrap: {
+      p: { k: K, y: '#ffd23a', o: '#c98f14', d: '#7a5606', g: '#9aa7b8' },
+      g: [
+        '                ',
+        '      kkkk      ',
+        '    kkyyyykk    ',
+        '   kyyoyyyoyk   ',
+        '  kyyoyyyyyoyk  ',
+        ' kkyyyyoyyyyykk ',
+        ' kyoyyyyyyoyyyk ',
+        ' kyyyyoyyyyyoyk ',
+        ' kdyyyyyyoyyydk ',
+        ' kddyoyyyyyddgk ',
+        '  kddyyyyoyddk  ',
+        '   kdddyyyddk   ',
+        '    kkdddddk    ',
+        '  kgk kkkkk kgk ',
+        ' kggk       kgk ',
+        '  kk         kk ',
+      ],
+    },
+    res_steel: {
+      p: { k: K, s: '#cdd8e6', S: '#8d9cb0', d: '#4d5765' },
+      g: [
+        '                ',
+        '      kkkkkkkk  ',
+        '    kkssssssskk ',
+        '   ksssssssssSk ',
+        '  kkkkkkkkkkkSk ',
+        ' kkssssssssskSk ',
+        ' ksssssssssSkSk ',
+        ' kSkkkkkkkkkkkk ',
+        'kkssssssssskSk  ',
+        'ksssssssssSkSk  ',
+        'kSSSSSSSSSSkk   ',
+        'kddddddddddk    ',
+        ' kkkkkkkkkk     ',
+        '                ',
+        '                ',
+        '                ',
+      ],
+    },
+    res_food: {
+      p: { k: K, g: '#8dff3a', G: '#d4ffb0', d: '#2f7a1c', r: '#ff5c5c', b: '#6b4a22' },
+      g: [
+        '        kk      ',
+        '       kbk      ',
+        '      kbgk      ',
+        '    kkgGgkk     ',
+        '   kgGggggGk    ',
+        '  kgGgggggggk   ',
+        ' kgGggggggdggk  ',
+        ' kggggggggdggk  ',
+        'kgGgggggggdgggk ',
+        'kgggggggggdgggk ',
+        'kdggggggggdggdk ',
+        'kddgggggggggddk ',
+        ' kddgggggggddk  ',
+        '  kdddgggddddk  ',
+        '   kkddddddkk   ',
+        '     kkkkkk     ',
+      ],
+    },
+    res_meds: {
+      p: { k: K, w: '#f2f5fa', s: '#c3ccd9', r: '#ff4d5e', d: '#8a1220' },
+      g: [
+        '                ',
+        '     kkkkkk     ',
+        '   kkwwwwwwkk   ',
+        '  kwwwwwwwwwwk  ',
+        ' kkkkkkkkkkkkkk ',
+        ' kwwwwwwwwwwwwk ',
+        ' kwwwwwrrwwwwwk ',
+        ' kwwwwwrrwwwwwk ',
+        ' kwwwrrrrrrwwwk ',
+        ' kwwwrrrrrrwwwk ',
+        ' kwwwwwrrwwwwwk ',
+        ' kswwwwrrwwwwsk ',
+        ' kssswwwwwwsssk ',
+        ' kdssssssssssdk ',
+        '  kkkkkkkkkkkk  ',
+        '                ',
+      ],
+    },
+    res_people: {
+      p: { k: K, s: '#e8c9a0', b: '#4d9de0', d: '#26557a', g: '#7fd4ff' },
+      g: [
+        '      kkkk      ',
+        '     kssssk     ',
+        '    ksssssskk   ',
+        '    ksskkssbk   ',
+        '    kssssssbk   ',
+        '     kssssbk    ',
+        '   kkkksskkkk   ',
+        '  kbbbbbbbbbbk  ',
+        ' kbbbbggbbbbbbk ',
+        ' kbbbbggbbbbbbk ',
+        ' ksbbggggggbbsk ',
+        ' ksbbbbggbbbbsk ',
+        ' kdbbbbbbbbbdk  ',
+        '  kbbbk kbbbk   ',
+        '  kddk   kddk   ',
+        '  kkk     kkk   ',
+      ],
+    },
+
+    /* ------------------------------------------------------- buildings */
+    bld_hq: {
+      p: { k: K, s: '#8d9cb0', S: '#cdd8e6', d: '#4d5765', y: '#ffd23a', r: '#ff4d4d' },
+      g: [
+        '       kk       ',
+        '      kryk      ',
+        '      krrk      ',
+        '      kkkk      ',
+        '     kSSSSk     ',
+        '    kSSSSSSk    ',
+        '   kSSyySSSSk   ',
+        '  kSSSyySSSSSk  ',
+        ' kSSSSSSSSSSSSk ',
+        'kssssssssssssssk',
+        'ksskkssskkssskkk',
+        'ksskkssskkssskdk',
+        'kssssssssssssssk',
+        'ksskkkssskkksssk',
+        'kddddddddddddddk',
+        ' kkkkkkkkkkkkkk ',
+      ],
+    },
+    bld_house: {
+      p: { k: K, w: '#b9744a', W: '#e0a06a', d: '#5c3418', b: '#4d9de0', s: '#8d9cb0' },
+      g: [
+        '                ',
+        '       kk       ',
+        '      kssk      ',
+        '     kkWWkk     ',
+        '   kkWWWWWWkk   ',
+        '  kWWWWWWWWWWk  ',
+        ' kWWWWWWWWWWWWk ',
+        'kkkkkkkkkkkkkkkk',
+        'kwwwwwwwwwwwwwwk',
+        'kwkbbkwwwkbbkwwk',
+        'kwkbbkwwwkbbkwwk',
+        'kwwwwwwwwwwwwwwk',
+        'kwwwwkdddkwwwwwk',
+        'kwwwwkdddkwwwwwk',
+        'kddddkdddkddddkk',
+        ' kkkkkkkkkkkkk  ',
+      ],
+    },
+    bld_farm: {
+      p: { k: K, g: '#8dff3a', d: '#2f7a1c', b: '#6b4a22', w: '#9fe8ff' },
+      g: [
+        '  k          k  ',
+        '  kw    k   wk  ',
+        '   k   kwk  k   ',
+        '                ',
+        '  kgk  kgk  kgk ',
+        ' kgggkkgggkkgggk',
+        ' kgdgkkgdgkkgdgk',
+        'kkgggkkgggkkgggk',
+        'kbkgkkkkgkkkkgkk',
+        'kbbkkbbkkbbkkbbk',
+        'kbbbbbbbbbbbbbbk',
+        'kdbbdbbdbbdbbdbk',
+        'kbbbbbbbbbbbbbbk',
+        'kddddddddddddddk',
+        ' kkkkkkkkkkkkkk ',
+        '                ',
+      ],
+    },
+    bld_workshop: {
+      p: { k: K, s: '#8d9cb0', S: '#cdd8e6', d: '#4d5765', y: '#ffd23a', o: '#ff8a3d' },
+      g: [
+        '                ',
+        ' kk         kk  ',
+        ' kdk       kdk  ',
+        ' kdkkkkkkkkkdk  ',
+        'kkSkkSkkSkkSkkk ',
+        'kSSSSSSSSSSSSSk ',
+        'ksssssssssssssk ',
+        'kssyyyksssyyysk ',
+        'kssyyyksssyyysk ',
+        'kssssskssssssdk ',
+        'ksooosksooooosk ',
+        'ksooosksooooosk ',
+        'ksssssksssssssk ',
+        'kdddddkdddddddk ',
+        ' kkkkkkkkkkkkk  ',
+        '                ',
+      ],
+    },
+    bld_foundry: {
+      p: { k: K, s: '#6f7b8c', d: '#3a424e', o: '#ff8a1e', y: '#ffe45c', r: '#ef4423' },
+      g: [
+        '   kk           ',
+        '  koyk    kk    ',
+        '  koyk   koyk   ',
+        '  ksk    ksk    ',
+        ' kkskkkkkkskkk  ',
+        ' ksssssssssssk  ',
+        ' kssssssssssdk  ',
+        'kkssrrrrrssssdk ',
+        'ksssroooorsssdk ',
+        'kssroyyyyorssdk ',
+        'kssroyyyyorssdk ',
+        'ksssroooorsssdk ',
+        'kssssrrrrssssdk ',
+        'kdddddddddddddk ',
+        ' kkkkkkkkkkkkk  ',
+        '                ',
+      ],
+    },
+    bld_refinery: {
+      p: { k: K, s: '#8d9cb0', d: '#4a5462', o: '#ff9c1e', y: '#ffd23a' },
+      g: [
+        '   kk      kk   ',
+        '  kssk    kssk  ',
+        '  ksskkkkkssk   ',
+        '  ksssssssssk   ',
+        ' kkssssssssskk  ',
+        ' kssoooooooosk  ',
+        ' kssoyyyyyyosk  ',
+        ' kssoyyyyyyosk  ',
+        ' kssoyyyyyyosk  ',
+        ' kssoyyyyyyosk  ',
+        ' kssoooooooosk  ',
+        ' kdsssssssssdk  ',
+        ' kdkkkkkkkkkdk  ',
+        'kkddddddddddddk ',
+        ' kkkkkkkkkkkkk  ',
+        '                ',
+      ],
+    },
+    bld_infirmary: {
+      p: { k: K, w: '#eef2f8', s: '#b6c0cf', d: '#5a6472', r: '#ff4d5e' },
+      g: [
+        '                ',
+        '   kkkkkkkkkk   ',
+        '  kwwwwwwwwwwk  ',
+        ' kwwwwwrrwwwwwk ',
+        ' kwwwwwrrwwwwwk ',
+        ' kwwwrrrrrrwwwk ',
+        ' kwwwrrrrrrwwwk ',
+        'kkwwwwwrrwwwwwkk',
+        'kwwwwwwrrwwwwwwk',
+        'kwsswwwwwwwwsswk',
+        'kwsswwkkkkwwsswk',
+        'kwsswwkddkwwsswk',
+        'kwwwwwkddkwwwwwk',
+        'kdddddkddkdddddk',
+        ' kkkkkkkkkkkkkk ',
+        '                ',
+      ],
+    },
+    bld_tower: {
+      p: { k: K, w: '#b9744a', W: '#e0a06a', d: '#5c3418', s: '#8d9cb0', y: '#ffe45c' },
+      g: [
+        '     kkkkkk     ',
+        '    kWWWWWWk    ',
+        '   kWWWWWWWWk   ',
+        '   kWkyykkWWk   ',
+        '   kWkyykkWWk   ',
+        '   kWWWWWWWWk   ',
+        '   kkkkkkkkkk   ',
+        '    kwkkkkwk    ',
+        '    kwkddkwk    ',
+        '   kwwkddkwwk   ',
+        '   kwkkddkkwk   ',
+        '  kwwkkddkkwwk  ',
+        '  kwkkkddkkkwk  ',
+        ' kwwkkkddkkkwwk ',
+        ' kddkkkddkkkddk ',
+        '  kkkkkkkkkkkk  ',
+      ],
+    },
+    bld_storage: {
+      p: { k: K, s: '#98a4b5', S: '#cdd8e6', d: '#4d5765', o: '#ff8a3d' },
+      g: [
+        '                ',
+        '  kkkkkkkkkkkk  ',
+        ' kSSSSSSSSSSSSk ',
+        ' kSkSkSkSkSkSSk ',
+        'kkkkkkkkkkkkkkkk',
+        'kssssssssssssssk',
+        'kskskskskskskssk',
+        'kssssssssssssssk',
+        'kskskskskskskssk',
+        'kssoosssssoossdk',
+        'kssoosssssoossdk',
+        'ksssssssssssssdk',
+        'kddddddddddddddk',
+        ' kkkkkkkkkkkkkk ',
+        '                ',
+        '                ',
+      ],
+    },
+    bld_garage: {
+      p: { k: K, s: '#8d9cb0', S: '#cdd8e6', d: '#4d5765', r: '#ff4d4d', y: '#ffd23a' },
+      g: [
+        '                ',
+        '  kkkkkkkkkkkk  ',
+        ' kSSSSSSSSSSSSk ',
+        ' kSyySyySyySySk ',
+        'kkkkkkkkkkkkkkkk',
+        'kssssssssssssssk',
+        'ksskkkkkkkkkkssk',
+        'ksskrrrrrrrrkssk',
+        'ksskrssssssrkssk',
+        'ksskrssssssrkssk',
+        'ksskrrrrrrrrkssk',
+        'ksskddddddddkssk',
+        'ksskddddddddkssk',
+        'kddkddddddddkddk',
+        ' kkkkkkkkkkkkkk ',
+        '                ',
+      ],
+    },
+    bld_fire: {
+      p: { k: K, y: '#ffe45c', o: '#ff9c1e', r: '#ef4423', b: '#6b4a22', d: '#3a2410' },
+      g: [
+        '                ',
+        '       kk       ',
+        '      krrk      ',
+        '     krorrk     ',
+        '    krooorrk    ',
+        '   krooyyoork   ',
+        '   krooyyyoork  ',
+        '   kroyywyyork  ',
+        '   kkroyywyokk  ',
+        '  kbkkroooorkkbk',
+        '  kbbkkkookkkbbk',
+        ' kbbbbbkkkbbbbbk',
+        ' kdbbbbbbbbbbbdk',
+        '  kddbbbbbbbddk ',
+        '   kkddddddkkk  ',
+        '     kkkkkk     ',
+      ],
+    },
+    bld_garden: {
+      p: { k: K, g: '#8dff3a', d: '#2f7a1c', b: '#6b4a22', r: '#ff6b8a', y: '#ffe45c' },
+      g: [
+        '                ',
+        '   kgk    kgk   ',
+        '  kgggk  kgggk  ',
+        '  kgrgkkkkgygk  ',
+        '  kgggkggkgggk  ',
+        '   kdk kgk kdk  ',
+        '   kdkkgggkkdk  ',
+        ' kgkdkkgdgkkdkgk',
+        'kgggkdkkgkkdkggg',
+        'kgrgkdkkdkkdkgyg',
+        'kgggkdkkdkkdkggg',
+        ' kdkkdkkdkkdkkdk',
+        'kbbbbbbbbbbbbbbk',
+        'kdbbdbbbdbbbdbbk',
+        'kddddddddddddddk',
+        ' kkkkkkkkkkkkkk ',
+      ],
+    },
+    bld_statue: {
+      p: { k: K, s: '#cdd8e6', S: '#98a4b5', d: '#4d5765', y: '#ffd23a' },
+      g: [
+        '      kkkk      ',
+        '     ksssk      ',
+        '     ksssk      ',
+        '     kkskk      ',
+        '   kkksskkk     ',
+        '  kssksskssk    ',
+        '  ksskssskssk   ',
+        '  kSkkssskkSk   ',
+        '   k kssskk     ',
+        '     ksssk      ',
+        '     kSSSk      ',
+        '    kkSSSkk     ',
+        '   kSSSSSSSk    ',
+        '  kdyyyyyyydk   ',
+        ' kddddddddddk   ',
+        '  kkkkkkkkkk    ',
+      ],
+    },
+
+    /* --------------------------------------------------- extra weapons */
+    laser: {
+      p: { k: K, c: '#63d3ff', C: '#d8f6ff', r: '#ff4d5e', d: '#1b6f9c', s: '#8d9cb0' },
+      g: [
+        '                ',
+        '            kkk ',
+        '        kkkkCCk ',
+        '     kkkssssCCk ',
+        '   kksssssssCCk ',
+        '  kssdddddddsCk ',
+        ' kssdCCCCCCCdsk ',
+        'kcssdCCCCCCCdsk ',
+        'CCCCCCCCCCCCCsk ',
+        'kcssdCCCCCCCdsk ',
+        ' kssdCCCCCCCdsk ',
+        '  kssdddddddsCk ',
+        '   kksssssssCCk ',
+        '    kkrrkkkkkkk ',
+        '     kkrrk      ',
+        '      kkk       ',
+      ],
+    },
+    railgun: {
+      p: { k: K, s: '#9aa7b8', S: '#dbe4f0', d: '#4a5462', v: '#c68bff', V: '#efd9ff' },
+      g: [
+        '                ',
+        '             kk ',
+        '     kkkkkkkkVk ',
+        '   kkSSSSSSSSVk ',
+        '  kSSdddddddSVk ',
+        ' kSSdvvvvvvvdVk ',
+        'kkSdvVVVVVVVvdk ',
+        'kSSdvVVVVVVVvdk ',
+        'kSSdvVVVVVVVvdk ',
+        'kkSdvvvvvvvvdkk ',
+        ' kSSdddddddddk  ',
+        '  kSSSSSSSSSk   ',
+        '   kkdkkkkdkk   ',
+        '    kdk  kdk    ',
+        '   kddk  kddk   ',
+        '   kkk    kkk   ',
+      ],
+    },
+    drone: {
+      p: { k: K, s: '#9aa7b8', S: '#dbe4f0', b: '#63d3ff', d: '#4a5462', r: '#ff4d5e' },
+      g: [
+        ' kkkk      kkkk ',
+        'kbbbbk    kbbbbk',
+        ' kkkk      kkkk ',
+        '   kdk    kdk   ',
+        '   kdkkkkkkdk   ',
+        '   kdSSSSSSdk   ',
+        '  kkSSSSSSSSkk  ',
+        ' kSSSbbbbbbSSSk ',
+        ' kSSbrrrrrrbSSk ',
+        ' kSSbrrrrrrbSSk ',
+        ' kSSSbbbbbbSSSk ',
+        '  kdSSSSSSSSdk  ',
+        '   kdkkkkkkdk   ',
+        '   kdk    kdk   ',
+        ' kkkk      kkkk ',
+        'kbbbbk    kbbbbk',
+      ],
+    },
   };
 
   const cache = new Map();
@@ -1821,6 +2421,24 @@ void main(){
 
     beginFrame() {
       for (const layer in this.batches) for (const b of this.batches[layer].values()) b.count = 0;
+    }
+
+    /* unproject a normalised device coord onto the y=0 plane */
+    screenToGround(ndcX, ndcY) {
+      const m = this.invViewProj;
+      const un = (z) => {
+        const x = m[0] * ndcX + m[4] * ndcY + m[8] * z + m[12];
+        const y = m[1] * ndcX + m[5] * ndcY + m[9] * z + m[13];
+        const w2 = m[2] * ndcX + m[6] * ndcY + m[10] * z + m[14];
+        const w = m[3] * ndcX + m[7] * ndcY + m[11] * z + m[15];
+        return [x / w, y / w, w2 / w];
+      };
+      const a = un(-1), b = un(1);
+      const dy = b[1] - a[1];
+      if (Math.abs(dy) < 1e-6) return null;
+      const t = (0 - a[1]) / dy;
+      if (t < 0) return null;
+      return [a[0] + (b[0] - a[0]) * t, a[2] + (b[2] - a[2]) * t];
     }
 
     worldToScreen(x, y, z, out) {
@@ -3022,7 +3640,7 @@ void main(){
       this.boostPower = 0;
       this.boostStage = 0;
 
-      this.hp = 100; this.maxHp = 100;
+      this.hp = 80; this.maxHp = 80;
       this.fuel = 100; this.maxFuel = 100;
       this.nitroActive = false;
       this.fuelIdle = 0;
@@ -3030,12 +3648,16 @@ void main(){
       this.hurtFlash = 0;
       this.damageSmoke = 0;
 
+      // a stock truck is deliberately slow and weak - everything good about it
+      // is bolted on in the garage or picked up during a run
       this.stats = {
-        maxSpeed: 44, accel: 34, grip: 14, driftGrip: 2.7, turn: 2.45,
-        jump: 14.5, airControl: 2.4, magnet: 5.5, damage: 1, cooldown: 1,
-        xpGain: 1, ramDamage: 26, armor: 0, boostMul: 1,
-        nitroPower: 24, fuelBurn: 26, fuelRegen: 4.5, fuelMax: 100,
+        maxSpeed: 30, accel: 22, grip: 12, driftGrip: 2.5, turn: 2.2,
+        jump: 13, airControl: 2.0, magnet: 5.0, damage: 1, cooldown: 1,
+        xpGain: 1, ramDamage: 16, armor: 0, boostMul: 1,
+        nitroPower: 20, fuelBurn: 26, fuelRegen: 4.0, fuelMax: 100,
+        lifesteal: 0, chainDmg: 0,
       };
+      this.canJump = false;
       this.spikeLevel = 0;
       this.color = [0.90, 0.13, 0.14];
     }
@@ -3169,7 +3791,11 @@ void main(){
       this.vz = fz * this.vf + rz * this.vr;
 
       /* ---- jump / slam ---- */
-      if (inp.jumpPressed) {
+      if (inp.jumpPressed && !this.canJump && game) {
+        game.hud.toast('JUMP LOCKED - INSTALL HYDRAULIC RAMS AT THE GARAGE');
+        this.audio.hurt();
+      }
+      if (inp.jumpPressed && this.canJump) {
         if (this.grounded) {
           this.vy = S.jump;
           this.grounded = false;
@@ -3658,16 +4284,23 @@ void main(){
           add({ type: 'ramp', x, z, yaw: rng() * TAU, L, W, H, radius: 0, solid: false, hp: Infinity });
         } else if (r < 0.36) {
           add({ type: 'barrel', x, z, yaw: rng() * TAU, radius: 1.05, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.47) {
+        } else if (r < 0.42) {
           add({ type: 'gascan', x, z, yaw: rng() * TAU, radius: 1.0, hp: 1, solid: false, bob: rng() * TAU });
-        } else if (r < 0.64) {
+        } else if (r < 0.53) {
           add({ type: 'wreck', x, z, yaw: rng() * TAU, radius: 2.4, hp: 190, solid: true, mass: 1 });
-        } else if (r < 0.75) {
+        } else if (r < 0.60) {
           add({ type: 'rock', x, z, yaw: rng() * TAU, radius: 2.0 + rng() * 1.4, hp: 1e9, solid: true, mass: 3 });
-        } else if (r < 0.86) {
+        } else if (r < 0.68) {
           add({ type: 'lamp', x, z, yaw: rng() * TAU, radius: 0.7, hp: 40, solid: true, mass: 0.35, lit: rng() > 0.35 });
-        } else {
+        } else if (r < 0.76) {
           add({ type: 'crate', x, z, yaw: rng() * TAU, radius: 1.15, hp: 30, solid: false, loot: rng() });
+        } else if (r < 0.85) {
+          // salvage heaps: drive through them to strip resources
+          add({ type: 'pile', x, z, yaw: rng() * TAU, radius: 2.2, hp: 60, solid: false, kind: rng() });
+        } else if (r < 0.94) {
+          add({ type: 'shack', x, z, yaw: rng() * TAU, radius: 3.2, hp: 260, solid: true, mass: 1.2, kind: rng() });
+        } else {
+          add({ type: 'silo', x, z, yaw: rng() * TAU, radius: 2.6, hp: 320, solid: true, mass: 2 });
         }
       }
       this.chunks.set(k, ch);
@@ -3712,6 +4345,7 @@ void main(){
         if (p.type === 'barrel') { this.explodeBarrel(p, game); continue; }
         if (p.type === 'gascan') { this.grabGas(p, game); continue; }
         if (p.type === 'crate') { this.breakCrate(p, game); continue; }
+        if (p.type === 'pile') { this.stripPile(p, game, speed); continue; }
 
         const impact = speed * (car.vx * -nx + car.vz * -nz > 0 ? 1 : 0.25);
         const dmg = impact * 9 * (1 + car.stats.ramDamage / 60);
@@ -3769,6 +4403,22 @@ void main(){
       }
     }
 
+    /* heaps come apart as you plough through them */
+    stripPile(p, game, speed) {
+      if (p.dead) return;
+      p.hp -= 20 + speed * 3;
+      this.fx.shard(p.x, 0.8, p.z, 4, 0.42, 0.40, 0.36);
+      this.fx.smoke(p.x, 0.7, p.z, 2, 0.7, 0.34, 0.31, 0.28, 0.8);
+      const res = p.kind < 0.55 ? 'scrap' : p.kind < 0.85 ? 'steel' : 'meds';
+      game.dropLoot(p.x + rand(-1.5, 1.5), p.z + rand(-1.5, 1.5), res, 1);
+      if (p.hp <= 0) {
+        p.dead = true;
+        this.audio.hit(0.5);
+        this.fx.shard(p.x, 1.0, p.z, 10, 0.42, 0.40, 0.36);
+        for (let i = 0; i < 4; i++) game.dropLoot(p.x + rand(-2, 2), p.z + rand(-2, 2), res, 2);
+      }
+    }
+
     grabGas(p, game) {
       if (p.dead) return;
       p.dead = true;
@@ -3796,6 +4446,24 @@ void main(){
 
     destroyProp(p, game, dx, dz, impact) {
       p.dead = true;
+      if (p.type === 'shack' || p.type === 'silo') {
+        const isSilo = p.type === 'silo';
+        this.audio.explode(1.1);
+        this.fx.shard(p.x, 1.6, p.z, 26, isSilo ? 0.72 : 0.5, isSilo ? 0.62 : 0.38, isSilo ? 0.3 : 0.22);
+        this.fx.smoke(p.x, 2.0, p.z, 14, 1.6, 0.34, 0.30, 0.26, 1.3);
+        this.fx.wave(p.x, 0.1, p.z, 1, 12, 0.5, 0.9, 0.7, 0.4, 1.2);
+        game.shake(0.55);
+        const table = isSilo ? [['food', 5], ['scrap', 2]]
+          : p.kind < 0.4 ? [['steel', 4], ['scrap', 3]]
+            : p.kind < 0.7 ? [['scrap', 5], ['meds', 1]]
+              : [['meds', 3], ['food', 2]];
+        for (const [res, n] of table) {
+          for (let i = 0; i < n; i++) game.dropLoot(p.x + rand(-3, 3), p.z + rand(-3, 3), res, 2);
+        }
+        this.fx.text(p.x, 3.2, p.z, isSilo ? 'SILO DOWN!' : 'DEMOLISHED!', '#ffd84a', 24, 'big');
+        game.spawnXp(p.x, p.z, 4, 2);
+        return;
+      }
       const big = p.type === 'wreck';
       this.audio.explode(big ? 1.3 : 0.7);
       if (big) {
@@ -3842,6 +4510,45 @@ void main(){
             R.push('box', 'opaque', p.x, 1.6 + bob, p.z, p.yaw, 0, 0, 0.45, 0.32, 0.32, 0.28, 0.28, 0.3, 0);
             R.push('sphere', 'glow', p.x, 0.9 + bob, p.z, 0, 0, 0, 2.4, 2.4, 2.4, 0.16, 0.09, 0.02, 1);
             R.shadow(p.x, p.z, 1.4, 0.5);
+            break;
+          }
+          case 'pile': {
+            const hp01 = clamp01(p.hp / 60);
+            const res = p.kind < 0.55 ? [0.55, 0.48, 0.22] : p.kind < 0.85 ? [0.5, 0.54, 0.6] : [0.7, 0.5, 0.55];
+            for (let i = 0; i < 5; i++) {
+              const a = p.seed * 6.28 + i * 1.9;
+              const rr = 0.5 + (i % 3) * 0.55;
+              R.push('box', 'opaque', p.x + Math.cos(a) * rr, 0.3 + (i % 2) * 0.4 * hp01, p.z + Math.sin(a) * rr,
+                a, 0.3, 0.4, 1.1 * hp01 + 0.3, 0.7 * hp01 + 0.2, 1.0 * hp01 + 0.3,
+                res[0], res[1], res[2], 0);
+            }
+            R.push('sphere', 'glow', p.x, 0.6, p.z, 0, 0, 0, 3.0, 1.4, 3.0, res[0] * 0.06, res[1] * 0.06, res[2] * 0.06, 1);
+            R.shadow(p.x, p.z, 2.4, 0.45);
+            break;
+          }
+          case 'shack': {
+            const hp01 = clamp01(p.hp / 260);
+            const lean = (1 - hp01) * 0.16;
+            const wood = p.kind < 0.4 ? [0.34, 0.36, 0.40] : [0.46, 0.30, 0.19];
+            R.push('box', 'opaque', p.x, 1.5, p.z, p.yaw, lean, 0, 5.0, 3.0, 4.2, wood[0], wood[1], wood[2], 0);
+            R.push('box', 'opaque', p.x, 3.2, p.z, p.yaw, lean, 0, 5.6, 0.5, 4.8, wood[0] * 0.7, wood[1] * 0.7, wood[2] * 0.7, 0);
+            R.push('box', 'opaque', p.x + Math.sin(p.yaw) * 2.1, 1.1, p.z + Math.cos(p.yaw) * 2.1, p.yaw, 0, 0,
+              1.4, 2.2, 0.2, 0.16, 0.14, 0.12, 0);
+            R.push('box', 'opaque', p.x + Math.sin(p.yaw + 1.6) * 2.5, 1.8, p.z + Math.cos(p.yaw + 1.6) * 2.5, p.yaw, 0, 0,
+              0.2, 1.0, 1.2, 0.5, 0.7, 0.85, 0.2);
+            if (hp01 < 0.6 && Math.random() < 0.05) this.fx.smoke(p.x, 3.4, p.z, 1, 0.8, 0.3, 0.28, 0.26, 1);
+            R.shadow(p.x, p.z, 3.6, 0.55);
+            break;
+          }
+          case 'silo': {
+            const hp01 = clamp01(p.hp / 320);
+            R.push('cyl', 'opaque', p.x, 3.4, p.z, p.yaw, 0, (1 - hp01) * 0.1, 4.4, 6.8, 4.4, 0.62, 0.58, 0.48, 0);
+            R.push('cyl', 'opaque', p.x, 6.9, p.z, p.yaw, 0, 0, 4.8, 0.4, 4.8, 0.42, 0.40, 0.34, 0);
+            R.push('cone', 'opaque', p.x, 7.1, p.z, p.yaw, 0, 0, 4.4, 1.8, 4.4, 0.5, 0.34, 0.18, 0);
+            for (let i = 0; i < 3; i++) {
+              R.push('cyl', 'opaque', p.x, 1.4 + i * 2.0, p.z, p.yaw, 0, 0, 4.6, 0.3, 4.6, 0.36, 0.34, 0.30, 0);
+            }
+            R.shadow(p.x, p.z, 3.0, 0.55);
             break;
           }
           case 'wreck': {
@@ -3926,6 +4633,19 @@ void main(){
     bomber: { hp: 26, speed: 5.4, radius: 0.78, scale: 1.15, xp: 3, dmg: 10, mass: 1.1, col: [0.35, 0.75, 0.22] },
     brute: { hp: 190, speed: 3.6, radius: 1.5, scale: 1.95, xp: 8, dmg: 22, mass: 5, col: [0.30, 0.19, 0.21] },
     boss: { hp: 1500, speed: 4.2, radius: 2.7, scale: 3.4, xp: 90, dmg: 34, mass: 22, col: [0.42, 0.10, 0.12] },
+    // ---- ranged / support horde
+    spitter: {
+      hp: 38, speed: 4.2, radius: 0.72, scale: 1.08, xp: 3, dmg: 13, mass: 1.1,
+      col: [0.30, 0.50, 0.24], range: 24, keep: 15, cd: 2.4,
+    },
+    sniper: {
+      hp: 34, speed: 3.6, radius: 0.62, scale: 1.06, xp: 5, dmg: 24, mass: 1,
+      col: [0.28, 0.32, 0.24], range: 58, keep: 34, cd: 4.0, windup: 1.15,
+    },
+    screamer: {
+      hp: 72, speed: 5.2, radius: 0.82, scale: 1.22, xp: 6, dmg: 9, mass: 1.2,
+      col: [0.52, 0.26, 0.42], range: 0, cd: 9.0,
+    },
   };
 
   const SKINS = [
@@ -3978,12 +4698,18 @@ void main(){
       this.grid = new Grid(3.2);
       this.tmp = [];
       this.max = 400;
+      this.shots = [];      // spitter globs
+      this.beams = [];      // sniper tracers / laser sights
+      this.hazards = [];    // acid pools
     }
 
     reset() {
       for (const e of this.list) this.pool.push(e);
       this.list.length = 0;
       this.grid.clear();
+      this.shots.length = 0;
+      this.beams.length = 0;
+      this.hazards.length = 0;
     }
 
     get count() { return this.list.length; }
@@ -4041,7 +4767,12 @@ void main(){
       e.phase = rand(TAU);
       e.flash = 0;
       e.stun = 0;
-      e.attackCd = 0;
+      e.attackCd = rand(0.4, 2.0);
+      e.range = T.range || 0;
+      e.keep = T.keep || 0;
+      e.fireCd = T.cd || 0;
+      e.windup = 0;
+      e.aiming = 0;
       e.burn = 0;
       e.slow = 0;
       e.airborne = false;
@@ -4124,10 +4855,13 @@ void main(){
       const halfW = 1.62;
       const carAirborne = car.y > 1.8;
 
+      this.updateShots(dt, car, game, world);
+
       for (let i = this.list.length - 1; i >= 0; i--) {
         const e = this.list[i];
         if (e.dead) continue;
 
+        if (e.screamT > 0) e.screamT -= dt;
         e.flash = Math.max(0, e.flash - dt * 5.5);
         if (e.stun > 0) e.stun -= dt;
         if (e.slow > 0) e.slow -= dt;
@@ -4148,7 +4882,10 @@ void main(){
         const nx = dx / dist, nz = dz / dist;
 
         const stunned = e.stun > 0;
-        const spd = e.speed * (e.slow > 0 ? 0.42 : 1) * (stunned ? 0 : 1);
+        let approach = 1;
+        if (e.range > 0 && !stunned) approach = this.rangedAI(e, dt, dist, nx, nz, car, game);
+        else if (e.type === 'screamer' && !stunned) this.screamAI(e, dt, game);
+        const spd = e.speed * (e.slow > 0 ? 0.42 : 1) * (stunned ? 0 : 1) * approach;
         const accel = stunned ? 0 : 26;
         e.vx += (nx * spd - e.vx) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
         e.vz += (nz * spd - e.vz) * clamp01(accel * dt / Math.max(1, e.mass * 0.5));
@@ -4250,8 +4987,130 @@ void main(){
       }
     }
 
+    /* ------------------------------------------------------ ranged AI */
+    // returns a movement multiplier: 1 chase, 0 hold, -1 back off
+    rangedAI(e, dt, dist, nx, nz, car, game) {
+      e.attackCd -= dt;
+      const inRange = dist < e.range;
+
+      if (e.type === 'sniper') {
+        if (e.aiming > 0) {
+          e.aiming -= dt;
+          e.beamX = car.x; e.beamZ = car.z;
+          if (e.aiming <= 0) this.snipe(e, car, game);
+          return 0;
+        }
+        if (inRange && e.attackCd <= 0 && dist > 8) {
+          e.aiming = 1.15;
+          e.attackCd = e.fireCd;
+          this.audio.ui();
+          return 0;
+        }
+      } else if (e.type === 'spitter') {
+        if (inRange && e.attackCd <= 0) {
+          e.attackCd = e.fireCd * rand(0.85, 1.2);
+          const lead = 0.35;
+          this.shots.push({
+            x: e.x, y: 1.3 * e.scale, z: e.z,
+            vx: (car.x + car.vx * lead - e.x) * 0.55 + rand(-1.5, 1.5),
+            vy: 9.5,
+            vz: (car.z + car.vz * lead - e.z) * 0.55 + rand(-1.5, 1.5),
+            dmg: e.dmg, life: 3.5,
+          });
+          this.audio.squish();
+          this.fx.fire(e.x, 1.4 * e.scale, e.z, 3, 0.3, 0.5);
+          return 0;
+        }
+      }
+      if (dist < e.keep) return -0.7;      // back away to stay at range
+      return inRange ? 0.15 : 1;
+    }
+
+    snipe(e, car, game) {
+      const dx = car.x - e.x, dz = car.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      this.beams.push({ x1: e.x, y1: 1.6 * e.scale, z1: e.z, x2: car.x, y2: 1.6, z2: car.z, life: 0.16, max: 0.16 });
+      this.audio.shoot();
+      this.fx.sparks(e.x + dx / d * 1.4, 1.6 * e.scale, e.z + dz / d * 1.4, 6, 1.3, 1.0, 0.4, 1.0);
+      if (car.hurt(e.dmg, game)) {
+        this.fx.sparks(car.x, 1.6, car.z, 12, 1.2, 0.8, 0.3, 1.3);
+        game.shake(0.3);
+      }
+    }
+
+    screamAI(e, dt, game) {
+      e.attackCd -= dt;
+      if (e.attackCd > 0) return;
+      e.attackCd = e.fireCd;
+      e.screamT = 0.9;
+      this.audio.bigBad();
+      this.fx.wave(e.x, 0.1, e.z, 1, 22, 0.7, 0.9, 0.3, 0.8, 1.2);
+      const d = game.difficulty();
+      const n = 5 + Math.floor(d * 3);
+      for (let i = 0; i < n; i++) {
+        const a = rand(TAU), r = rand(6, 16);
+        this.spawn(Math.random() < 0.3 ? 'runner' : 'walker',
+          e.x + Math.sin(a) * r, e.z + Math.cos(a) * r, game.hpMul(), game.spMul());
+      }
+      game.hud.toast('A SCREAMER CALLED THE HORDE');
+    }
+
+    /* ------------------------------------------------- enemy projectiles */
+    updateShots(dt, car, game, world) {
+      for (let i = this.shots.length - 1; i >= 0; i--) {
+        const s2 = this.shots[i];
+        s2.life -= dt;
+        s2.vy -= 22 * dt;
+        s2.x += s2.vx * dt; s2.y += s2.vy * dt; s2.z += s2.vz * dt;
+        if (Math.random() < dt * 30) this.fx.sparks(s2.x, s2.y, s2.z, 1, 0.3, 0.8, 0.15, 0.4);
+        const gh = world ? world.groundHeight(s2.x, s2.z) : 0;
+        if (s2.y <= gh + 0.2 || s2.life <= 0) {
+          this.shots.splice(i, 1);
+          this.hazards.push({ x: s2.x, z: s2.z, r: 3.4, life: 5.5, max: 5.5, dps: s2.dmg * 0.9 });
+          this.fx.fire(s2.x, 0.4, s2.z, 8, 0.5, 0.8);
+          this.fx.splat(s2.x, s2.z, 3.0, 0.12, 0.30, 0.06, 0.7);
+          this.audio.squish();
+        }
+      }
+      for (let i = this.hazards.length - 1; i >= 0; i--) {
+        const h = this.hazards[i];
+        h.life -= dt;
+        if (h.life <= 0) { this.hazards.splice(i, 1); continue; }
+        if (Math.random() < dt * 6) this.fx.fire(h.x + rand(-h.r, h.r) * 0.6, 0.2, h.z + rand(-h.r, h.r) * 0.6, 1, 0.35, 0.3);
+        if (Math.hypot(car.x - h.x, car.z - h.z) < h.r + 1.6) {
+          h.tick = (h.tick || 0) - dt;
+          if (h.tick <= 0) { h.tick = 0.5; car.hurt(h.dps * 0.5, game); }
+        }
+      }
+      for (let i = this.beams.length - 1; i >= 0; i--) {
+        this.beams[i].life -= dt;
+        if (this.beams[i].life <= 0) this.beams.splice(i, 1);
+      }
+    }
+
+    drawShots(R) {
+      for (const s2 of this.shots) {
+        R.push('sphere', 'opaque', s2.x, s2.y, s2.z, 0, 0, 0, 0.7, 0.7, 0.7, 0.22, 0.52, 0.10, 0.35);
+        R.push('sphere', 'glow', s2.x, s2.y, s2.z, 0, 0, 0, 1.3, 1.3, 1.3, 0.16, 0.42, 0.06, 1);
+      }
+      for (const h of this.hazards) {
+        const k = clamp01(h.life / h.max);
+        R.push('disc', 'glow', h.x, 0.07, h.z, 0, 0, 0, h.r * 2, 1, h.r * 2, 0.08 * k, 0.22 * k, 0.04 * k, 1);
+      }
+      for (const b of this.beams) {
+        const k = clamp01(b.life / b.max);
+        BA.beam(R, 'glow', b.x1, b.y1, b.z1, b.x2, b.y2, b.z2, 0.14 * k + 0.03, 1.3 * k, 0.35 * k, 0.2 * k);
+      }
+      // sniper laser sights
+      for (const e of this.list) {
+        if (e.dead || e.aiming <= 0) continue;
+        BA.beam(R, 'glow', e.x, 1.6 * e.scale, e.z, e.beamX || e.x, 1.4, e.beamZ || e.z, 0.05, 0.9, 0.06, 0.05);
+      }
+    }
+
     /* ------------------------------------------------------------- draw */
     draw(R, camX, camZ) {
+      this.drawShots(R);
       for (const e of this.list) {
         if (e.dead) continue;
         const dx = e.x - camX, dz = e.z - camZ;
@@ -4391,6 +5250,46 @@ void main(){
           if (!far) B(side * 0.78 * g * s, 1.82 * s, 0, 0.3 * s, 0.22 * s, 0.3 * s, [0.55, 0.56, 0.6], 0, side * 0.25);
         }
         B(0, 1.2 * s, -0.34 * g * s, 0.9 * s, 0.9 * s, 0.16 * s, [0.20, 0.19, 0.21], lean);
+      }
+      if (e.type === 'spitter') {
+        // distended acid gut and a split jaw
+        const pulse = 0.55 + Math.sin(e.phase * 2.6) * 0.35;
+        const p2 = P(0, (1.05 + bob) * s, 0.34 * g * s);
+        R.push('sphere', 'opaque', p2[0], p2[1], p2[2], yaw, 0, 0, 1.05 * s, 0.95 * s, 0.9 * s,
+          0.24, 0.44, 0.16, em);
+        R.push('sphere', 'glow', p2[0], p2[1], p2[2], 0, 0, 0, 1.2 * s, 1.1 * s, 1.0 * s,
+          0.10 * pulse, 0.34 * pulse, 0.05 * pulse, 1);
+        B(0, headY - 0.3 * s, 0.4 * s, 0.42 * s, 0.34 * s, 0.34 * s, [0.24, 0.5, 0.14], lean * 1.5, 0, hyaw);
+      }
+      if (e.type === 'sniper') {
+        // scavenged rifle held across the body
+        const gx = 0.34 * s, gy = (1.35 + bob) * s;
+        B(gx, gy, 0.85 * s, 0.16 * s, 0.16 * s, 1.7 * s, [0.20, 0.18, 0.16], -0.15, 0, 0);
+        B(gx, gy + 0.18 * s, 0.3 * s, 0.14 * s, 0.24 * s, 0.5 * s, [0.30, 0.24, 0.16], -0.15, 0, 0);
+        B(gx, gy + 0.3 * s, 0.55 * s, 0.1 * s, 0.12 * s, 0.4 * s, [0.4, 0.42, 0.46], -0.15, 0, 0);
+        // long coat
+        B(0, (0.86 + bob) * s, -0.06 * s, 0.94 * g * s, 0.9 * s, 0.6 * g * s,
+          [shirt[0] * 0.7, shirt[1] * 0.7, shirt[2] * 0.7], lean * 0.6);
+        if (e.aiming > 0) {
+          const q = P(0, headY, 0.4 * s);
+          R.push('sphere', 'glow', q[0], q[1], q[2], 0, 0, 0, 0.9 * s, 0.9 * s, 0.9 * s, 0.7, 0.06, 0.05, 1);
+        }
+      }
+      if (e.type === 'screamer') {
+        const open = e.screamT > 0 ? 1 : 0.25 + Math.sin(e.phase * 2) * 0.1;
+        B(0, headY - 0.26 * s, 0.34 * s, 0.44 * s, 0.5 * s * open + 0.1 * s, 0.3 * s,
+          [0.7, 0.12, 0.22], lean * 1.5, 0, hyaw);
+        const q = P(0, headY - 0.24 * s, 0.5 * s);
+        R.push('sphere', 'glow', q[0], q[1], q[2], 0, 0, 0,
+          (0.7 + open) * s, (0.7 + open) * s, (0.7 + open) * s, 0.55 * open, 0.10 * open, 0.28 * open, 1);
+        if (e.screamT > 0) {
+          R.push('ring', 'glow', e.x, 0.1, e.z, 0, 0, 0,
+            (1 - e.screamT / 0.9) * 40, 1.6, (1 - e.screamT / 0.9) * 40,
+            0.5 * e.screamT, 0.14 * e.screamT, 0.4 * e.screamT, 1);
+        }
+        for (const side of [1, -1]) {
+          B(side * 0.5 * g * s, (1.68 + bob) * s, 0, 0.3 * s, 0.4 * s, 0.3 * s, [0.5, 0.2, 0.34], 0, side * 0.4);
+        }
       }
       if (e.type === 'bomber') {
         // pulsing sacs
@@ -4557,6 +5456,16 @@ void main(){
     R.push('box', layer, (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, yaw, pitch, 0, w, w, len, r, g, b, e === undefined ? 1 : e);
   }
 
+  // squared distance from a point to a 2D segment
+  function segDist2(px, pz, ax, az, bx, bz) {
+    const dx = bx - ax, dz = bz - az;
+    const l2 = dx * dx + dz * dz;
+    let t = l2 > 0 ? ((px - ax) * dx + (pz - az) * dz) / l2 : 0;
+    t = clamp(t, 0, 1);
+    const cx = ax + dx * t, cz = az + dz * t;
+    return (px - cx) * (px - cx) + (pz - cz) * (pz - cz);
+  }
+
   class Weapons {
     constructor(fx, audio) {
       this.fx = fx;
@@ -4571,7 +5480,10 @@ void main(){
       this.patches = [];
       this.bolts = [];
       this.sawAngle = 0;
-      this.cd = { rocket: 0, minigun: 0, tesla: 0, mine: 0, flame: 0, pulse: 0 };
+      this.laser = null;
+      this.rail = { charge: 0, beam: null };
+      this.droneAngle = 0;
+      this.cd = { rocket: 0, minigun: 0, tesla: 0, mine: 0, flame: 0, pulse: 0, drone: 0 };
     }
 
     nearest(horde, x, z, maxDist, exclude) {
@@ -4837,6 +5749,98 @@ void main(){
         }
       }
 
+      /* ---------------------------------------------------- laser array */
+      if (L.laser > 0) {
+        const t = this.nearest(horde, car.x, car.z, 34 + L.laser * 5);
+        if (t) {
+          const ox = car.x, oz = car.z, oy = 2.6;
+          const dx = t.x - ox, dz = t.z - oz;
+          const d = Math.hypot(dx, dz) || 1;
+          const reach = 36 + L.laser * 6;
+          const ex = ox + (dx / d) * reach, ez = oz + (dz / d) * reach;
+          this.laser = { ox, oy, oz, ex, ez, t };
+          const dps = (26 + L.laser * 22) * dmgMul;
+          const width = 1.1 + L.laser * 0.22;
+          // the beam burns straight through everything it touches
+          const near = horde.grid.query((ox + ex) / 2, (oz + ez) / 2, reach * 0.6 + 6, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            if (segDist2(e.x, e.z, ox, oz, ex, ez) < (width + e.radius) * (width + e.radius)) {
+              e.laserTick = (e.laserTick || 0) - dt;
+              if (e.laserTick <= 0) {
+                e.laserTick = 0.15;
+                horde.damage(e, dps * 0.15, dx / d, dz / d, 2, game);
+                if (Math.random() < 0.4) this.fx.fire(e.x, 1.1 * e.scale, e.z, 1, 0.35, 0.3);
+              }
+            }
+          }
+          if (Math.random() < dt * 40) this.fx.sparks(t.x, 1.0 * t.scale, t.z, 2, 1.2, 0.3, 1.4, 0.9);
+        } else this.laser = null;
+      } else this.laser = null;
+
+      /* ---------------------------------------------------- railgun */
+      if (L.rail > 0) {
+        this.rail.charge += dt / ((2.6 - L.rail * 0.22) * cdMul);
+        if (this.rail.charge >= 1) {
+          const t = this.nearest(horde, car.x, car.z, 90);
+          this.rail.charge = 0;
+          const ang = t ? Math.atan2(t.x - car.x, t.z - car.z) : car.yaw;
+          const ox = car.x, oz = car.z;
+          const len = 110;
+          const ex = ox + Math.sin(ang) * len, ez = oz + Math.cos(ang) * len;
+          const dmg = (150 + L.rail * 120) * dmgMul;
+          const width = 1.6 + L.rail * 0.3;
+          for (const e of [...horde.list]) {
+            if (e.dead) continue;
+            if (segDist2(e.x, e.z, ox, oz, ex, ez) < (width + e.radius) * (width + e.radius)) {
+              e.vy = 9; e.airborne = true;
+              horde.damage(e, dmg, Math.sin(ang), Math.cos(ang), 60, game, true);
+            }
+          }
+          this.rail.beam = { ox, oz, ex, ez, life: 0.45, max: 0.45 };
+          this.audio.explode(1.2);
+          this.fx.sparks(car.x + Math.sin(ang) * 3, 2.6, car.z + Math.cos(ang) * 3, 22, 0.7, 0.9, 1.6, 2.0);
+          game.shake(0.5);
+          game.flash(0.3, [0.6, 0.8, 1.0]);
+          // recoil
+          car.vx -= Math.sin(ang) * 6;
+          car.vz -= Math.cos(ang) * 6;
+        }
+        if (this.rail.beam) {
+          this.rail.beam.life -= dt;
+          if (this.rail.beam.life <= 0) this.rail.beam = null;
+        }
+      }
+
+      /* ---------------------------------------------------- drone swarm */
+      if (L.drone > 0) {
+        this.droneAngle += dt * 1.5;
+        this.cd.drone -= dt;
+        if (this.cd.drone <= 0) {
+          const count = 1 + L.drone;
+          const used = new Set();
+          let fired = 0;
+          for (let i = 0; i < count; i++) {
+            const a = this.droneAngle + (i / count) * TAU;
+            const dxp = car.x + Math.sin(a) * 5.5, dzp = car.z + Math.cos(a) * 5.5;
+            const t = this.nearest(horde, dxp, dzp, 40, used);
+            if (!t) break;
+            used.add(t);
+            const bx = dxp, by = 4.2, bz = dzp;
+            const vx = t.x - bx, vy = 1.0 * t.scale - by, vz = t.z - bz;
+            const d = Math.hypot(vx, vy, vz) || 1;
+            this.bullets.push({
+              x: bx, y: by, z: bz,
+              vx: (vx / d) * 95, vy: (vy / d) * 95, vz: (vz / d) * 95,
+              life: 0.8, dmg: (11 + L.drone * 8) * dmgMul,
+            });
+            fired++;
+          }
+          this.cd.drone = (0.42 - L.drone * 0.035) * cdMul;
+          if (fired) this.audio.shoot();
+        }
+      }
+
       /* ---------------------------------------------------- shock pulse */
       if (L.slam > 0) {
         this.cd.pulse -= dt;
@@ -4895,6 +5899,49 @@ void main(){
             beam(R, 'glow', px, py, pz, nx, ny, nz, 0.22 * k + 0.06, 0.65 * k, 1.0 * k, 1.6 * k);
             px = nx; py = ny; pz = nz;
           }
+        }
+      }
+
+      if (this.laser) {
+        const l = this.laser;
+        const w = 0.34 + L.laser * 0.09;
+        const flick = 0.85 + Math.random() * 0.3;
+        beam(R, 'glow', l.ox, l.oy, l.oz, l.ex, 1.2, l.ez, w, 1.5 * flick, 0.35 * flick, 1.7 * flick);
+        beam(R, 'glow', l.ox, l.oy, l.oz, l.ex, 1.2, l.ez, w * 0.4, 1.9, 1.5, 2.0);
+        // emitter on the roof
+        R.push('box', 'opaque', car.x, 2.9, car.z, Math.atan2(l.ex - l.ox, l.ez - l.oz), 0, 0,
+          0.7, 0.5, 1.5, 0.34, 0.36, 0.42, 0.05);
+        R.push('sphere', 'glow', car.x, 2.9, car.z, 0, 0, 0, 1.5, 1.5, 1.5, 0.5, 0.12, 0.6, 1);
+      }
+
+      if (L.rail > 0) {
+        const c = clamp01(this.rail.charge);
+        R.push('cyl', 'opaque', car.x, 3.1, car.z, car.yaw, Math.PI / 2, 0, 0.5, 4.2, 0.5, 0.32, 0.33, 0.38, 0);
+        R.push('sphere', 'glow', car.x + Math.sin(car.yaw) * 2.0, 3.1, car.z + Math.cos(car.yaw) * 2.0,
+          0, 0, 0, 0.6 + c * 1.6, 0.6 + c * 1.6, 0.6 + c * 1.6, 0.35 * c, 0.55 * c, 1.2 * c, 1);
+        if (this.rail.beam) {
+          const b = this.rail.beam;
+          const k = clamp01(b.life / b.max);
+          beam(R, 'glow', b.ox, 2.2, b.oz, b.ex, 2.2, b.ez, 1.4 * k, 0.5 * k, 0.8 * k, 1.8 * k);
+          beam(R, 'glow', b.ox, 2.2, b.oz, b.ex, 2.2, b.ez, 0.4 * k, 1.4 * k, 1.6 * k, 2.0 * k);
+        }
+      }
+
+      if (L.drone > 0) {
+        const count = 1 + L.drone;
+        for (let i = 0; i < count; i++) {
+          const a = this.droneAngle + (i / count) * TAU;
+          const dx = car.x + Math.sin(a) * 5.5, dz = car.z + Math.cos(a) * 5.5;
+          const dy = 4.2 + Math.sin(this.droneAngle * 3 + i) * 0.25;
+          R.push('box', 'opaque', dx, dy, dz, a, 0, 0, 1.0, 0.34, 1.0, 0.36, 0.38, 0.44, 0);
+          R.push('box', 'opaque', dx, dy - 0.3, dz, a, 0, 0, 0.5, 0.3, 0.7, 0.2, 0.2, 0.24, 0);
+          for (const [ox, oz] of [[0.62, 0.62], [-0.62, 0.62], [0.62, -0.62], [-0.62, -0.62]]) {
+            const rx = dx + (ox * Math.cos(a) + oz * Math.sin(a));
+            const rz = dz + (-ox * Math.sin(a) + oz * Math.cos(a));
+            R.push('cyl', 'glow', rx, dy + 0.2, rz, 0, 0, 0, 1.1, 0.06, 1.1, 0.12, 0.28, 0.45, 1);
+          }
+          R.push('sphere', 'glow', dx, dy - 0.4, dz, 0, 0, 0, 0.6, 0.6, 0.6, 0.5, 0.1, 0.1, 1);
+          R.shadow(dx, dz, 1.2, 0.25);
         }
       }
 
@@ -4958,6 +6005,18 @@ void main(){
       desc: (l) => l === 0 ? 'Drop proximity mines out the back. Rude.' : `Faster drops, bigger blast (Lv${l + 1})`,
     },
     {
+      id: 'laser', name: 'LASER ARRAY', icon: 'laser', max: 5, color: '#d47bff',
+      desc: (l) => l === 0 ? 'Roof emitter burns a continuous beam through the horde.' : `Wider beam, +damage, longer reach (Lv${l + 1})`,
+    },
+    {
+      id: 'rail', name: 'RAILGUN', icon: 'railgun', max: 5, color: '#7fb0ff',
+      desc: (l) => l === 0 ? 'Charges, then deletes everything in a straight line.' : `Faster charge, +damage, wider bore (Lv${l + 1})`,
+    },
+    {
+      id: 'drone', name: 'DRONE SWARM', icon: 'drone', max: 5, color: '#63d3ff',
+      desc: (l) => l === 0 ? 'Gun drones orbit overhead and pick their own targets.' : `+1 drone, faster fire (Lv${l + 1})`,
+    },
+    {
       id: 'slam', name: 'SHOCK SLAM', icon: 'slam', max: 5, color: '#c68bff',
       desc: (l) => l === 0 ? 'Landing from a jump detonates a shockwave. Auto-pulses too.' : `Bigger wave, more damage, faster pulse (Lv${l + 1})`,
     },
@@ -4975,6 +6034,9 @@ void main(){
     { id: 'hydraulics', name: 'HYDRAULICS', icon: 'hydraulics', max: 5, color: '#7fffd4', desc: () => '+14% jump, +22% air control' },
     { id: 'ramplate', name: 'RAM PLATE', icon: 'ramplate', max: 5, color: '#e0a06a', desc: () => '+25% ram damage, tougher bumper' },
     { id: 'tank', name: 'BIG TANK', icon: 'gas', max: 5, color: '#ffb03a', desc: () => '+22% gas capacity, +35% refill, nitrous burns slower' },
+    { id: 'vampire', name: 'BLOOD PUMP', icon: 'res_meds', max: 5, color: '#ff4d5e', desc: (l) => `Every kill repairs ${(0.5 + l * 0.5).toFixed(1)} HP` },
+    { id: 'chain', name: 'CHAIN REACTION', icon: 'bld_fire', max: 5, color: '#ff8a1e', desc: (l) => `Corpses detonate for ${14 + l * 12} damage` },
+    { id: 'apex', name: 'APEX PREDATOR', icon: 'overdrive', max: 5, color: '#ff2f6d', desc: () => '+12% ALL damage and +7% top speed' },
   ];
 
   const HEAL = {
@@ -5036,6 +6098,1118 @@ void main(){
   }
 
   BA.upgrades = { WEAPONS, PASSIVES, HEAL, roll, apply, levelOf };
+})();
+
+</script>
+<script>
+/* ---- src/meta.js ---- */
+/* BADASS APOCALYPSE - persistent meta layer: resources, truck components,
+   the settlement, and everything that survives a run. */
+(function () {
+  'use strict';
+  const { clamp, clamp01 } = BA;
+
+  const SAVE_KEY = 'ba_save_v2';
+
+  /* ------------------------------------------------------------ resources */
+  const RES = [
+    { id: 'scrap', name: 'SCRAP', icon: 'res_scrap', color: '#ffd23a' },
+    { id: 'steel', name: 'STEEL', icon: 'res_steel', color: '#b8c4d4' },
+    { id: 'food', name: 'FOOD', icon: 'res_food', color: '#8dff3a' },
+    { id: 'meds', name: 'MEDS', icon: 'res_meds', color: '#ff6b8a' },
+    { id: 'fuel', name: 'FUEL', icon: 'gas', color: '#ff9c1e' },
+    { id: 'people', name: 'SURVIVORS', icon: 'res_people', color: '#7fd4ff' },
+  ];
+
+  /* ------------------------------------------------- truck components ---- */
+  // cost(l) is the price to go from level l to l+1
+  const COMPONENTS = [
+    {
+      id: 'engine', name: 'ENGINE BLOCK', icon: 'engine', max: 6, color: '#ff4d4d',
+      desc: 'Bigger block, more top speed.',
+      cost: (l) => ({ scrap: 40 + l * 55, steel: 10 + l * 22 }),
+      effect: (l) => `Top speed +${l * 9}%`,
+    },
+    {
+      id: 'turbo', name: 'TURBO KIT', icon: 'turbo', max: 6, color: '#4dd2ff',
+      desc: 'Spools up faster off the line.',
+      cost: (l) => ({ scrap: 35 + l * 48, steel: 8 + l * 18 }),
+      effect: (l) => `Acceleration +${l * 12}%`,
+    },
+    {
+      id: 'tires', name: 'OFFROAD TIRES', icon: 'grip', max: 6, color: '#b0b6c2',
+      desc: 'Grip that actually holds a line.',
+      cost: (l) => ({ scrap: 30 + l * 42, steel: 6 + l * 14 }),
+      effect: (l) => `Grip +${l * 11}%, steering +${l * 6}%`,
+    },
+    {
+      id: 'hydraulics', name: 'HYDRAULIC RAMS', icon: 'hydraulics', max: 5, color: '#7fffd4',
+      desc: 'UNLOCKS JUMP. Slam the whole truck into the air.',
+      cost: (l) => (l === 0 ? { scrap: 120, steel: 45 } : { scrap: 90 + l * 70, steel: 30 + l * 26 }),
+      effect: (l) => (l === 0 ? 'Locked - no jump' : `Jump unlocked, height +${(l - 1) * 12}%`),
+    },
+    {
+      id: 'plating', name: 'ARMOR PLATING', icon: 'armor', max: 6, color: '#8fd18f',
+      desc: 'Welded scrap over every panel.',
+      cost: (l) => ({ scrap: 45 + l * 50, steel: 18 + l * 26 }),
+      effect: (l) => `+${l * 22} max HP, ${l * 4}% damage resist`,
+    },
+    {
+      id: 'plow', name: 'RAM PLOW', icon: 'ramplate', max: 6, color: '#e0a06a',
+      desc: 'A wedge of girders bolted to the nose.',
+      cost: (l) => ({ scrap: 50 + l * 58, steel: 20 + l * 24 }),
+      effect: (l) => `Ram damage +${l * 20}%`,
+    },
+    {
+      id: 'tank', name: 'FUEL CELL', icon: 'gas', max: 6, color: '#ffb03a',
+      desc: 'More gas, and it comes back faster.',
+      cost: (l) => ({ scrap: 30 + l * 40, fuel: 20 + l * 30 }),
+      effect: (l) => `Gas capacity +${l * 18}%, refill +${l * 25}%`,
+    },
+    {
+      id: 'bed', name: 'CARGO BED', icon: 'res_people', max: 6, color: '#7fd4ff',
+      desc: 'Cages and benches. Room for the rescued.',
+      cost: (l) => ({ scrap: 55 + l * 60, steel: 22 + l * 30 }),
+      effect: (l) => `Carries ${2 + l * 2} survivors, +${l * 15}% haul`,
+    },
+    {
+      id: 'magnet', name: 'SALVAGE RIG', icon: 'magnet', max: 6, color: '#ff9ad5',
+      desc: 'Electromagnet on a boom arm.',
+      cost: (l) => ({ scrap: 35 + l * 44, steel: 12 + l * 16 }),
+      effect: (l) => `Pickup range +${l * 30}%, +${l * 12}% loot`,
+    },
+    {
+      id: 'mount', name: 'WEAPON MOUNT', icon: 'minigun', max: 4, color: '#ffd75e',
+      desc: 'Hardpoints. Start every run already armed.',
+      cost: (l) => ({ scrap: 90 + l * 110, steel: 40 + l * 55 }),
+      effect: (l) => (l === 0 ? 'No hardpoints' : `Start runs with ${l} weapon${l > 1 ? 's' : ''} at Lv1`),
+    },
+    {
+      id: 'nos', name: 'NOS INJECTOR', icon: 'coolant', max: 5, color: '#9fe8ff',
+      desc: 'Direct-port nitrous. Terrifying.',
+      cost: (l) => ({ scrap: 60 + l * 66, fuel: 30 + l * 40 }),
+      effect: (l) => `Nitrous power +${l * 14}%`,
+    },
+  ];
+
+  /* ------------------------------------------------------- base buildings */
+  // prod is per real-time minute at level 1 with no workers
+  const BUILDINGS = [
+    {
+      id: 'hq', name: 'COMMAND POST', icon: 'bld_hq', max: 8, color: '#ffd23a', unique: true,
+      desc: 'The heart of the settlement. Raises every other cap.',
+      cost: (l) => ({ scrap: 150 + l * 220, steel: 60 + l * 110, food: 40 + l * 80 }),
+      slots: (l) => 0, prod: null,
+      effect: (l) => `Settlement rank ${l}, +${l * 10}% all production`,
+    },
+    {
+      id: 'house', name: 'BUNKHOUSE', icon: 'bld_house', max: 6, color: '#9ad6ff',
+      desc: 'Beds. Every survivor needs one or they will not stay.',
+      cost: (l) => ({ scrap: 60 + l * 70, steel: 15 + l * 25, food: 20 + l * 30 }),
+      slots: () => 0, prod: null,
+      effect: (l) => `Houses ${l * 4} survivors`,
+    },
+    {
+      id: 'farm', name: 'HYDRO FARM', icon: 'bld_farm', max: 6, color: '#8dff3a',
+      desc: 'Grow lights and rainwater. Feeds the settlement.',
+      cost: (l) => ({ scrap: 70 + l * 80, steel: 20 + l * 30 }),
+      slots: (l) => l, prod: { food: 26 },
+      effect: (l) => `+${26 * l} food/min`,
+    },
+    {
+      id: 'workshop', name: 'WORKSHOP', icon: 'bld_workshop', max: 6, color: '#ffd23a',
+      desc: 'Strips wrecks down into usable scrap.',
+      cost: (l) => ({ scrap: 80 + l * 95, steel: 25 + l * 35 }),
+      slots: (l) => l, prod: { scrap: 22 },
+      effect: (l) => `+${22 * l} scrap/min`,
+    },
+    {
+      id: 'foundry', name: 'FOUNDRY', icon: 'bld_foundry', max: 6, color: '#ff8a3d',
+      desc: 'Melts salvage into plate steel.',
+      cost: (l) => ({ scrap: 120 + l * 130, steel: 40 + l * 50, food: 30 + l * 30 }),
+      slots: (l) => l, prod: { steel: 11 },
+      effect: (l) => `+${11 * l} steel/min`,
+    },
+    {
+      id: 'refinery', name: 'REFINERY', icon: 'bld_refinery', max: 6, color: '#ff9c1e',
+      desc: 'Cracks anything flammable into truck fuel.',
+      cost: (l) => ({ scrap: 110 + l * 120, steel: 45 + l * 55 }),
+      slots: (l) => l, prod: { fuel: 15 },
+      effect: (l) => `+${15 * l} fuel/min`,
+    },
+    {
+      id: 'infirmary', name: 'INFIRMARY', icon: 'bld_infirmary', max: 6, color: '#ff6b8a',
+      desc: 'Patches people up and brews medicine.',
+      cost: (l) => ({ scrap: 100 + l * 110, steel: 30 + l * 40, food: 40 + l * 45 }),
+      slots: (l) => l, prod: { meds: 7 },
+      effect: (l) => `+${7 * l} meds/min, +${l * 6}% run start HP`,
+    },
+    {
+      id: 'watchtower', name: 'WATCHTOWER', icon: 'bld_tower', max: 6, color: '#c9d4e2',
+      desc: 'Spotters mark the horde before it reaches you.',
+      cost: (l) => ({ scrap: 90 + l * 100, steel: 35 + l * 45 }),
+      slots: (l) => Math.ceil(l / 2), prod: null,
+      effect: (l) => `+${l * 8}% run scrap, marks objectives further out`,
+    },
+    {
+      id: 'storage', name: 'DEPOT', icon: 'bld_storage', max: 6, color: '#b8c4d4',
+      desc: 'Somewhere to put it all.',
+      cost: (l) => ({ scrap: 70 + l * 75, steel: 25 + l * 30 }),
+      slots: () => 0, prod: null,
+      effect: (l) => `+${l * 700} storage on every resource`,
+    },
+    {
+      id: 'garage', name: 'HOME GARAGE', icon: 'bld_garage', max: 6, color: '#ff4d4d',
+      desc: 'Cheaper truck work and a stronger chassis.',
+      cost: (l) => ({ scrap: 130 + l * 140, steel: 55 + l * 65 }),
+      slots: (l) => Math.ceil(l / 2), prod: null,
+      effect: (l) => `Component costs -${l * 6}%, +${l * 4} truck HP`,
+    },
+    /* --- decoration: small morale bonus, mostly for making it yours --- */
+    {
+      id: 'campfire', name: 'CAMPFIRE', icon: 'bld_fire', max: 3, color: '#ff8a3d', decor: true,
+      desc: 'Somewhere to sit. Morale is a production stat.',
+      cost: (l) => ({ scrap: 25 + l * 30, food: 15 + l * 20 }),
+      slots: () => 0, prod: null,
+      effect: (l) => `+${l * 3}% all production`,
+    },
+    {
+      id: 'garden', name: 'GARDEN', icon: 'bld_garden', max: 3, color: '#7fffd4', decor: true,
+      desc: 'Green things, kept alive on purpose.',
+      cost: (l) => ({ scrap: 30 + l * 32, food: 25 + l * 25 }),
+      slots: () => 0, prod: null,
+      effect: (l) => `+${l * 3}% all production`,
+    },
+    {
+      id: 'statue', name: 'MEMORIAL', icon: 'bld_statue', max: 3, color: '#d2a6ff', decor: true,
+      desc: 'For the ones who did not make it back.',
+      cost: (l) => ({ scrap: 45 + l * 50, steel: 20 + l * 22 }),
+      slots: () => 0, prod: null,
+      effect: (l) => `+${l * 4}% all production`,
+    },
+  ];
+
+  const BLD = {};
+  for (const b of BUILDINGS) BLD[b.id] = b;
+  const COMP = {};
+  for (const c of COMPONENTS) COMP[c.id] = c;
+
+  const GRID = 7;                 // base is GRID x GRID tiles
+  const BASE_CAP = 900;
+
+  class Meta {
+    constructor() {
+      this.res = { scrap: 0, steel: 0, food: 0, meds: 0, fuel: 0, people: 0 };
+      this.components = {};
+      this.tiles = [];            // { id, level, x, y, workers }
+      this.runs = 0;
+      this.bestScore = 0;
+      this.totalKills = 0;
+      this.totalRescued = 0;
+      this.lastTick = Date.now();
+      this.seen = {};             // one-time tutorial flags
+      this.load();
+    }
+
+    /* ---------------------------------------------------------- storage */
+    load() {
+      let raw = null;
+      try { raw = localStorage.getItem(SAVE_KEY); } catch (_) { /* private mode */ }
+      if (raw) {
+        try {
+          const d = JSON.parse(raw);
+          Object.assign(this.res, d.res || {});
+          this.components = d.components || {};
+          this.tiles = d.tiles || [];
+          this.runs = d.runs || 0;
+          this.bestScore = d.bestScore || 0;
+          this.totalKills = d.totalKills || 0;
+          this.totalRescued = d.totalRescued || 0;
+          this.lastTick = d.lastTick || Date.now();
+          this.seen = d.seen || {};
+        } catch (_) { /* corrupt save, start fresh */ }
+      }
+      if (!this.tiles.length) this.seedBase();
+      this.catchUp();
+    }
+
+    save() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          res: this.res, components: this.components, tiles: this.tiles,
+          runs: this.runs, bestScore: this.bestScore, totalKills: this.totalKills,
+          totalRescued: this.totalRescued, lastTick: this.lastTick, seen: this.seen,
+        }));
+      } catch (_) { /* nothing we can do about a full quota */ }
+    }
+
+    seedBase() {
+      const c = (GRID - 1) / 2;
+      this.tiles = [{ id: 'hq', level: 1, x: c, y: c, workers: 0 }];
+      this.res.scrap = 140;
+      this.res.steel = 40;
+      this.res.food = 60;
+      this.res.fuel = 40;
+      this.res.people = 2;
+    }
+
+    /* ------------------------------------------------------- production */
+    get rank() {
+      const hq = this.tiles.find((t) => t.id === 'hq');
+      return hq ? hq.level : 1;
+    }
+
+    get moraleMul() {
+      let m = 1 + this.rank * 0.10;
+      for (const t of this.tiles) {
+        if (!BLD[t.id] || !BLD[t.id].decor) continue;
+        m += t.level * (t.id === 'statue' ? 0.04 : 0.03);
+      }
+      return m;
+    }
+
+    get housing() {
+      let n = 2;
+      for (const t of this.tiles) if (t.id === 'house') n += t.level * 4;
+      return n;
+    }
+
+    get workerSlots() {
+      let n = 0;
+      for (const t of this.tiles) {
+        const b = BLD[t.id];
+        if (b && b.slots) n += b.slots(t.level);
+      }
+      return n;
+    }
+
+    get assigned() {
+      let n = 0;
+      for (const t of this.tiles) n += t.workers || 0;
+      return n;
+    }
+
+    get idleWorkers() { return Math.max(0, Math.floor(this.res.people) - this.assigned); }
+
+    cap(id) {
+      if (id === 'people') return this.housing;
+      let c = BASE_CAP;
+      for (const t of this.tiles) if (t.id === 'storage') c += t.level * 700;
+      return c + this.rank * 250;
+    }
+
+    /* resources produced per minute, as a plain object */
+    rates() {
+      const out = {};
+      const mul = this.moraleMul;
+      for (const t of this.tiles) {
+        const b = BLD[t.id];
+        if (!b || !b.prod) continue;
+        const workerMul = 1 + (t.workers || 0) * 0.5;
+        for (const k in b.prod) {
+          out[k] = (out[k] || 0) + b.prod[k] * t.level * workerMul * mul;
+        }
+      }
+      // people eat
+      const eaters = Math.floor(this.res.people);
+      out.food = (out.food || 0) - eaters * 1.6;
+      return out;
+    }
+
+    /* accrue offline production, capped so leaving it for a month is not a win */
+    catchUp() {
+      const now = Date.now();
+      const mins = clamp((now - this.lastTick) / 60000, 0, 60 * 8);
+      this.lastTick = now;
+      if (mins > 0.01) this.produce(mins);
+      return mins;
+    }
+
+    tick(dtSeconds) {
+      this.produce(dtSeconds / 60);
+      this.lastTick = Date.now();
+    }
+
+    produce(minutes) {
+      const r = this.rates();
+      for (const k in r) {
+        this.res[k] = clamp((this.res[k] || 0) + r[k] * minutes, 0, this.cap(k));
+      }
+      if (this.res.food <= 0) this.res.food = 0;
+    }
+
+    /* ------------------------------------------------------- transactions */
+    can(cost) {
+      for (const k in cost) if ((this.res[k] || 0) < cost[k]) return false;
+      return true;
+    }
+
+    spend(cost) {
+      if (!this.can(cost)) return false;
+      for (const k in cost) this.res[k] -= cost[k];
+      this.save();
+      return true;
+    }
+
+    add(id, amount) {
+      this.res[id] = clamp((this.res[id] || 0) + amount, 0, this.cap(id));
+    }
+
+    /* ------------------------------------------------------- components */
+    compLevel(id) { return this.components[id] || 0; }
+
+    compCost(id) {
+      const c = COMP[id];
+      const l = this.compLevel(id);
+      if (!c || l >= c.max) return null;
+      const raw = c.cost(l);
+      let discount = 0;
+      for (const t of this.tiles) if (t.id === 'garage') discount = t.level * 0.06;
+      const out = {};
+      for (const k in raw) out[k] = Math.max(1, Math.round(raw[k] * (1 - discount)));
+      return out;
+    }
+
+    buyComponent(id) {
+      const cost = this.compCost(id);
+      if (!cost || !this.spend(cost)) return false;
+      this.components[id] = this.compLevel(id) + 1;
+      this.save();
+      return true;
+    }
+
+    /* --------------------------------------------------------- buildings */
+    tileAt(x, y) { return this.tiles.find((t) => t.x === x && t.y === y); }
+
+    buildCost(id, level) {
+      const b = BLD[id];
+      if (!b) return null;
+      return b.cost(level);
+    }
+
+    place(id, x, y) {
+      const b = BLD[id];
+      if (!b || this.tileAt(x, y)) return false;
+      if (b.unique && this.tiles.some((t) => t.id === id)) return false;
+      const cost = this.buildCost(id, 0);
+      if (!this.spend(cost)) return false;
+      this.tiles.push({ id, level: 1, x, y, workers: 0, born: Date.now() });
+      this.save();
+      return true;
+    }
+
+    upgrade(t) {
+      const b = BLD[t.id];
+      if (!b || t.level >= b.max) return false;
+      const cost = this.buildCost(t.id, t.level);
+      if (!this.spend(cost)) return false;
+      t.level++;
+      this.save();
+      return true;
+    }
+
+    demolish(t) {
+      if (BLD[t.id] && BLD[t.id].unique) return false;
+      const i = this.tiles.indexOf(t);
+      if (i < 0) return false;
+      this.tiles.splice(i, 1);
+      this.add('scrap', 20 * t.level);
+      this.save();
+      return true;
+    }
+
+    assign(t, delta) {
+      const b = BLD[t.id];
+      if (!b || !b.slots) return false;
+      const max = b.slots(t.level);
+      const want = clamp((t.workers || 0) + delta, 0, max);
+      if (delta > 0 && this.idleWorkers <= 0) return false;
+      t.workers = want;
+      this.save();
+      return true;
+    }
+
+    /* -------------------------------------------------- derived run stats */
+    truckStats() {
+      const L = (id) => this.compLevel(id);
+      let garageHp = 0;
+      for (const t of this.tiles) if (t.id === 'garage') garageHp = t.level * 4;
+      let infirmary = 0;
+      for (const t of this.tiles) if (t.id === 'infirmary') infirmary = t.level * 0.06;
+      let towerBonus = 0;
+      for (const t of this.tiles) if (t.id === 'watchtower') towerBonus = t.level * 0.08;
+
+      return {
+        speedMul: 1 + L('engine') * 0.09,
+        accelMul: 1 + L('turbo') * 0.12,
+        gripMul: 1 + L('tires') * 0.11,
+        turnMul: 1 + L('tires') * 0.06,
+        canJump: L('hydraulics') > 0,
+        jumpMul: 1 + Math.max(0, L('hydraulics') - 1) * 0.12,
+        hp: 80 + L('plating') * 22 + garageHp,
+        armor: L('plating') * 0.04,
+        ramMul: 1 + L('plow') * 0.20,
+        fuelMul: 1 + L('tank') * 0.18,
+        fuelRegenMul: 1 + L('tank') * 0.25,
+        cargo: 2 + L('bed') * 2,
+        haulMul: 1 + L('bed') * 0.15 + L('magnet') * 0.12 + towerBonus,
+        magnetMul: 1 + L('magnet') * 0.30,
+        startWeapons: L('mount'),
+        nosMul: 1 + L('nos') * 0.14,
+        startHpMul: 1 + infirmary,
+      };
+    }
+  }
+
+  BA.meta = { RES, COMPONENTS, BUILDINGS, BLD, COMP, GRID, Meta };
+})();
+
+</script>
+<script>
+/* ---- src/base.js ---- */
+/* BADASS APOCALYPSE - the settlement: isometric base building, workers,
+   production. Rendered with the same 3D renderer from a locked camera. */
+(function () {
+  'use strict';
+  const { clamp, clamp01, lerp, damp, rand, TAU } = BA;
+  const M = BA.meta;
+
+  const TILE = 7.2;
+  const HALF = (M.GRID - 1) / 2;
+
+  const tileWorld = (x, y) => [(x - HALF) * TILE, (y - HALF) * TILE];
+
+  /* ------------------------------------------------------------ visuals */
+  function drawBuilding(R, t, wx, wz, time, sel) {
+    const lv = t.level;
+    const b = M.BLD[t.id];
+    const bob = sel ? Math.sin(time * 4) * 0.12 : 0;
+    const y0 = bob;
+    const box = (dx, dy, dz, sx, sy, sz, r, g, bl, e, yaw) =>
+      R.push('box', 'opaque', wx + dx, y0 + dy, wz + dz, yaw || 0, 0, 0, sx, sy, sz, r, g, bl, e || 0);
+    const glow = (dx, dy, dz, sx, sy, sz, r, g, bl) =>
+      R.push('sphere', 'glow', wx + dx, y0 + dy, wz + dz, 0, 0, 0, sx, sy, sz, r, g, bl, 1);
+
+    // shared plinth
+    box(0, 0.16, 0, TILE * 0.86, 0.32, TILE * 0.86, 0.20, 0.19, 0.20);
+
+    switch (t.id) {
+      case 'hq': {
+        const h = 1.6 + lv * 0.42;
+        box(0, 0.3 + h / 2, 0, 4.6, h, 4.6, 0.44, 0.42, 0.46);
+        box(0, 0.3 + h + 0.2, 0, 5.1, 0.4, 5.1, 0.30, 0.29, 0.32);
+        box(0, 0.3 + h + 0.9, 0, 2.2, 1.2, 2.2, 0.52, 0.50, 0.54);
+        box(0, 0.3 + h + 2.2, 0, 0.24, 1.6, 0.24, 0.3, 0.3, 0.32);
+        box(0.5, 0.3 + h + 2.7, 0, 1.1, 0.6, 0.08, 0.85, 0.16, 0.12, 0.15);
+        for (let i = 0; i < Math.min(lv, 5); i++) {
+          box(-2.0 + i * 1.0, 0.3 + h * 0.55, 2.35, 0.6, 0.6, 0.1, 0.9, 0.85, 0.35, 0.85);
+        }
+        glow(0, 0.3 + h + 2.9, 0, 1.4, 1.4, 1.4, 0.4, 0.06, 0.04);
+        break;
+      }
+      case 'house': {
+        for (let i = 0; i < Math.min(lv, 3); i++) {
+          const ox = (i - 1) * 1.9 * (lv > 1 ? 1 : 0);
+          box(ox, 1.1, 0, 1.7, 1.6, 2.6, 0.52, 0.34, 0.22);
+          box(ox, 2.1, 0, 2.0, 0.5, 2.9, 0.34, 0.20, 0.14);
+          box(ox, 1.0, 1.35, 0.5, 0.9, 0.1, 0.22, 0.14, 0.1);
+          box(ox + 0.55, 1.4, 1.35, 0.4, 0.4, 0.08, 0.55, 0.75, 0.95, 0.5);
+        }
+        if (lv > 3) box(0, 2.9, 0, 3.4, 0.6, 2.4, 0.42, 0.28, 0.18);
+        break;
+      }
+      case 'farm': {
+        box(0, 0.5, 0, 5.6, 0.5, 5.6, 0.30, 0.21, 0.13);
+        for (let r2 = 0; r2 < 3; r2++) {
+          for (let c = 0; c < 3; c++) {
+            const gx = (c - 1) * 1.7, gz = (r2 - 1) * 1.7;
+            const grow = clamp01(lv / 3) * (0.6 + Math.sin(time + r2 + c) * 0.08);
+            box(gx, 0.8 + grow * 0.4, gz, 1.1, 0.3 + grow * 0.8, 1.1, 0.22, 0.62, 0.16);
+          }
+        }
+        for (const sx of [-1, 1]) box(sx * 2.6, 1.6, -2.6, 0.2, 2.4, 0.2, 0.4, 0.4, 0.44);
+        if (lv >= 3) box(0, 2.9, 0, 5.6, 0.12, 5.6, 0.55, 0.85, 0.95, 0.25);
+        break;
+      }
+      case 'workshop': {
+        box(0, 1.2, 0, 5.0, 1.9, 4.2, 0.36, 0.35, 0.38);
+        box(0, 2.35, 0, 5.3, 0.4, 4.5, 0.24, 0.23, 0.26);
+        for (let i = 0; i < 3; i++) box(-1.6 + i * 1.6, 2.9, -1.0, 0.5, 0.8, 0.5, 0.28, 0.27, 0.3);
+        box(0, 1.1, 2.2, 2.6, 1.7, 0.2, 0.85, 0.62, 0.12, 0.1);
+        glow(1.7, 1.4, 2.2, 1.4, 1.4, 1.4, 0.5, 0.3, 0.05);
+        for (let i = 0; i < lv; i++) box(-2.2 + i * 0.9, 0.55, -2.4, 0.7, 0.5, 0.7, 0.6, 0.5, 0.2);
+        break;
+      }
+      case 'foundry': {
+        box(0, 1.3, 0, 4.4, 2.1, 4.4, 0.30, 0.28, 0.30);
+        box(0, 2.6, 0, 3.0, 0.6, 3.0, 0.22, 0.21, 0.23);
+        for (const s of [-1, 1]) {
+          box(s * 1.5, 3.4, -1.2, 0.7, 2.0, 0.7, 0.26, 0.25, 0.27);
+          glow(s * 1.5, 4.6, -1.2, 1.2, 1.2, 1.2, 0.5, 0.22, 0.04);
+        }
+        const heat = 0.5 + Math.sin(time * 3) * 0.2;
+        box(0, 1.1, 2.3, 2.0, 1.4, 0.2, 0.95 * heat, 0.4 * heat, 0.05, 0.9);
+        glow(0, 1.1, 2.6, 2.6, 2.6, 2.6, 0.55 * heat, 0.2 * heat, 0.02);
+        break;
+      }
+      case 'refinery': {
+        for (const s of [-1, 1]) {
+          R.push('cyl', 'opaque', wx + s * 1.5, y0 + 1.7, wz, 0, 0, 0, 2.2, 2.8, 2.2, 0.42, 0.41, 0.44, 0);
+          R.push('cyl', 'opaque', wx + s * 1.5, y0 + 3.2, wz, 0, 0, 0, 2.4, 0.3, 2.4, 0.28, 0.27, 0.3, 0);
+          box(s * 1.5, 1.7, 1.15, 2.3, 0.5, 0.2, 0.9, 0.55, 0.08, 0.2);
+        }
+        box(0, 3.6, 0, 3.6, 0.25, 0.25, 0.35, 0.34, 0.37);
+        box(2.4, 2.4, -2.0, 0.3, 4.4, 0.3, 0.4, 0.39, 0.42);
+        glow(2.4, 4.7, -2.0, 1.0, 1.0, 1.0, 0.45, 0.2, 0.04);
+        break;
+      }
+      case 'infirmary': {
+        box(0, 1.2, 0, 5.0, 1.9, 4.4, 0.80, 0.80, 0.82);
+        box(0, 2.4, 0, 5.3, 0.4, 4.7, 0.62, 0.62, 0.66);
+        box(0, 1.6, 2.25, 1.4, 0.35, 0.14, 0.9, 0.14, 0.2, 0.5);
+        box(0, 1.6, 2.25, 0.35, 1.4, 0.14, 0.9, 0.14, 0.2, 0.5);
+        for (let i = 0; i < Math.min(lv, 4); i++) box(-1.8 + i * 1.2, 1.3, -2.3, 0.8, 0.9, 0.12, 0.55, 0.75, 0.95, 0.35);
+        break;
+      }
+      case 'watchtower': {
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          box(sx * 1.2, 2.0 + lv * 0.2, sz * 1.2, 0.3, 4.0 + lv * 0.4, 0.3, 0.42, 0.28, 0.18);
+        }
+        const h = 4.1 + lv * 0.4;
+        box(0, h, 0, 3.4, 0.3, 3.4, 0.5, 0.34, 0.2);
+        box(0, h + 0.9, 0, 3.0, 1.5, 3.0, 0.55, 0.38, 0.24);
+        box(0, h + 1.9, 0, 3.6, 0.3, 3.6, 0.34, 0.22, 0.14);
+        const sweep = time * 0.9;
+        R.push('cone', 'glow', wx + Math.sin(sweep) * 1.2, y0 + h + 1.0, wz + Math.cos(sweep) * 1.2,
+          sweep, Math.PI / 2, 0, 1.6, 7, 1.6, 0.30, 0.28, 0.12, 1);
+        break;
+      }
+      case 'storage': {
+        for (let i = 0; i < Math.min(lv, 4); i++) {
+          const ox = (i % 2) * 2.2 - 1.1, oz = Math.floor(i / 2) * 2.2 - 1.1;
+          box(ox, 1.0, oz, 2.0, 1.6, 2.0, 0.34 + i * 0.04, 0.36, 0.40);
+          box(ox, 1.85, oz, 2.2, 0.2, 2.2, 0.9, 0.6, 0.1, 0.1);
+        }
+        break;
+      }
+      case 'garage': {
+        box(0, 1.3, 0, 5.4, 2.1, 4.6, 0.42, 0.20, 0.18);
+        box(0, 2.5, 0, 5.7, 0.4, 4.9, 0.28, 0.14, 0.12);
+        box(0, 1.1, 2.35, 3.6, 1.8, 0.18, 0.16, 0.16, 0.18);
+        for (let i = 0; i < 4; i++) box(0, 0.5 + i * 0.45, 2.42, 3.6, 0.12, 0.06, 0.85, 0.62, 0.08, 0.12);
+        box(-2.2, 1.6, -2.0, 0.5, 1.4, 0.5, 0.5, 0.48, 0.52);
+        glow(0, 1.3, 2.7, 3.0, 2.0, 2.0, 0.35, 0.1, 0.04);
+        break;
+      }
+      case 'campfire': {
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * TAU;
+          box(Math.cos(a) * 1.3, 0.45, Math.sin(a) * 1.3, 0.6, 0.35, 0.6, 0.34, 0.32, 0.32);
+        }
+        const f = 0.7 + Math.sin(time * 8) * 0.25;
+        box(0, 0.7, 0, 1.0, 0.5, 1.0, 0.35, 0.22, 0.12);
+        R.push('cone', 'glow', wx, y0 + 1.2, wz, time * 3, 0, 0, 1.3 * f, 1.8 * f, 1.3 * f, 0.9 * f, 0.4 * f, 0.06, 1);
+        glow(0, 1.2, 0, 5 * f, 4 * f, 5 * f, 0.24, 0.10, 0.02);
+        for (let i = 0; i < lv; i++) {
+          const a = (i / 3) * TAU + 0.6;
+          box(Math.cos(a) * 2.6, 0.6, Math.sin(a) * 2.6, 1.2, 0.5, 0.5, 0.4, 0.28, 0.16, 0, a);
+        }
+        break;
+      }
+      case 'garden': {
+        box(0, 0.45, 0, 5.4, 0.4, 5.4, 0.26, 0.20, 0.13);
+        for (let i = 0; i < 5 + lv * 2; i++) {
+          const a = i * 2.399, r2 = 0.6 + (i % 4) * 0.6;
+          const gx = Math.cos(a) * r2, gz = Math.sin(a) * r2;
+          const h = 0.7 + (i % 3) * 0.35;
+          box(gx, 0.6 + h / 2, gz, 0.22, h, 0.22, 0.22, 0.5, 0.16);
+          const petal = [[0.95, 0.35, 0.5], [0.95, 0.85, 0.3], [0.6, 0.4, 0.95]][i % 3];
+          box(gx, 0.6 + h + 0.18, gz, 0.5, 0.32, 0.5, petal[0], petal[1], petal[2], 0.12);
+        }
+        break;
+      }
+      case 'statue': {
+        box(0, 0.6, 0, 3.0, 0.6, 3.0, 0.40, 0.40, 0.44);
+        box(0, 1.1, 0, 2.2, 0.5, 2.2, 0.48, 0.48, 0.52);
+        box(0, 2.2, 0, 1.0, 1.8, 0.7, 0.62, 0.62, 0.66);
+        box(0, 3.4, 0, 0.66, 0.66, 0.62, 0.68, 0.68, 0.72);
+        box(0.62, 2.5, 0.1, 0.26, 1.5, 0.26, 0.62, 0.62, 0.66);
+        box(-0.62, 2.4, 0.1, 0.26, 1.5, 0.26, 0.62, 0.62, 0.66);
+        box(0, 1.45, 1.5, 1.6, 0.2, 0.4, 0.85, 0.72, 0.2, 0.2);
+        if (lv >= 2) glow(0, 2.6, 0, 4.0, 5.0, 4.0, 0.10, 0.07, 0.16);
+        break;
+      }
+      default:
+        box(0, 1.0, 0, 3.5, 1.6, 3.5, 0.4, 0.4, 0.44);
+    }
+
+    R.shadow(wx, wz, TILE * 0.5, 0.5);
+    if (sel) {
+      R.push('ring', 'glow', wx, 0.08, wz, 0, 0, 0, TILE * 1.1, 1.4, TILE * 1.1, 0.5, 0.45, 0.12, 1);
+    }
+  }
+
+  /* ---------------------------------------------------------- villagers */
+  function drawVillager(R, v, time) {
+    const s = 0.85;
+    const walk = Math.sin(v.phase);
+    const cy = Math.cos(v.yaw), sy = Math.sin(v.yaw);
+    const P = (lx, ly, lz) => [v.x + lx * cy + lz * sy, ly, v.z - lx * sy + lz * cy];
+    const put = (lx, ly, lz, sx, sy2, sz, c, pitch) => {
+      const p = P(lx, ly, lz);
+      R.push('box', 'opaque', p[0], p[1], p[2], v.yaw, pitch || 0, 0, sx, sy2, sz, c[0], c[1], c[2], 0);
+    };
+    const bob = Math.abs(walk) * 0.06;
+    put(0, (1.05 + bob) * s, 0, 0.62 * s, 0.85 * s, 0.42 * s, v.shirt);
+    put(0, (1.62 + bob) * s, 0, 0.46 * s, 0.46 * s, 0.44 * s, v.skin);
+    put(0, (1.84 + bob) * s, -0.04 * s, 0.5 * s, 0.16 * s, 0.48 * s, v.hair);
+    for (const side of [1, -1]) {
+      put(side * 0.42 * s, (1.2 + bob) * s, 0, 0.18 * s, 0.62 * s, 0.18 * s, v.skin, walk * side * 0.5);
+      const a = walk * side * 0.6;
+      put(side * 0.2 * s, 0.4 * s, -Math.sin(a) * 0.2 * s, 0.22 * s, 0.8 * s, 0.22 * s, v.pants, a);
+    }
+    R.shadow(v.x, v.z, 0.9, 0.4);
+  }
+
+  /* ---------------------------------------------------------------- base */
+  class BaseScene {
+    constructor(game) {
+      this.game = game;
+      this.meta = game.meta;
+      this.time = 0;
+      this.camYaw = Math.PI * 0.25;
+      this.camDist = 62;
+      this.camHeight = 46;
+      this.sel = null;
+      this.armed = null;          // building id queued for placement
+      this.hover = null;
+      this.villagers = [];
+      this.dragging = null;
+      this.built = false;
+      this.toastT = 0;
+    }
+
+    ensureUI() {
+      if (this.built) return;
+      this.built = true;
+      const root = document.createElement('div');
+      root.id = 'basescreen';
+      root.innerHTML = `
+        <div id="baseTop">
+          <div id="resBar"></div>
+          <div id="baseRank"></div>
+        </div>
+        <div id="basePalette">
+          <div class="ptitle">BUILD</div>
+          <div id="paletteList"></div>
+        </div>
+        <div id="baseInspect"><div id="inspectBody"></div></div>
+        <div id="baseFoot">
+          <div id="baseHint">DRAG TO ORBIT · CLICK A PLOT TO BUILD</div>
+          <div class="baserow">
+            <div class="bbtn ghost" id="btnGarage">GARAGE</div>
+            <div class="bbtn go" id="btnDeploy">DEPLOY <span>▶</span></div>
+          </div>
+        </div>
+        <div id="baseToast"></div>`;
+      document.getElementById('ui').appendChild(root);
+      this.root = root;
+
+      root.querySelector('#btnDeploy').addEventListener('click', () => this.game.startRun());
+      root.querySelector('#btnGarage').addEventListener('click', () => this.game.garage.open('base'));
+
+      const canvas = this.game.R.canvas;
+      let moved = 0;
+      const dn = (e) => {
+        if (e.target !== canvas) return;
+        this.dragging = { x: e.clientX, y: e.clientY, yaw: this.camYaw };
+        moved = 0;
+      };
+      const mv = (e) => {
+        if (!this.dragging) return;
+        const dx = e.clientX - this.dragging.x;
+        moved += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0);
+        this.camYaw = this.dragging.yaw - dx * 0.008;
+      };
+      const up = (e) => {
+        if (this.dragging && moved < 6 && e.target === canvas) this.click(e);
+        this.dragging = null;
+      };
+      window.addEventListener('pointerdown', dn);
+      window.addEventListener('pointermove', mv);
+      window.addEventListener('pointerup', up);
+      canvas.addEventListener('wheel', (e) => {
+        if (this.game.state !== 'base') return;
+        e.preventDefault();
+        this.camDist = clamp(this.camDist + Math.sign(e.deltaY) * 5, 34, 105);
+        this.camHeight = this.camDist * 0.74;
+      }, { passive: false });
+    }
+
+    enter() {
+      this.ensureUI();
+      this.root.classList.add('on');
+      this.spawnVillagers();
+      this.refresh();
+    }
+
+    exit() {
+      if (this.root) this.root.classList.remove('on');
+      this.armed = null;
+      this.sel = null;
+    }
+
+    toast(msg) {
+      if (!this.root) return;
+      const el = this.root.querySelector('#baseToast');
+      el.textContent = msg;
+      el.style.opacity = '1';
+      this.toastT = 1.8;
+    }
+
+    spawnVillagers() {
+      const n = clamp(Math.floor(this.meta.res.people), 0, 14);
+      this.villagers.length = 0;
+      const skins = [[0.86, 0.70, 0.55], [0.62, 0.45, 0.32], [0.92, 0.78, 0.64], [0.44, 0.31, 0.22]];
+      const shirts = [[0.24, 0.42, 0.62], [0.6, 0.28, 0.24], [0.3, 0.52, 0.32], [0.62, 0.56, 0.3], [0.4, 0.3, 0.5]];
+      for (let i = 0; i < n; i++) {
+        this.villagers.push({
+          x: rand(-HALF * TILE, HALF * TILE), z: rand(-HALF * TILE, HALF * TILE),
+          tx: 0, tz: 0, yaw: rand(TAU), phase: rand(TAU), wait: rand(0, 3),
+          skin: skins[i % skins.length], shirt: shirts[i % shirts.length],
+          pants: [0.2, 0.2, 0.26], hair: [0.15, 0.11, 0.08],
+        });
+      }
+    }
+
+    click(e) {
+      const R = this.game.R;
+      const rect = R.canvas.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = 1 - ((e.clientY - rect.top) / rect.height) * 2;
+      const hit = R.screenToGround(nx, ny);
+      if (!hit) return;
+      const gx = Math.round(hit[0] / TILE + HALF);
+      const gy = Math.round(hit[1] / TILE + HALF);
+      if (gx < 0 || gy < 0 || gx >= M.GRID || gy >= M.GRID) return;
+
+      const t = this.meta.tileAt(gx, gy);
+      if (this.armed) {
+        if (t) { this.toast('PLOT TAKEN'); return; }
+        const b = M.BLD[this.armed];
+        if (!this.meta.can(this.meta.buildCost(this.armed, 0))) { this.toast('NOT ENOUGH RESOURCES'); return; }
+        if (this.meta.place(this.armed, gx, gy)) {
+          this.game.audio.levelUp();
+          this.toast(b.name + ' BUILT');
+          this.armed = null;
+          this.sel = this.meta.tileAt(gx, gy);
+          this.refresh();
+        }
+        return;
+      }
+      this.sel = t || null;
+      if (t) this.game.audio.ui();
+      this.refresh();
+    }
+
+    /* -------------------------------------------------------------- UI */
+    refresh() {
+      if (!this.root) return;
+      const meta = this.meta;
+
+      const rates = meta.rates();
+      this.root.querySelector('#resBar').innerHTML = M.RES.map((r) => {
+        const v = Math.floor(meta.res[r.id] || 0);
+        const rate = rates[r.id];
+        const cap = meta.cap(r.id);
+        const rateTxt = rate === undefined ? '' :
+          `<em style="color:${rate >= 0 ? '#8dff3a' : '#ff6b5e'}">${rate >= 0 ? '+' : ''}${rate.toFixed(1)}/m</em>`;
+        return `<div class="rchip" title="${r.name}">${BA.icons.img(r.icon, 22)}
+          <b style="color:${r.color}">${v}</b><i>/${Math.floor(cap)}</i>${rateTxt}</div>`;
+      }).join('');
+
+      this.root.querySelector('#baseRank').innerHTML =
+        `<b>RANK ${meta.rank}</b> · ${meta.assigned}/${meta.workerSlots} WORKING · ${meta.idleWorkers} IDLE · BEDS ${Math.floor(meta.res.people)}/${meta.housing}`;
+
+      this.root.querySelector('#paletteList').innerHTML = M.BUILDINGS.filter((b) => !b.unique).map((b) => {
+        const cost = b.cost(0);
+        const afford = meta.can(cost);
+        const costTxt = Object.entries(cost).map(([k, v]) => {
+          const rr = M.RES.find((r) => r.id === k);
+          return `<span class="${(meta.res[k] || 0) >= v ? '' : 'bad'}">${v}<i style="color:${rr ? rr.color : '#fff'}">${rr ? rr.name[0] : '?'}</i></span>`;
+        }).join('');
+        return `<div class="pitem${this.armed === b.id ? ' armed' : ''}${afford ? '' : ' poor'}" data-b="${b.id}">
+          ${BA.icons.img(b.icon, 30)}
+          <div class="pinfo"><b style="color:${b.color}">${b.name}</b><div class="pcost">${costTxt}</div></div>
+        </div>`;
+      }).join('');
+      for (const el of this.root.querySelectorAll('.pitem')) {
+        el.addEventListener('click', () => {
+          this.armed = this.armed === el.dataset.b ? null : el.dataset.b;
+          this.sel = null;
+          this.game.audio.ui();
+          this.refresh();
+        });
+      }
+
+      const body = this.root.querySelector('#inspectBody');
+      const t = this.sel;
+      if (!t) {
+        const armed = this.armed ? M.BLD[this.armed] : null;
+        body.innerHTML = armed
+          ? `<div class="ihead">${BA.icons.img(armed.icon, 40)}<div><b style="color:${armed.color}">${armed.name}</b>
+             <div class="isub">CLICK AN EMPTY PLOT</div></div></div><p>${armed.desc}</p>`
+          : `<div class="isub">SELECT A BUILDING<br>OR PICK ONE TO BUILD</div>`;
+        this.root.querySelector('#baseInspect').classList.toggle('on', !!armed);
+        return;
+      }
+      this.root.querySelector('#baseInspect').classList.add('on');
+      const b = M.BLD[t.id];
+      const maxed = t.level >= b.max;
+      const cost = maxed ? null : meta.buildCost(t.id, t.level);
+      const slots = b.slots ? b.slots(t.level) : 0;
+      const costTxt = cost ? Object.entries(cost).map(([k, v]) => {
+        const rr = M.RES.find((r) => r.id === k);
+        return `<span class="${(meta.res[k] || 0) >= v ? '' : 'bad'}">${v} <i style="color:${rr ? rr.color : '#fff'}">${rr ? rr.name : k}</i></span>`;
+      }).join(' · ') : '';
+
+      body.innerHTML =
+        `<div class="ihead">${BA.icons.img(b.icon, 40)}<div><b style="color:${b.color}">${b.name}</b>
+          <div class="isub">LEVEL ${t.level} / ${b.max}</div></div></div>
+         <p>${b.desc}</p>
+         <div class="ieff">${b.effect(t.level)}</div>
+         ${slots ? `<div class="workers">
+            <span>WORKERS ${t.workers || 0}/${slots}</span>
+            <button class="wbtn" data-w="-1">−</button><button class="wbtn" data-w="1">+</button>
+          </div>` : ''}
+         ${maxed ? '<div class="ieff maxed">FULLY UPGRADED</div>'
+          : `<div class="upcost">${costTxt}</div>
+             <div class="bbtn go small" id="btnUp">UPGRADE → LV ${t.level + 1}</div>`}
+         ${b.unique ? '' : '<div class="bbtn ghost small" id="btnDown">DEMOLISH</div>'}`;
+
+      const up = body.querySelector('#btnUp');
+      if (up) up.addEventListener('click', () => {
+        if (this.meta.upgrade(t)) { this.game.audio.levelUp(); this.toast(b.name + ' → LV ' + t.level); }
+        else this.toast('NOT ENOUGH RESOURCES');
+        this.refresh();
+      });
+      const dn = body.querySelector('#btnDown');
+      if (dn) dn.addEventListener('click', () => {
+        if (this.meta.demolish(t)) { this.sel = null; this.toast('DEMOLISHED'); this.game.audio.hit(0.4); }
+        this.refresh();
+      });
+      for (const w of body.querySelectorAll('.wbtn')) {
+        w.addEventListener('click', () => {
+          if (!this.meta.assign(t, Number(w.dataset.w))) this.toast('NO IDLE SURVIVORS');
+          this.game.audio.ui();
+          this.refresh();
+        });
+      }
+    }
+
+    /* ---------------------------------------------------------- update */
+    update(dt) {
+      this.time += dt;
+      this.meta.tick(dt);
+      if (this.toastT > 0) {
+        this.toastT -= dt;
+        if (this.toastT <= 0 && this.root) this.root.querySelector('#baseToast').style.opacity = '0';
+      }
+      this.refreshT = (this.refreshT || 0) - dt;
+      if (this.refreshT <= 0) { this.refreshT = 1.0; this.refresh(); }
+
+      // villagers wander between plots
+      for (const v of this.villagers) {
+        v.wait -= dt;
+        if (v.wait <= 0) {
+          v.wait = rand(2, 6);
+          v.tx = rand(-HALF * TILE, HALF * TILE);
+          v.tz = rand(-HALF * TILE, HALF * TILE);
+        }
+        const dx = v.tx - v.x, dz = v.tz - v.z;
+        const d = Math.hypot(dx, dz);
+        if (d > 0.6) {
+          const sp = 3.0;
+          v.x += (dx / d) * sp * dt;
+          v.z += (dz / d) * sp * dt;
+          v.yaw = lerp(v.yaw, Math.atan2(dx, dz), clamp01(dt * 6));
+          v.phase += dt * 7;
+        }
+      }
+
+      const R = this.game.R;
+      const eye = [Math.sin(this.camYaw) * this.camDist, this.camHeight, Math.cos(this.camYaw) * this.camDist];
+      R.setCamera(eye, [0, 2, 0], [0, 1, 0], 0.62, 1, 400);
+    }
+
+    draw(R) {
+      R.time = this.time;
+      R.beginFrame();
+
+      // plots
+      for (let y = 0; y < M.GRID; y++) {
+        for (let x = 0; x < M.GRID; x++) {
+          const [wx, wz] = tileWorld(x, y);
+          const t = this.meta.tileAt(x, y);
+          const free = !t;
+          const armed = this.armed && free;
+          const tint = (x + y) % 2 ? 0.20 : 0.16;
+          R.push('box', 'opaque', wx, 0.06, wz, 0, 0, 0, TILE * 0.96, 0.12, TILE * 0.96,
+            tint, tint * 0.98, tint * 0.94, 0);
+          if (armed) {
+            R.push('ring', 'glow', wx, 0.12, wz, 0, 0, 0, TILE * 0.9, 0.8, TILE * 0.9,
+              0.12, 0.30, 0.10, 1);
+          }
+        }
+      }
+      // perimeter wall
+      const edge = (HALF + 0.62) * TILE;
+      for (let i = -M.GRID; i <= M.GRID; i++) {
+        const p = i * TILE * 0.5;
+        for (const [ax, az] of [[p, -edge], [p, edge], [-edge, p], [edge, p]]) {
+          if (Math.abs(ax) > edge + 0.1 || Math.abs(az) > edge + 0.1) continue;
+          R.push('box', 'opaque', ax, 0.9, az, 0, 0, 0, TILE * 0.52, 1.8, 0.7, 0.24, 0.20, 0.17, 0);
+          R.push('box', 'opaque', ax, 1.9, az, 0, 0, 0, TILE * 0.5, 0.24, 0.9, 0.42, 0.32, 0.10, 0.05);
+        }
+      }
+
+      for (const t of this.meta.tiles) {
+        const [wx, wz] = tileWorld(t.x, t.y);
+        drawBuilding(R, t, wx, wz, this.time, this.sel === t);
+      }
+      for (const v of this.villagers) drawVillager(R, v, this.time);
+
+      const P = R.post;
+      P.bloom = 0.75; P.aberration = 0.0006; P.vignette = 1;
+      P.speedBlur = 0; P.flash = this.game.flashAmt; P.flashCol = this.game.flashCol; P.hurt = 0;
+      R.render([0, 0]);
+
+      const ctx = this.game.octx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.game.overlay.width, this.game.overlay.height);
+    }
+  }
+
+  BA.BaseScene = BaseScene;
+  BA.baseTile = { TILE, tileWorld };
+})();
+
+</script>
+<script>
+/* ---- src/garage.js ---- */
+/* BADASS APOCALYPSE - the garage: bolt components onto the truck.
+   Opened from the settlement, or by parking in a roadside garage mid-run. */
+(function () {
+  'use strict';
+  const M = BA.meta;
+
+  class Garage {
+    constructor(game) {
+      this.game = game;
+      this.meta = game.meta;
+      this.origin = 'base';
+      this.built = false;
+    }
+
+    ensureUI() {
+      if (this.built) return;
+      this.built = true;
+      const root = document.createElement('div');
+      root.id = 'garagescreen';
+      root.innerHTML = `
+        <div class="gwrap">
+          <div class="ghead">
+            <div>
+              <div class="gtitle">GARAGE</div>
+              <div class="gsub" id="gSub">BOLT ON WHAT YOU CAN AFFORD</div>
+            </div>
+            <div id="gRes"></div>
+          </div>
+          <div id="gList"></div>
+          <div class="gfoot">
+            <div class="bbtn go" id="gClose">DONE</div>
+          </div>
+        </div>`;
+      document.getElementById('ui').appendChild(root);
+      this.root = root;
+      root.querySelector('#gClose').addEventListener('click', () => this.close());
+    }
+
+    open(origin) {
+      this.ensureUI();
+      this.origin = origin || 'base';
+      this.root.classList.add('on');
+      this.root.querySelector('#gSub').textContent = this.origin === 'road'
+        ? 'ROADSIDE WORKSHOP · SPEND IT BEFORE YOU LOSE IT'
+        : 'BOLT ON WHAT YOU CAN AFFORD';
+      this.game.audio.ui();
+      this.refresh();
+    }
+
+    close() {
+      if (this.root) this.root.classList.remove('on');
+      this.game.audio.ui();
+      if (this.origin === 'road') this.game.resumeFromGarage();
+    }
+
+    get isOpen() { return !!(this.root && this.root.classList.contains('on')); }
+
+    refresh() {
+      const meta = this.meta;
+      this.root.querySelector('#gRes').innerHTML = M.RES.filter((r) => r.id !== 'people').map((r) =>
+        `<div class="rchip small">${BA.icons.img(r.icon, 20)}<b style="color:${r.color}">${Math.floor(meta.res[r.id] || 0)}</b></div>`
+      ).join('');
+
+      this.root.querySelector('#gList').innerHTML = M.COMPONENTS.map((c) => {
+        const lv = meta.compLevel(c.id);
+        const cost = meta.compCost(c.id);
+        const maxed = lv >= c.max;
+        const afford = cost && meta.can(cost);
+        let pips = '';
+        for (let i = 0; i < c.max; i++) pips += `<div class="gpip${i < lv ? ' f' : ''}" style="${i < lv ? `background:${c.color};box-shadow:0 0 6px ${c.color}` : ''}"></div>`;
+        const costTxt = maxed ? 'MAXED' : Object.entries(cost).map(([k, v]) => {
+          const rr = M.RES.find((r) => r.id === k);
+          return `<span class="${(meta.res[k] || 0) >= v ? '' : 'bad'}">${v} <i style="color:${rr ? rr.color : '#fff'}">${rr ? rr.name : k}</i></span>`;
+        }).join(' · ');
+        const locked = c.id === 'hydraulics' && lv === 0;
+        return `<div class="gcard${maxed ? ' maxed' : ''}${afford ? '' : ' poor'}" data-c="${c.id}" style="--c:${c.color}">
+          <div class="gicon">${BA.icons.img(c.icon, 44)}</div>
+          <div class="gbody">
+            <div class="gname" style="color:${c.color}">${c.name}${locked ? ' <em class="lock">LOCKED</em>' : ''}</div>
+            <div class="gpips">${pips}</div>
+            <div class="gdesc">${c.desc}</div>
+            <div class="geff">${lv === 0 ? '<span class="dim">NOT FITTED</span>' : c.effect(lv)}
+              ${maxed ? '' : `<span class="next">→ ${c.effect(lv + 1)}</span>`}</div>
+          </div>
+          <div class="gbuy">
+            <div class="gcost">${costTxt}</div>
+            ${maxed ? '' : `<div class="bbtn go small buy">INSTALL</div>`}
+          </div>
+        </div>`;
+      }).join('');
+
+      for (const card of this.root.querySelectorAll('.gcard')) {
+        const btn = card.querySelector('.buy');
+        if (!btn) continue;
+        btn.addEventListener('click', () => {
+          const id = card.dataset.c;
+          if (this.meta.buyComponent(id)) {
+            this.game.audio.levelUp();
+            this.game.applyComponents();
+            const c = M.COMP[id];
+            if (id === 'hydraulics' && this.meta.compLevel(id) === 1) {
+              this.game.hud.flashBanner('JUMP UNLOCKED', 'SPACE TO LEAP, AGAIN TO SLAM');
+            }
+          } else {
+            this.game.audio.hurt();
+          }
+          this.refresh();
+        });
+      }
+    }
+  }
+
+  BA.Garage = Garage;
 })();
 
 </script>
@@ -5222,6 +7396,8 @@ void main(){
         banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
         toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
         fuelWrap: $('fuelwrap'), fuelBar: $('fuelbar'), fuelLbl: $('fuellbl'),
+        obj: $('objectives'), haul: $('haulbar'),
+        distFill: $('distfill'), distGar: $('distgar'), distTxt: $('disttxt'),
         screens: {
           title: $('scTitle'), levelup: $('scLevel'),
           pause: $('scPause'), over: $('scOver'),
@@ -5285,6 +7461,26 @@ void main(){
       this.setScreen('levelup');
     }
 
+    showResults(game, success, gained, people) {
+      const M = BA.meta;
+      $('overT').textContent = success ? 'EXTRACTED' : 'WASTED';
+      $('overT').style.color = success ? '#8dff3a' : '#fff';
+      $('ovScore').textContent = game.score.toLocaleString();
+      $('ovKills').textContent = game.kills.toLocaleString();
+      $('ovTime').textContent = fmtTime(game.time);
+      $('ovLevel').textContent = game.level;
+      $('ovCombo').textContent = game.bestCombo;
+      const haulTxt = M.RES.filter((r) => gained[r.id]).map((r) =>
+        `<div class="hgain">${BA.icons.img(r.icon, 26)}<b style="color:${r.color}">+${gained[r.id]}</b></div>`).join('');
+      $('newbest').innerHTML =
+        `<div class="hauline">${people > 0 ? `<div class="hgain">${BA.icons.img('res_people', 26)}<b style="color:#7fd4ff">+${people}</b></div>` : ''}${haulTxt || '<span style="opacity:.6">NOTHING HAULED BACK</span>'}</div>` +
+        (success ? '' : '<div class="lostwarn">HALF THE HAUL AND EVERY PASSENGER LOST</div>') +
+        (game.meta.res.people >= game.meta.housing
+          ? '<div class="lostwarn" style="color:#ffd23a">NO SPARE BEDS - BUILD A BUNKHOUSE OR NEW ARRIVALS TURN AWAY</div>' : '');
+      $('againBtn').textContent = 'RETURN TO SETTLEMENT';
+      setTimeout(() => this.setScreen('over'), success ? 500 : 900);
+    }
+
     showGameOver(game) {
       $('ovScore').textContent = game.score.toLocaleString();
       $('ovKills').textContent = game.kills.toLocaleString();
@@ -5335,6 +7531,32 @@ void main(){
       this.el.boost.style.background = col;
       this.el.boostLbl.textContent = lbl;
       this.el.boostLbl.style.color = col;
+
+      // objectives, haul and distance
+      const r = game.run;
+      if (r) {
+        const done = (ok) => ok ? 'done' : '';
+        const objHtml =
+          `<div class="obj ${done(r.aboard >= r.rescueNeed)}">
+             <i>${r.aboard >= r.rescueNeed ? '✔' : '●'}</i> RESCUE <b>${r.aboard}/${r.rescueNeed}</b></div>
+           <div class="obj ${done(r.waveIdx >= r.waveNeed)}">
+             <i>${r.waveIdx >= r.waveNeed ? '✔' : '●'}</i> CLEAR WAVES <b>${r.waveIdx}/${r.waveNeed}</b>
+             ${r.waveIdx < r.waveNeed ? `<em>${r.waveKills}/${r.waveKillNeed}</em>` : ''}</div>
+           <div class="obj ${done(game.objectivesDone())}">
+             <i>${game.objectivesDone() ? '▶' : '✖'}</i> EXTRACT NORTH</div>`;
+        if (objHtml !== this.objCache) { this.objCache = objHtml; this.el.obj.innerHTML = objHtml; }
+
+        const haulHtml = BA.meta.RES.filter((x) => r.haul[x.id]).map((x) =>
+          `<div class="hchip">${BA.icons.img(x.icon, 18)}<b style="color:${x.color}">${r.haul[x.id]}</b></div>`).join('')
+          + `<div class="hchip">${BA.icons.img('res_people', 18)}<b style="color:#7fd4ff">${r.aboard}/${r.cargo}</b></div>`;
+        if (haulHtml !== this.haulCache) { this.haulCache = haulHtml; this.el.haul.innerHTML = haulHtml; }
+
+        const prog = clamp01(car.z / r.exitZ) * 100;
+        this.el.distFill.style.width = prog + '%';
+        this.el.distGar.style.left = (r.garageZ / r.exitZ * 100) + '%';
+        this.el.distGar.classList.toggle('used', r.garageUsed);
+        this.el.distTxt.textContent = Math.max(0, Math.round(r.exitZ - car.z)) + 'm TO EXTRACTION';
+      }
 
       // gas / nitrous
       const fuel01 = clamp01(car.fuel / car.maxFuel);
@@ -5403,6 +7625,11 @@ void main(){
       this.weapons = new BA.Weapons(this.fx, this.audio);
       this.ragdolls = new BA.Ragdolls(this.fx, this.audio);
       this.touch = new BA.TouchControls(this.input, this.audio);
+      this.meta = new BA.meta.Meta();
+      this.base = new BA.BaseScene(this);
+      this.garage = new BA.Garage(this);
+      this.survivors = [];
+      this.loot = [];
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -5442,6 +7669,26 @@ void main(){
 
     /* ------------------------------------------------------------- setup */
     newRun() {
+      const rank = this.meta.rank;
+      const T = this.meta.truckStats();
+      this.run = {
+        rescueNeed: Math.min(2 + rank, T.cargo),
+        aboard: 0,
+        waveNeed: 3,
+        waveIdx: 0,
+        waveKills: 0,
+        waveKillNeed: 22 + rank * 6,
+        garageZ: 620,
+        exitZ: 1240,
+        garageUsed: false,
+        haul: { scrap: 0, steel: 0, food: 0, meds: 0, fuel: 0 },
+        cargo: T.cargo,
+        haulMul: T.haulMul,
+        complete: false,
+      };
+      this.survivors.length = 0;
+      this.loot.length = 0;
+      this.nextSurvivorZ = 90;
       this.time = 0;
       this.kills = 0;
       this.score = 0;
@@ -5468,6 +7715,14 @@ void main(){
       this.world.reset();
       this.weapons.reset();
       this.car.reset();
+      this.applyComponents();
+      // hardpoints come pre-loaded with weapons
+      const mounts = this.meta.truckStats().startWeapons;
+      const pool = BA.upgrades.WEAPONS.filter((w) => w.id !== 'spikes').map((w) => w.id);
+      for (let i = 0; i < mounts && pool.length; i++) {
+        const pick_ = pool.splice((Math.random() * pool.length) | 0, 1)[0];
+        this.weaponLevels[pick_] = 1;
+      }
       this.recalcStats();
       this.car.hp = this.car.maxHp;
       this.cam.yaw = 0;
@@ -5476,47 +7731,114 @@ void main(){
       this.deathTimer = 0;
     }
 
+    /* fold the garage components into the truck's baseline */
+    applyComponents() {
+      const T = this.meta.truckStats();
+      this.comp = T;
+      this.car.canJump = T.canJump;
+      this.recalcStats();
+    }
+
+    hpMul() { const d = this.difficulty(); return 1 + d * 0.66 + Math.pow(d, 1.7) * 0.14; }
+    spMul() { const d = this.difficulty(); return 1 + d * 0.06; }
+
     recalcStats() {
+      const T = this.comp || this.meta.truckStats();
       const P = this.passiveLevels;
       const lv = (k) => P[k] || 0;
       const S = this.car.stats;
-      S.maxSpeed = 44 * (1 + lv('engine') * 0.12);
-      S.accel = 34 * (1 + lv('turbo') * 0.18);
+      const apex = lv('apex');
+      S.maxSpeed = 30 * T.speedMul * (1 + lv('engine') * 0.12 + apex * 0.07);
+      S.accel = 22 * T.accelMul * (1 + lv('turbo') * 0.18);
       S.boostMul = 1 + lv('turbo') * 0.12;
-      S.grip = 14 * (1 + lv('grip') * 0.16);
-      S.driftGrip = 2.7 * (1 + lv('grip') * 0.05);
-      S.turn = 2.45 * (1 + lv('grip') * 0.08);
-      S.jump = 14.5 * (1 + lv('hydraulics') * 0.14);
-      S.airControl = 2.4 * (1 + lv('hydraulics') * 0.22);
-      S.magnet = 5.5 * (1 + lv('magnet') * 0.5);
-      S.damage = 1 + lv('overdrive') * 0.18;
+      S.grip = 12 * T.gripMul * (1 + lv('grip') * 0.16);
+      S.driftGrip = 2.5 * (1 + lv('grip') * 0.05);
+      S.turn = 2.2 * T.turnMul * (1 + lv('grip') * 0.08);
+      S.jump = 13 * T.jumpMul * (1 + lv('hydraulics') * 0.14);
+      S.airControl = 2.0 * (1 + lv('hydraulics') * 0.22);
+      S.magnet = 5.0 * T.magnetMul * (1 + lv('magnet') * 0.5);
+      S.damage = (1 + lv('overdrive') * 0.18 + apex * 0.12);
       S.cooldown = 1 + lv('coolant') * 0.16;
       S.xpGain = 1 + lv('lucky') * 0.25;
-      S.armor = lv('armor') * 0.06;
-      S.fuelMax = 100 * (1 + lv('tank') * 0.22);
-      S.fuelRegen = 4.5 * (1 + lv('tank') * 0.35);
+      S.armor = T.armor + lv('armor') * 0.06;
+      S.fuelMax = 100 * T.fuelMul * (1 + lv('tank') * 0.22);
+      S.fuelRegen = 4.0 * T.fuelRegenMul * (1 + lv('tank') * 0.35);
       S.fuelBurn = 26 * (1 - lv('tank') * 0.07);
-      S.nitroPower = 24 * (1 + lv('turbo') * 0.08);
+      S.nitroPower = 20 * T.nosMul * (1 + lv('turbo') * 0.08);
+      S.lifesteal = lv('vampire') * 0.5 + (lv('vampire') ? 0.5 : 0);
+      S.chainDmg = lv('chain') ? 14 + lv('chain') * 12 : 0;
+      this.car.canJump = T.canJump;
       const prevFuelMax = this.car.maxFuel;
       this.car.maxFuel = S.fuelMax;
       if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
       this.car.fuel = Math.min(this.car.fuel, this.car.maxFuel);
       const spikes = this.weaponLevels.spikes || 0;
-      S.ramDamage = 26 * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
+      S.ramDamage = 16 * T.ramMul * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
       this.car.spikeLevel = spikes;
 
-      const newMax = 100 + lv('armor') * 28;
+      const newMax = Math.round((T.hp + lv('armor') * 28) * T.startHpMul);
       if (newMax > this.car.maxHp) this.car.hp += Math.min(20, newMax - this.car.maxHp);
       this.car.maxHp = newMax;
       this.car.hp = Math.min(this.car.hp, this.car.maxHp);
     }
 
-    start() {
+    /* the settlement is the home screen; runs launch from it */
+    enterBase() {
+      this.state = 'base';
+      this.hud.setScreen(null);
+      this.hud.el.hud.classList.remove('on');
+      this.base.enter();
+      this.audio.silenceEngine();
+    }
+
+    startRun() {
       this.audio.resume();
+      this.base.exit();
       this.newRun();
       this.state = 'playing';
       this.hud.setScreen(null);
-      this.hud.flashBanner('SURVIVE', 'THE HORDE IS COMING');
+      this.hud.el.hud.classList.add('on');
+      this.hud.flashBanner('ROLL OUT', 'RESCUE · CLEAR · EXTRACT');
+      this.meta.runs++;
+      this.meta.save();
+    }
+
+    start() { this.enterBase(); }
+
+    /* ------------------------------------------------------- run flow */
+    endRun(success) {
+      if (this.run.complete) return;
+      this.run.complete = true;
+      this.state = 'results';
+      this.audio.silenceEngine();
+      const m = this.meta;
+      const keep = success ? 1 : 0.5;
+      const gained = {};
+      for (const k in this.run.haul) {
+        const v = Math.floor(this.run.haul[k] * keep);
+        if (v > 0) { m.add(k, v); gained[k] = v; }
+      }
+      const people = success ? this.run.aboard : 0;
+      if (people > 0) { m.add('people', people); m.totalRescued += people; }
+      m.totalKills += this.kills;
+      this.score += Math.floor(this.time * 10) + this.run.aboard * 400 + this.run.waveIdx * 250;
+      if (success) this.score = Math.floor(this.score * 1.4);
+      if (this.score > m.bestScore) m.bestScore = this.score;
+      this.best = m.bestScore;
+      m.save();
+      this.hud.showResults(this, success, gained, people);
+    }
+
+    resumeFromGarage() {
+      if (this.state === 'garage') {
+        this.state = 'playing';
+        this.hud.toast('BACK ON THE ROAD');
+      }
+    }
+
+    objectivesDone() {
+      const r = this.run;
+      return r.aboard >= r.rescueNeed && r.waveIdx >= r.waveNeed;
     }
 
     /* ------------------------------------------------------------- juice */
@@ -5575,6 +7897,33 @@ void main(){
 
     onKill(e, power) {
       this.kills++;
+      const S = this.car.stats;
+      if (S.lifesteal > 0 && this.car.hp > 0) {
+        this.car.hp = Math.min(this.car.maxHp, this.car.hp + S.lifesteal);
+      }
+      if (S.chainDmg > 0) {
+        this.fx.fire(e.x, 1.0 * e.scale, e.z, 6, 0.6, 1.0);
+        this.fx.wave(e.x, 0.1, e.z, 1, 7, 0.3, 1.0, 0.5, 0.15, 0.8);
+        this.explosion(e.x, e.z, 5.5, S.chainDmg, 'chain');
+      }
+      if (this.run && !this.run.complete) {
+        const r = this.run;
+        if (r.waveIdx < r.waveNeed) {
+          r.waveKills++;
+          if (r.waveKills >= r.waveKillNeed) {
+            r.waveKills = 0;
+            r.waveIdx++;
+            r.waveKillNeed = Math.round(r.waveKillNeed * 1.35);
+            this.audio.levelUp();
+            this.hud.flashBanner('WAVE ' + r.waveIdx + ' CLEARED',
+              r.waveIdx >= r.waveNeed ? 'ALL WAVES DOWN' : 'NEXT WAVE INCOMING');
+            this.flash(0.25, [1, 0.8, 0.3]);
+            this.checkObjectives();
+          }
+        }
+        // resources also drop straight off the horde
+        if (Math.random() < 0.16) this.dropLoot(e.x, e.z, Math.random() < 0.75 ? 'scrap' : 'meds', 1);
+      }
       this.combo++;
       this.comboTimer = COMBO_TIME;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
@@ -5601,6 +7950,119 @@ void main(){
         });
       }
       if (this.orbs.length > 700) this.orbs.splice(0, this.orbs.length - 700);
+    }
+
+    /* a scrap of a resource, flung out of whatever you just destroyed */
+    dropLoot(x, z, res, amount) {
+      if (this.loot.length > 260) this.loot.shift();
+      this.loot.push({
+        x, y: 1.0 + rand(0, 0.6), z, res, amount,
+        vx: rand(-4, 4), vy: rand(3, 7), vz: rand(-4, 4),
+        t: rand(TAU), grabbed: false, life: 30,
+      });
+    }
+
+    updateLoot(dt) {
+      const car = this.car;
+      const mag = car.stats.magnet * 1.3;
+      for (let i = this.loot.length - 1; i >= 0; i--) {
+        const o = this.loot[i];
+        o.life -= dt; o.t += dt * 3;
+        const dx = car.x - o.x, dz = car.z - o.z;
+        const d = Math.hypot(dx, dz);
+        if (!o.grabbed && d < mag) o.grabbed = true;
+        if (o.grabbed) {
+          const pull = 40 + (mag - Math.min(d, mag)) * 4;
+          o.vx += (dx / (d || 1)) * pull * dt;
+          o.vz += (dz / (d || 1)) * pull * dt;
+          o.vy += (1.4 - o.y) * 9 * dt;
+          o.vx *= Math.exp(-2.4 * dt); o.vz *= Math.exp(-2.4 * dt);
+        } else {
+          o.vy -= 26 * dt;
+          o.vx *= Math.exp(-3 * dt); o.vz *= Math.exp(-3 * dt);
+        }
+        o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt;
+        if (o.y < 0.5) { o.y = 0.5; if (o.vy < 0) o.vy = -o.vy * 0.3; }
+        if (d < 3.0 || o.life <= 0) {
+          if (o.life > 0) {
+            const gain = Math.max(1, Math.round(o.amount * this.run.haulMul));
+            this.run.haul[o.res] = (this.run.haul[o.res] || 0) + gain;
+            this.audio.pickup(0.3);
+            const rr = BA.meta.RES.find((r) => r.id === o.res);
+            this.fx.sparks(o.x, o.y, o.z, 2, 1.0, 0.9, 0.4, 0.5);
+            if (Math.random() < 0.28) this.fx.text(o.x, 2.2, o.z, '+' + gain + ' ' + (rr ? rr.name : ''), rr ? rr.color : '#fff', 15);
+          }
+          this.loot.splice(i, 1);
+        }
+      }
+    }
+
+    /* ------------------------------------------------------- survivors */
+    updateSurvivors(dt) {
+      const car = this.car;
+      const r = this.run;
+      // seed the road ahead with people waving a flare
+      while (this.nextSurvivorZ < car.z + 220 && this.survivors.length < 4) {
+        this.survivors.push({
+          x: rand(-46, 46), z: this.nextSurvivorZ, t: rand(TAU),
+          skin: [rand(0.5, 0.92), rand(0.4, 0.75), rand(0.3, 0.6)],
+          shirt: [rand(0.2, 0.6), rand(0.2, 0.6), rand(0.25, 0.65)],
+          picked: false, panic: 0,
+        });
+        this.nextSurvivorZ += rand(110, 190);
+      }
+      for (let i = this.survivors.length - 1; i >= 0; i--) {
+        const sv = this.survivors[i];
+        sv.t += dt * 3;
+        if (sv.z < car.z - 140) { this.survivors.splice(i, 1); continue; }
+        const d = Math.hypot(car.x - sv.x, car.z - sv.z);
+        if (d < 60) sv.panic = 1;
+        if (d < 6.5) {
+          this.survivors.splice(i, 1);
+          if (r.aboard < r.cargo) {
+            r.aboard++;
+            this.audio.levelUp();
+            this.fx.text(sv.x, 3.4, sv.z, 'RESCUED! ' + r.aboard + '/' + r.cargo, '#7fd4ff', 26, 'big');
+            this.fx.sparks(sv.x, 1.4, sv.z, 16, 0.4, 0.8, 1.4, 1.1);
+            this.flash(0.2, [0.4, 0.8, 1.0]);
+            this.checkObjectives();
+          } else {
+            this.hud.toast('CARGO BED FULL - UPGRADE IT AT THE GARAGE');
+            this.fx.text(sv.x, 3.4, sv.z, 'NO ROOM', '#ff6b5e', 22, 'big');
+          }
+        }
+      }
+    }
+
+    checkObjectives() {
+      if (this.objectivesDone() && !this.run.exitOpen) {
+        this.run.exitOpen = true;
+        this.hud.flashBanner('EXTRACTION OPEN', 'DRIVE NORTH TO THE GATE');
+        this.audio.levelUp();
+      }
+    }
+
+    /* garage pit-stop and the extraction gate sit on the road north */
+    updateLandmarks(dt) {
+      const car = this.car, r = this.run;
+      if (!r.garageUsed && Math.abs(car.z - r.garageZ) < 13 && Math.abs(car.x) < 15) {
+        if (car.speed < 9) {
+          r.garageUsed = true;
+          this.state = 'garage';
+          this.audio.silenceEngine();
+          this.garage.open('road');
+        } else if (!r.garageHint) {
+          r.garageHint = true;
+          this.hud.toast('SLOW DOWN IN THE GARAGE TO FIT PARTS');
+        }
+      }
+      if (Math.abs(car.z - r.exitZ) < 14 && Math.abs(car.x) < 20) {
+        if (this.objectivesDone()) this.endRun(true);
+        else if (!r.exitHint) {
+          r.exitHint = true;
+          this.hud.toast('OBJECTIVES INCOMPLETE - THE GATE STAYS SHUT');
+        }
+      }
     }
 
     dropHealth(x, z) {
@@ -5645,19 +8107,20 @@ void main(){
     }
 
     /* ---------------------------------------------------------- director */
-    difficulty() { return this.time / 60; }
+    // difficulty tracks both clock and distance, so pushing north hurts
+    difficulty() { return Math.max(this.time / 60, this.car.z / 260) * (1 + this.meta.rank * 0.06); }
 
     spawnWave(dt) {
       const d = this.difficulty();
-      const targetAlive = Math.min(70 + d * 62, this.horde.max);
+      const targetAlive = Math.min(80 + d * 72, this.horde.max);
       const alive = this.horde.count;
       if (alive >= targetAlive) return;
 
-      this.spawnAcc += dt * (9 + d * 12);
+      this.spawnAcc += dt * (11 + d * 14);
       if (this.spawnAcc < 1) return;
 
-      const hpMul = 1 + d * 0.62 + Math.pow(d, 1.7) * 0.12;
-      const spMul = 1 + d * 0.05;
+      const hpMul = this.hpMul();
+      const spMul = this.spMul();
 
       // spawn as clusters so the horde reads as a wall of bodies
       const clusterSize = clamp(Math.floor(4 + d * 5), 4, 26);
@@ -5675,9 +8138,12 @@ void main(){
       for (let i = 0; i < n; i++) {
         let type = 'walker';
         const r = Math.random();
-        if (d > 0.6 && r < 0.20 + d * 0.05) type = 'runner';
-        if (d > 1.4 && r > 0.86) type = 'bomber';
-        if (d > 2.2 && r > 0.955) type = 'brute';
+        if (d > 0.4 && r < 0.22 + d * 0.06) type = 'runner';
+        if (d > 0.8 && r > 0.80 && r < 0.86) type = 'spitter';
+        if (d > 1.2 && r > 0.86 && r < 0.90) type = 'bomber';
+        if (d > 1.6 && r > 0.90 && r < 0.94) type = 'sniper';
+        if (d > 2.0 && r > 0.94 && r < 0.965) type = 'screamer';
+        if (d > 2.2 && r > 0.965) type = 'brute';
         const spread = 3 + clusterSize * 0.7;
         this.horde.spawn(type, cxp + rand(-spread, spread), czp + rand(-spread, spread), hpMul, spMul);
       }
@@ -5706,7 +8172,34 @@ void main(){
         this.fx.update(dt, null);
         if (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyW') || this.hud.startRequested) {
           this.hud.startRequested = false;
-          this.start();
+          this.audio.resume();
+          this.enterBase();
+        }
+        return;
+      }
+
+      if (this.state === 'base') {
+        this.base.update(dt);
+        this.fx.update(dt, null);
+        if (inp.consume('KeyG')) this.garage.open('base');
+        return;
+      }
+
+      if (this.state === 'garage') {
+        // the world holds its breath while you are under the truck
+        this.fx.update(dt * 0.1, (x, z) => this.world.groundHeight(x, z));
+        this.updateCamera(dt * 0.4, true);
+        return;
+      }
+
+      if (this.state === 'results') {
+        this.deathTimer += dt;
+        this.updateCamera(dt, true);
+        this.fx.update(dt * 0.4, (x, z) => this.world.groundHeight(x, z));
+        this.ragdolls.update(dt * 0.4, (x, z) => this.world.groundHeight(x, z), null);
+        if (this.deathTimer > 0.8 && (inp.consume('Space') || inp.consume('Enter') || this.hud.startRequested)) {
+          this.hud.startRequested = false;
+          this.enterBase();
         }
         return;
       }
@@ -5741,10 +8234,7 @@ void main(){
         this.fx.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z));
         this.ragdolls.update(dt * 0.55, (x, z) => this.world.groundHeight(x, z), null);
         this.horde.update(dt * 0.35, this.car, this, this.world);
-        if (this.deathTimer > 1.1 && (inp.consume('Space') || inp.consume('Enter') || inp.consume('KeyR') || this.hud.startRequested)) {
-          this.hud.startRequested = false;
-          this.start();
-        }
+        if (this.deathTimer > 1.2 && !this.run.complete) this.endRun(false);
         return;
       }
 
@@ -5764,6 +8254,9 @@ void main(){
       this.weapons.update(dt, this.car, this.horde, this);
       this.spawnWave(dt);
       this.updateOrbs(dt);
+      this.updateLoot(dt);
+      this.updateSurvivors(dt);
+      this.updateLandmarks(dt);
       this.fx.update(dt, (x, z) => this.world.groundHeight(x, z));
       this.ragdolls.update(dt, (x, z) => this.world.groundHeight(x, z), this.car);
       this.updateCamera(dt, false);
@@ -5789,11 +8282,6 @@ void main(){
       this.shake(1.2);
       this.flash(0.8, [1, 0.55, 0.3]);
       this.score += Math.floor(this.time * 12);
-      if (this.score > this.best) {
-        this.best = this.score;
-        localStorage.setItem('ba_best', String(this.best));
-      }
-      this.hud.showGameOver(this);
     }
 
     updateOrbs(dt) {
@@ -5917,6 +8405,7 @@ void main(){
 
     /* ------------------------------------------------------------- draw */
     draw() {
+      if (this.state === 'base') { this.base.draw(this.R); return; }
       const R = this.R;
       const car = this.car;
       R.time = this.time;
@@ -5930,6 +8419,20 @@ void main(){
       if (this.state !== 'dead') car.draw(R);
       this.weapons.draw(R, car, this);
       this.fx.draw(R);
+
+      this.drawLandmarks(R);
+      this.drawSurvivors(R);
+      for (const o of this.loot) {
+        const rr = BA.meta.RES.find((r2) => r2.id === o.res) || { color: '#fff' };
+        const c = [
+          parseInt(rr.color.slice(1, 3), 16) / 255,
+          parseInt(rr.color.slice(3, 5), 16) / 255,
+          parseInt(rr.color.slice(5, 7), 16) / 255,
+        ];
+        const p = 0.5 + Math.sin(o.t) * 0.08;
+        R.push('box', 'opaque', o.x, o.y, o.z, o.t * 0.8, o.t * 0.5, o.t * 0.3, p, p, p, c[0], c[1], c[2], 0.55);
+        R.push('sphere', 'glow', o.x, o.y, o.z, 0, 0, 0, p * 2.6, p * 2.6, p * 2.6, c[0] * 0.22, c[1] * 0.22, c[2] * 0.22, 1);
+      }
 
       // xp orbs
       for (const o of this.orbs) {
@@ -5972,6 +8475,72 @@ void main(){
       this.fx.drawText(ctx, R, this.overlay.width, this.overlay.height);
     }
 
+    drawSurvivors(R) {
+      for (const sv of this.survivors) {
+        const bob = Math.abs(Math.sin(sv.t)) * 0.12;
+        const wave = Math.sin(sv.t * 2.2) * 0.7;
+        const y = 0;
+        R.push('box', 'opaque', sv.x, y + 1.05 + bob, sv.z, 0, 0, 0, 0.66, 0.9, 0.44, sv.shirt[0], sv.shirt[1], sv.shirt[2], 0);
+        R.push('box', 'opaque', sv.x, y + 1.66 + bob, sv.z, 0, 0, 0, 0.48, 0.48, 0.46, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        R.push('box', 'opaque', sv.x - 0.42, y + 1.5 + bob, sv.z, 0, wave, 0, 0.2, 0.75, 0.2, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        R.push('box', 'opaque', sv.x + 0.42, y + 1.5 + bob, sv.z, 0, -wave, 0, 0.2, 0.75, 0.2, sv.skin[0], sv.skin[1], sv.skin[2], 0);
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', sv.x + side * 0.2, y + 0.42, sv.z, 0, 0, 0, 0.24, 0.85, 0.24, 0.2, 0.2, 0.26, 0);
+        }
+        // signal flare so you can find them at speed
+        const f = 0.7 + Math.sin(sv.t * 6) * 0.3;
+        R.push('cone', 'glow', sv.x + 0.6, y + 2.6 + bob, sv.z, 0, Math.PI, 0, 1.2 * f, 2.2 * f, 1.2 * f, 1.4 * f, 0.5 * f, 0.15, 1);
+        R.push('cyl', 'glow', sv.x, 14, sv.z, 0, 0, 0, 0.7, 28, 0.7, 0.10 * f, 0.34 * f, 0.62 * f, 1);
+        R.push('ring', 'glow', sv.x, 0.08, sv.z, 0, 0, 0, 9, 1.2, 9, 0.2 * f, 0.45 * f, 0.7 * f, 1);
+        R.shadow(sv.x, sv.z, 1.1, 0.45);
+      }
+    }
+
+    drawLandmarks(R) {
+      const r = this.run;
+      if (!r) return;
+      const t = this.time;
+      const near = (z) => Math.abs(this.car.z - z) < 260;
+
+      if (near(r.garageZ) && !r.garageUsed) {
+        const gz = r.garageZ;
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', side * 12, 3.0, gz, 0, 0, 0, 3.0, 6.0, 12.0, 0.34, 0.18, 0.16, 0);
+        }
+        R.push('box', 'opaque', 0, 6.4, gz, 0, 0, 0, 27, 1.2, 13, 0.26, 0.14, 0.13, 0);
+        R.push('box', 'opaque', 0, 7.6, gz - 6.6, 0, 0, 0, 20, 1.8, 0.6, 0.9, 0.72, 0.1, 0.55);
+        for (let i = 0; i < 5; i++) {
+          R.push('box', 'glow', -8 + i * 4, 7.6, gz - 6.9, 0, 0, 0, 2.6, 0.9, 0.2,
+            1.2, 0.9, 0.2, 1);
+        }
+        R.push('disc', 'glow', 0, 0.07, gz, 0, 0, 0, 26, 1, 26, 0.14, 0.09, 0.02, 1);
+        R.push('ring', 'glow', 0, 0.1, gz, 0, 0, 0, 26 + Math.sin(t * 2) * 2, 1.4, 26, 0.5, 0.35, 0.06, 1);
+        for (let i = 0; i < 4; i++) {
+          R.push('cone', 'opaque', -9 + i * 6, 0.9, gz + 7, 0, 0, 0, 1.6, 1.8, 1.6, 0.9, 0.4, 0.06, 0.2);
+        }
+      }
+
+      if (near(r.exitZ)) {
+        const ez = r.exitZ;
+        const open = this.objectivesDone();
+        const c = open ? [0.2, 1.0, 0.35] : [1.0, 0.2, 0.15];
+        for (const side of [-1, 1]) {
+          R.push('box', 'opaque', side * 18, 5.0, ez, 0, 0, 0, 4.0, 10.0, 4.0, 0.3, 0.29, 0.32, 0);
+          R.push('box', 'opaque', side * 18, 10.4, ez, 0, 0, 0, 5.0, 1.2, 5.0, 0.22, 0.21, 0.24, 0);
+        }
+        R.push('box', 'opaque', 0, 10.6, ez, 0, 0, 0, 40, 1.6, 2.0, 0.26, 0.25, 0.28, 0);
+        R.push('box', 'glow', 0, 10.6, ez - 1.2, 0, 0, 0, 34, 1.0, 0.3, c[0], c[1], c[2], 1);
+        if (!open) {
+          for (let i = 0; i < 6; i++) {
+            R.push('box', 'opaque', -15 + i * 6, 3.0, ez, 0, 0, 0, 1.0, 6.0, 1.0, 0.35, 0.34, 0.36, 0);
+          }
+        }
+        const pulse = 0.6 + Math.sin(t * 3) * 0.4;
+        R.push('disc', 'glow', 0, 0.07, ez, 0, 0, 0, 34, 1, 34, c[0] * 0.09 * pulse, c[1] * 0.09 * pulse, c[2] * 0.09 * pulse, 1);
+        R.push('ring', 'glow', 0, 0.1, ez, 0, 0, 0, 36, 1.6, 36, c[0] * pulse, c[1] * pulse, c[2] * pulse, 1);
+      }
+    }
+
     /* -------------------------------------------------------------- loop */
     frame(now) {
       requestAnimationFrame(this.frame);
@@ -5998,8 +8567,9 @@ void main(){
       this.update(dt);
       this.draw();
 
-      const intensity = clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
-      this.audio.updateMusic(realDt, intensity, this.state === 'playing' || this.state === 'levelup');
+      const intensity = this.state === 'base' ? 0.12
+        : clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
+      this.audio.updateMusic(realDt, intensity, this.state !== 'title');
       this.touch.update(realDt, this);
       this.hud.update(this, realDt);
     }
@@ -6037,7 +8607,9 @@ void main(){
       const kick = () => game.audio.resume();
       window.addEventListener('pointerdown', kick, { once: true });
       window.addEventListener('keydown', kick, { once: true });
+      window.addEventListener('beforeunload', () => { game.meta.lastTick = Date.now(); game.meta.save(); });
       document.addEventListener('visibilitychange', () => {
+        if (document.hidden) game.meta.save();
         if (document.hidden && game.state === 'playing') {
           game.state = 'paused';
           hud.setScreen('pause');

@@ -11,6 +11,16 @@
     R.push('box', layer, (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, yaw, pitch, 0, w, w, len, r, g, b, e === undefined ? 1 : e);
   }
 
+  // squared distance from a point to a 2D segment
+  function segDist2(px, pz, ax, az, bx, bz) {
+    const dx = bx - ax, dz = bz - az;
+    const l2 = dx * dx + dz * dz;
+    let t = l2 > 0 ? ((px - ax) * dx + (pz - az) * dz) / l2 : 0;
+    t = clamp(t, 0, 1);
+    const cx = ax + dx * t, cz = az + dz * t;
+    return (px - cx) * (px - cx) + (pz - cz) * (pz - cz);
+  }
+
   class Weapons {
     constructor(fx, audio) {
       this.fx = fx;
@@ -25,7 +35,10 @@
       this.patches = [];
       this.bolts = [];
       this.sawAngle = 0;
-      this.cd = { rocket: 0, minigun: 0, tesla: 0, mine: 0, flame: 0, pulse: 0 };
+      this.laser = null;
+      this.rail = { charge: 0, beam: null };
+      this.droneAngle = 0;
+      this.cd = { rocket: 0, minigun: 0, tesla: 0, mine: 0, flame: 0, pulse: 0, drone: 0 };
     }
 
     nearest(horde, x, z, maxDist, exclude) {
@@ -291,6 +304,98 @@
         }
       }
 
+      /* ---------------------------------------------------- laser array */
+      if (L.laser > 0) {
+        const t = this.nearest(horde, car.x, car.z, 34 + L.laser * 5);
+        if (t) {
+          const ox = car.x, oz = car.z, oy = 2.6;
+          const dx = t.x - ox, dz = t.z - oz;
+          const d = Math.hypot(dx, dz) || 1;
+          const reach = 36 + L.laser * 6;
+          const ex = ox + (dx / d) * reach, ez = oz + (dz / d) * reach;
+          this.laser = { ox, oy, oz, ex, ez, t };
+          const dps = (26 + L.laser * 22) * dmgMul;
+          const width = 1.1 + L.laser * 0.22;
+          // the beam burns straight through everything it touches
+          const near = horde.grid.query((ox + ex) / 2, (oz + ez) / 2, reach * 0.6 + 6, []);
+          for (const e of near) {
+            if (e.dead) continue;
+            if (segDist2(e.x, e.z, ox, oz, ex, ez) < (width + e.radius) * (width + e.radius)) {
+              e.laserTick = (e.laserTick || 0) - dt;
+              if (e.laserTick <= 0) {
+                e.laserTick = 0.15;
+                horde.damage(e, dps * 0.15, dx / d, dz / d, 2, game);
+                if (Math.random() < 0.4) this.fx.fire(e.x, 1.1 * e.scale, e.z, 1, 0.35, 0.3);
+              }
+            }
+          }
+          if (Math.random() < dt * 40) this.fx.sparks(t.x, 1.0 * t.scale, t.z, 2, 1.2, 0.3, 1.4, 0.9);
+        } else this.laser = null;
+      } else this.laser = null;
+
+      /* ---------------------------------------------------- railgun */
+      if (L.rail > 0) {
+        this.rail.charge += dt / ((2.6 - L.rail * 0.22) * cdMul);
+        if (this.rail.charge >= 1) {
+          const t = this.nearest(horde, car.x, car.z, 90);
+          this.rail.charge = 0;
+          const ang = t ? Math.atan2(t.x - car.x, t.z - car.z) : car.yaw;
+          const ox = car.x, oz = car.z;
+          const len = 110;
+          const ex = ox + Math.sin(ang) * len, ez = oz + Math.cos(ang) * len;
+          const dmg = (150 + L.rail * 120) * dmgMul;
+          const width = 1.6 + L.rail * 0.3;
+          for (const e of [...horde.list]) {
+            if (e.dead) continue;
+            if (segDist2(e.x, e.z, ox, oz, ex, ez) < (width + e.radius) * (width + e.radius)) {
+              e.vy = 9; e.airborne = true;
+              horde.damage(e, dmg, Math.sin(ang), Math.cos(ang), 60, game, true);
+            }
+          }
+          this.rail.beam = { ox, oz, ex, ez, life: 0.45, max: 0.45 };
+          this.audio.explode(1.2);
+          this.fx.sparks(car.x + Math.sin(ang) * 3, 2.6, car.z + Math.cos(ang) * 3, 22, 0.7, 0.9, 1.6, 2.0);
+          game.shake(0.5);
+          game.flash(0.3, [0.6, 0.8, 1.0]);
+          // recoil
+          car.vx -= Math.sin(ang) * 6;
+          car.vz -= Math.cos(ang) * 6;
+        }
+        if (this.rail.beam) {
+          this.rail.beam.life -= dt;
+          if (this.rail.beam.life <= 0) this.rail.beam = null;
+        }
+      }
+
+      /* ---------------------------------------------------- drone swarm */
+      if (L.drone > 0) {
+        this.droneAngle += dt * 1.5;
+        this.cd.drone -= dt;
+        if (this.cd.drone <= 0) {
+          const count = 1 + L.drone;
+          const used = new Set();
+          let fired = 0;
+          for (let i = 0; i < count; i++) {
+            const a = this.droneAngle + (i / count) * TAU;
+            const dxp = car.x + Math.sin(a) * 5.5, dzp = car.z + Math.cos(a) * 5.5;
+            const t = this.nearest(horde, dxp, dzp, 40, used);
+            if (!t) break;
+            used.add(t);
+            const bx = dxp, by = 4.2, bz = dzp;
+            const vx = t.x - bx, vy = 1.0 * t.scale - by, vz = t.z - bz;
+            const d = Math.hypot(vx, vy, vz) || 1;
+            this.bullets.push({
+              x: bx, y: by, z: bz,
+              vx: (vx / d) * 95, vy: (vy / d) * 95, vz: (vz / d) * 95,
+              life: 0.8, dmg: (11 + L.drone * 8) * dmgMul,
+            });
+            fired++;
+          }
+          this.cd.drone = (0.42 - L.drone * 0.035) * cdMul;
+          if (fired) this.audio.shoot();
+        }
+      }
+
       /* ---------------------------------------------------- shock pulse */
       if (L.slam > 0) {
         this.cd.pulse -= dt;
@@ -349,6 +454,49 @@
             beam(R, 'glow', px, py, pz, nx, ny, nz, 0.22 * k + 0.06, 0.65 * k, 1.0 * k, 1.6 * k);
             px = nx; py = ny; pz = nz;
           }
+        }
+      }
+
+      if (this.laser) {
+        const l = this.laser;
+        const w = 0.34 + L.laser * 0.09;
+        const flick = 0.85 + Math.random() * 0.3;
+        beam(R, 'glow', l.ox, l.oy, l.oz, l.ex, 1.2, l.ez, w, 1.5 * flick, 0.35 * flick, 1.7 * flick);
+        beam(R, 'glow', l.ox, l.oy, l.oz, l.ex, 1.2, l.ez, w * 0.4, 1.9, 1.5, 2.0);
+        // emitter on the roof
+        R.push('box', 'opaque', car.x, 2.9, car.z, Math.atan2(l.ex - l.ox, l.ez - l.oz), 0, 0,
+          0.7, 0.5, 1.5, 0.34, 0.36, 0.42, 0.05);
+        R.push('sphere', 'glow', car.x, 2.9, car.z, 0, 0, 0, 1.5, 1.5, 1.5, 0.5, 0.12, 0.6, 1);
+      }
+
+      if (L.rail > 0) {
+        const c = clamp01(this.rail.charge);
+        R.push('cyl', 'opaque', car.x, 3.1, car.z, car.yaw, Math.PI / 2, 0, 0.5, 4.2, 0.5, 0.32, 0.33, 0.38, 0);
+        R.push('sphere', 'glow', car.x + Math.sin(car.yaw) * 2.0, 3.1, car.z + Math.cos(car.yaw) * 2.0,
+          0, 0, 0, 0.6 + c * 1.6, 0.6 + c * 1.6, 0.6 + c * 1.6, 0.35 * c, 0.55 * c, 1.2 * c, 1);
+        if (this.rail.beam) {
+          const b = this.rail.beam;
+          const k = clamp01(b.life / b.max);
+          beam(R, 'glow', b.ox, 2.2, b.oz, b.ex, 2.2, b.ez, 1.4 * k, 0.5 * k, 0.8 * k, 1.8 * k);
+          beam(R, 'glow', b.ox, 2.2, b.oz, b.ex, 2.2, b.ez, 0.4 * k, 1.4 * k, 1.6 * k, 2.0 * k);
+        }
+      }
+
+      if (L.drone > 0) {
+        const count = 1 + L.drone;
+        for (let i = 0; i < count; i++) {
+          const a = this.droneAngle + (i / count) * TAU;
+          const dx = car.x + Math.sin(a) * 5.5, dz = car.z + Math.cos(a) * 5.5;
+          const dy = 4.2 + Math.sin(this.droneAngle * 3 + i) * 0.25;
+          R.push('box', 'opaque', dx, dy, dz, a, 0, 0, 1.0, 0.34, 1.0, 0.36, 0.38, 0.44, 0);
+          R.push('box', 'opaque', dx, dy - 0.3, dz, a, 0, 0, 0.5, 0.3, 0.7, 0.2, 0.2, 0.24, 0);
+          for (const [ox, oz] of [[0.62, 0.62], [-0.62, 0.62], [0.62, -0.62], [-0.62, -0.62]]) {
+            const rx = dx + (ox * Math.cos(a) + oz * Math.sin(a));
+            const rz = dz + (-ox * Math.sin(a) + oz * Math.cos(a));
+            R.push('cyl', 'glow', rx, dy + 0.2, rz, 0, 0, 0, 1.1, 0.06, 1.1, 0.12, 0.28, 0.45, 1);
+          }
+          R.push('sphere', 'glow', dx, dy - 0.4, dz, 0, 0, 0, 0.6, 0.6, 0.6, 0.5, 0.1, 0.1, 1);
+          R.shadow(dx, dz, 1.2, 0.25);
         }
       }
 

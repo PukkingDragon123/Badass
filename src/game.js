@@ -21,7 +21,7 @@
       this.ragdolls = new BA.Ragdolls(this.fx, this.audio);
       this.touch = new BA.TouchControls(this.input, this.audio);
       this.meta = new BA.meta.Meta();
-      this.base = new BA.BaseScene(this);
+      this.bunker = new BA.Bunker(this);
       this.garage = new BA.Garage(this);
       this.survivors = [];
       this.loot = [];
@@ -37,7 +37,6 @@
       this.hurtFlash = 0;
       this.flashAmt = 0;
       this.flashCol = [1, 1, 1];
-      this.orbs = [];
       this.pickups = [];
       this.scratch = [];
       this.best = Number(localStorage.getItem('ba_best') || 0);
@@ -78,7 +77,7 @@
         garageZ: 620,
         exitZ: 1240,
         garageUsed: false,
-        haul: { scrap: 0, steel: 0, food: 0, meds: 0, fuel: 0 },
+        haul: { scrap: 0, wood: 0, ore: 0, stone: 0, food: 0, fuel: 0 },
         cargo: T.cargo,
         haulMul: T.haulMul,
         complete: false,
@@ -98,9 +97,6 @@
       this.time = 0;
       this.kills = 0;
       this.score = 0;
-      this.level = 1;
-      this.xp = 0;
-      this.xpNext = 6;
       this.combo = 0;
       this.comboTimer = 0;
       this.bestCombo = 0;
@@ -108,12 +104,8 @@
       this.nextBoss = 105;
       this.bossAlive = null;
       this.announce = null;
-      this.weaponLevels = {};
-      for (const w of BA.upgrades.WEAPONS) this.weaponLevels[w.id] = 0;
-      this.passiveLevels = {};
-      this.weaponLevels.spikes = 1;
+      this.syncWeapons();
 
-      this.orbs.length = 0;
       this.pickups.length = 0;
       this.fx.clear();
       this.ragdolls.reset();
@@ -122,14 +114,6 @@
       this.weapons.reset();
       this.car.reset();
       this.applyComponents();
-      // hardpoints come pre-loaded with weapons
-      const mounts = this.meta.truckStats().startWeapons;
-      const pool = BA.upgrades.WEAPONS.filter((w) => w.id !== 'spikes').map((w) => w.id);
-      for (let i = 0; i < mounts && pool.length; i++) {
-        const pick_ = pool.splice((Math.random() * pool.length) | 0, 1)[0];
-        this.weaponLevels[pick_] = 1;
-      }
-      this.recalcStats();
       this.car.hp = this.car.maxHp;
       this.car.fuel = this.car.maxFuel * (this.comp.startFuel || 0.55);
       this.car.nitroWarned = false;
@@ -145,7 +129,30 @@
       this.comp = T;
       this.car.canJump = T.canJump;
       this.car.canNitro = T.canNitro;
+      this.syncWeapons();
       this.recalcStats();
+    }
+
+    /* The arsenal is exactly what is bolted to the truck - built in the armory,
+       nothing handed out mid-run. Only the best `hardpoints` guns actually fire. */
+    syncWeapons() {
+      const T = this.comp || this.meta.truckStats();
+      const owned = [];
+      for (const c of BA.meta.WEAPON_COMPONENTS) {
+        const l = this.meta.compLevel(c.id);
+        if (l > 0) owned.push({ w: c.w, l });
+      }
+      owned.sort((a, b) => b.l - a.l);
+      this.weaponLevels = {};
+      // spikes are part of the plow, they never occupy a hardpoint
+      let slots = T.hardpoints;
+      for (const o of owned) {
+        if (o.w === 'spikes') { this.weaponLevels.spikes = o.l; continue; }
+        if (slots <= 0) continue;
+        this.weaponLevels[o.w] = o.l;
+        slots--;
+      }
+      this.mountedCount = owned.length;
     }
 
     hpMul() { const d = this.difficulty(); return 1 + d * 0.66 + Math.pow(d, 1.7) * 0.14; }
@@ -153,28 +160,26 @@
 
     recalcStats() {
       const T = this.comp || this.meta.truckStats();
-      const P = this.passiveLevels;
-      const lv = (k) => P[k] || 0;
+      const lv = (k) => this.meta.compLevel(k);
       const S = this.car.stats;
       const apex = lv('apex');
-      S.maxSpeed = 30 * T.speedMul * (1 + lv('engine') * 0.12 + apex * 0.07);
-      S.accel = 22 * T.accelMul * (1 + lv('turbo') * 0.18);
-      S.boostMul = 1 + lv('turbo') * 0.12;
-      S.grip = 12 * T.gripMul * (1 + lv('grip') * 0.16);
-      S.driftGrip = 2.5 * (1 + lv('grip') * 0.05);
-      S.turn = 2.2 * T.turnMul * (1 + lv('grip') * 0.08);
-      S.jump = 13 * T.jumpMul * (1 + lv('hydraulics') * 0.14);
-      S.airControl = 2.0 * (1 + lv('hydraulics') * 0.22);
-      S.magnet = 5.0 * T.magnetMul * (1 + lv('magnet') * 0.5);
-      S.damage = (1 + lv('overdrive') * 0.18 + apex * 0.12);
-      S.cooldown = 1 + lv('coolant') * 0.16;
-      S.xpGain = 1 + lv('lucky') * 0.25;
-      S.armor = T.armor + lv('armor') * 0.06;
-      S.fuelMax = 100 * T.fuelMul * (1 + lv('tank') * 0.22);
-      S.fuelRegen = 4.0 * T.fuelRegenMul * (1 + lv('tank') * 0.35);
-      S.fuelBurn = 26 * (1 - lv('tank') * 0.07);
-      S.nitroPower = 20 * T.nosMul * (1 + lv('turbo') * 0.08);
-      S.lifesteal = lv('vampire') * 0.5 + (lv('vampire') ? 0.5 : 0);
+      S.maxSpeed = 30 * T.speedMul * (1 + apex * 0.07);
+      S.accel = 22 * T.accelMul;
+      S.boostMul = 1 + lv('turbo') * 0.06;
+      S.grip = 12 * T.gripMul;
+      S.driftGrip = 2.5;
+      S.turn = 2.2 * T.turnMul;
+      S.jump = 13 * T.jumpMul;
+      S.airControl = 2.0 * (1 + lv('hydraulics') * 0.16);
+      S.magnet = 5.0 * T.magnetMul;
+      S.damage = (1 + lv('overdrive') * 0.16 + apex * 0.12);
+      S.cooldown = 1 + lv('coolant') * 0.14;
+      S.armor = T.armor;
+      S.fuelMax = 100 * T.fuelMul;
+      S.fuelRegen = 4.0 * T.fuelRegenMul;
+      S.fuelBurn = 26 * (1 - Math.min(0.4, lv('tank') * 0.06));
+      S.nitroPower = 20 * T.nosMul;
+      S.lifesteal = lv('vampire') ? 0.5 + lv('vampire') * 0.5 : 0;
       S.chainDmg = lv('chain') ? 14 + lv('chain') * 12 : 0;
       this.car.canJump = T.canJump;
       this.car.canNitro = T.canNitro;
@@ -183,28 +188,31 @@
       if (S.fuelMax > prevFuelMax) this.car.fuel += S.fuelMax - prevFuelMax;
       this.car.fuel = Math.min(this.car.fuel, this.car.maxFuel);
       const spikes = this.weaponLevels.spikes || 0;
-      S.ramDamage = 16 * T.ramMul * (1 + spikes * 0.45) * (1 + lv('ramplate') * 0.25);
+      S.ramDamage = 16 * T.ramMul * (1 + spikes * 0.45);
       this.car.spikeLevel = spikes;
 
-      const newMax = Math.round((T.hp + lv('armor') * 28) * T.startHpMul);
+      const newMax = Math.round(T.hp * T.startHpMul);
       if (newMax > this.car.maxHp) this.car.hp += Math.min(20, newMax - this.car.maxHp);
       this.car.maxHp = newMax;
       this.car.hp = Math.min(this.car.hp, this.car.maxHp);
     }
 
-    /* the settlement is the home screen; runs launch from it */
+    /* the bunker is the home screen; runs launch from the garage ramp */
     enterBase() {
-      this.state = 'base';
+      this.state = 'bunker';
+      // a key buffered in a menu must not fire as a command in the next state
+      this.input.pressed = Object.create(null);
       this.hud.setScreen(null);
       this.hud.el.hud.classList.remove('on');
-      this.base.enter();
+      this.bunker.enter();
       this.audio.silenceEngine();
     }
 
     startRun() {
       this.audio.resume();
-      this.base.exit();
+      this.bunker.exit();
       this.newRun();
+      this.input.pressed = Object.create(null);
       this.state = 'playing';
       this.hud.setScreen(null);
       this.hud.el.hud.classList.add('on');
@@ -338,7 +346,11 @@
       this.comboTimer = COMBO_TIME;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
       this.score += 10 + Math.floor(this.combo * 0.6) + (e.type === 'boss' ? 2500 : e.type === 'brute' ? 90 : 0);
-      this.spawnXp(e.x, e.z, e.type === 'boss' ? 26 : e.type === 'brute' ? 5 : 1, e.xp);
+      if (e.type === 'boss') {
+        for (let i = 0; i < 14; i++) this.dropLoot(e.x + rand(-4, 4), e.z + rand(-4, 4), pick(['scrap', 'ore', 'stone']), 3);
+      } else if (e.type === 'brute') {
+        for (let i = 0; i < 3; i++) this.dropLoot(e.x, e.z, Math.random() < 0.6 ? 'scrap' : 'ore', 2);
+      }
 
       const c = this.combo;
       if (c === 10 || c === 25 || c === 50 || c === 100 || c === 200 || (c > 200 && c % 100 === 0)) {
@@ -346,20 +358,9 @@
         this.fx.text(this.car.x, 4.2, this.car.z, (msgs[c] || 'UNSTOPPABLE!') + ' x' + c, '#ff4d3d', 34, 'big');
         this.audio.levelUp();
         this.flash(0.22, [1, 0.5, 0.35]);
-        this.addXp(Math.floor(c * 0.55), this.car.x, this.car.z);
+        this.dropLoot(this.car.x, this.car.z, 'scrap', Math.max(2, Math.floor(c * 0.2)));
       }
       if (e.type === 'boss') this.bossAlive = null;
-    }
-
-    spawnXp(x, z, count, value) {
-      for (let i = 0; i < count; i++) {
-        this.orbs.push({
-          x: x + rand(-1.4, 1.4), y: 0.7 + rand(0, 0.6), z: z + rand(-1.4, 1.4),
-          vx: rand(-3, 3), vy: rand(2, 6), vz: rand(-3, 3),
-          value: value, t: rand(TAU), grabbed: false, life: 26,
-        });
-      }
-      if (this.orbs.length > 700) this.orbs.splice(0, this.orbs.length - 700);
     }
 
     /* a scrap of a resource, flung out of whatever you just destroyed */
@@ -488,39 +489,6 @@
       this.pickups.push({ x, y: 1.0, z, t: rand(TAU), kind: 'gas', life: 34 });
     }
 
-    addXp(amount, x, z) {
-      this.xp += amount * this.car.stats.xpGain;
-      this.score += amount * 2;
-      while (this.xp >= this.xpNext) {
-        this.xp -= this.xpNext;
-        this.level++;
-        this.xpNext = Math.floor(6 + this.level * 3.4 + Math.pow(this.level, 1.42) * 2.4);
-        this.queueLevelUp();
-      }
-    }
-
-    queueLevelUp() {
-      this.pendingLevels = (this.pendingLevels || 0) + 1;
-    }
-
-    openLevelUp() {
-      this.pendingLevels--;
-      this.state = 'levelup';
-      this.audio.levelUp();
-      this.choices = BA.upgrades.roll(this, 3);
-      this.hud.showLevelUp(this.choices, this.level, (u) => this.chooseUpgrade(u));
-    }
-
-    chooseUpgrade(u) {
-      BA.upgrades.apply(this, u);
-      this.audio.ui();
-      this.hud.setScreen(null);
-      this.state = 'playing';
-      this.slowmo = 0.35;
-      this.flash(0.3, [0.6, 0.9, 1.0]);
-      this.fx.wave(this.car.x, 0.1, this.car.z, 1, 18, 0.55, 0.5, 1.0, 1.5, 1.2);
-    }
-
     /* ---------------------------------------------------------- director */
     // difficulty tracks both clock and distance, so pushing north hurts
     difficulty() { return Math.max(this.time / 60, this.car.z / 260) * (1 + this.meta.rank * 0.06); }
@@ -593,10 +561,9 @@
         return;
       }
 
-      if (this.state === 'base') {
-        this.base.update(dt);
+      if (this.state === 'bunker') {
+        this.bunker.update(dt);
         this.fx.update(dt, null);
-        if (inp.consume('KeyG')) this.garage.open('base');
         return;
       }
 
@@ -634,15 +601,6 @@
 
       if (this.state === 'paused') return;
 
-      if (this.state === 'levelup') {
-        const pick_ = ['Digit1', 'Digit2', 'Digit3'].findIndex((k) => inp.consume(k));
-        if (pick_ >= 0 && this.choices[pick_]) this.chooseUpgrade(this.choices[pick_]);
-        this.updateCamera(dt * 0.25, true);
-        this.fx.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z));
-        this.ragdolls.update(dt * 0.15, (x, z) => this.world.groundHeight(x, z), null);
-        return;
-      }
-
       if (this.state === 'dead') {
         this.deathTimer += dt;
         this.updateCamera(dt, true);
@@ -655,7 +613,6 @@
 
       /* ---- playing ---- */
       if (this.car.hp <= 0) { this.die(); return; }
-      if (this.pendingLevels > 0 && this.freeze <= 0) { this.openLevelUp(); return; }
 
       this.time += dt;
       if (this.comboTimer > 0) {
@@ -668,7 +625,7 @@
       this.horde.update(dt, this.car, this, this.world);
       this.weapons.update(dt, this.car, this.horde, this);
       this.spawnWave(dt);
-      this.updateOrbs(dt);
+      this.updatePickups(dt);
       this.updateLoot(dt);
       this.updateSurvivors(dt);
       this.updateLandmarks(dt);
@@ -700,37 +657,8 @@
       this.score += Math.floor(this.time * 12);
     }
 
-    updateOrbs(dt) {
+    updatePickups(dt) {
       const car = this.car;
-      const mag = car.stats.magnet;
-      for (let i = this.orbs.length - 1; i >= 0; i--) {
-        const o = this.orbs[i];
-        o.life -= dt;
-        o.t += dt * 4;
-        const dx = car.x - o.x, dz = car.z - o.z;
-        const d = Math.hypot(dx, dz);
-        if (!o.grabbed && d < mag) o.grabbed = true;
-        if (o.grabbed) {
-          const pull = 34 + (mag - Math.min(d, mag)) * 4;
-          o.vx += (dx / (d || 1)) * pull * dt;
-          o.vz += (dz / (d || 1)) * pull * dt;
-          o.vy += (1.0 - o.y) * 8 * dt;
-          o.vx *= Math.exp(-2.2 * dt); o.vz *= Math.exp(-2.2 * dt);
-        } else {
-          o.vy -= 26 * dt;
-          o.vx *= Math.exp(-3 * dt); o.vz *= Math.exp(-3 * dt);
-        }
-        o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt;
-        if (o.y < 0.45) { o.y = 0.45; if (o.vy < 0) o.vy = -o.vy * 0.35; }
-        if (d < 2.6 || o.life <= 0) {
-          if (o.life > 0) {
-            this.addXp(o.value, o.x, o.z);
-            this.audio.pickup(clamp01(this.level / 24));
-            this.fx.sparks(o.x, o.y, o.z, 3, 0.5, 1.2, 0.9, 0.5);
-          }
-          this.orbs.splice(i, 1);
-        }
-      }
       for (let i = this.pickups.length - 1; i >= 0; i--) {
         const p = this.pickups[i];
         p.life -= dt; p.t += dt * 3;
@@ -821,7 +749,7 @@
 
     /* ------------------------------------------------------------- draw */
     draw() {
-      if (this.state === 'base') { this.base.draw(this.R); return; }
+      if (this.state === 'bunker') { this.bunker.draw(this.R); return; }
       const R = this.R;
       const car = this.car;
       R.time = this.time;
@@ -832,7 +760,7 @@
       this.world.draw(R, car.x, car.z);
       this.ragdolls.draw(R, car.x, car.z);
       this.horde.draw(R, car.x, car.z);
-      if (this.state !== 'dead') car.draw(R);
+      if (this.state !== 'dead') { car.draw(R); this.drawDriver(R); }
       this.weapons.draw(R, car, this);
       this.fx.draw(R);
 
@@ -851,12 +779,6 @@
         R.push('sphere', 'glow', o.x, o.y, o.z, 0, 0, 0, p * 2.6, p * 2.6, p * 2.6, c[0] * 0.22, c[1] * 0.22, c[2] * 0.22, 1);
       }
 
-      // xp orbs
-      for (const o of this.orbs) {
-        const p = 0.42 + Math.sin(o.t) * 0.08;
-        R.push('sphere', 'glow', o.x, o.y, o.z, o.t * 0.7, o.t * 0.4, 0, p, p, p, 0.16, 0.62, 0.20, 1);
-        R.push('box', 'opaque', o.x, o.y, o.z, o.t * 0.7, o.t * 0.4, o.t * 0.3, p * 0.62, p * 0.62, p * 0.62, 0.35, 1.05, 0.42, 0.9);
-      }
       for (const p of this.pickups) {
         const b = 1 + Math.sin(p.t) * 0.12;
         const y = p.y + Math.sin(p.t) * 0.18;
@@ -890,6 +812,28 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, this.overlay.width, this.overlay.height);
       this.fx.drawText(ctx, R, this.overlay.width, this.overlay.height);
+    }
+
+    /* the person actually doing the driving */
+    drawDriver(R) {
+      const car = this.car;
+      if (!this.driverPose) this.driverPose = BA.actor.newPose();
+      const steer = clamp((this.input.steer || 0), -1, 1);
+      const shake = clamp01(Math.abs(car.vr) / 12 + (car.grounded ? 0 : 0.4));
+      BA.actor.drive(this.driverPose, shake, steer);
+      // sit them in the cab, riding the body's pitch and roll
+      const fx_ = Math.sin(car.yaw), fz = Math.cos(car.yaw);
+      const rx = Math.cos(car.yaw), rz = -Math.sin(car.yaw);
+      const off = -0.25, side = -0.34;
+      BA.actor.draw(R, {
+        x: car.x + fx_ * off + rx * side,
+        y: car.y + 1.42 + Math.sin(car.pitchVis) * 0.2,
+        z: car.z + fz * off + rz * side,
+        yaw: car.yaw, scale: 0.92, pose: this.driverPose,
+        skin: [0.80, 0.60, 0.46], shirt: [0.55, 0.16, 0.12], pants: [0.20, 0.22, 0.28],
+        hair: [0.16, 0.12, 0.09], gear: [0.42, 0.40, 0.38],
+        gloves: true, helmet: true, shadow: false,
+      });
     }
 
     drawSurvivors(R) {
@@ -1051,7 +995,7 @@
       this.update(dt);
       this.draw();
 
-      const intensity = this.state === 'base' ? 0.12
+      const intensity = this.state === 'bunker' ? 0.12
         : clamp01(this.horde.count / 130 + this.car.speed01 * 0.25 + (this.bossAlive ? 0.3 : 0));
       this.audio.updateMusic(realDt, intensity, this.state !== 'title');
       this.touch.update(realDt, this);

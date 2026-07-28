@@ -141,6 +141,8 @@
         e.armless = 0;
       }
       e.phase = rand(TAU);
+      e.limp = rand(-1, 1);
+      e.headTilt = rand(-0.3, 0.3);
       e.flash = 0;
       e.stun = 0;
       e.attackCd = rand(0.4, 2.0);
@@ -527,96 +529,154 @@
           sx, sy2, sz, col[0], col[1], col[2], em);
       };
 
-      /* ---- torso ---- */
-      const chestY = (1.18 + bob) * s;
-      B(0, chestY, 0, 0.80 * g * s, 0.98 * s, 0.50 * g * s, shirt, lean, walk2 * 0.07);
-      B(0, (1.56 + bob) * s, 0.02 * s, 0.90 * g * s, 0.26 * s, 0.54 * g * s, shirt, lean);   // shoulders
-      B(0, (0.76 + bob) * s, 0, 0.68 * g * s, 0.34 * s, 0.44 * g * s, pants, lean * 0.6);    // hips
+      /* ---- rig: real joints, aimed limbs ---- */
+      // local space is (x = right, y = up, z = forward); P() takes it to world
+      const LIMB = (a, b, thick, col, mesh) => {
+        const p0 = P(a[0], a[1], a[2]), p1 = P(b[0], b[1], b[2]);
+        const dx = p1[0] - p0[0], dy = p1[1] - p0[1], dz = p1[2] - p0[2];
+        const len = Math.hypot(dx, dy, dz);
+        if (len < 1e-4) return;
+        R.push(mesh || 'cyl', 'opaque', (p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5, (p0[2] + p1[2]) * 0.5,
+          Math.atan2(dx, dz), Math.atan2(Math.hypot(dx, dz), dy), 0,
+          thick, len, thick, col[0], col[1], col[2], em);
+      };
+      const JOINT = (a, r2, col) => {
+        const p = P(a[0], a[1], a[2]);
+        R.push('sphere', 'opaque', p[0], p[1], p[2], 0, 0, 0, r2, r2, r2, col[0], col[1], col[2], em);
+      };
+
+      // the spine hunches, so everything above the hips rides forward of them
+      const fwd = (h) => Math.sin(lean) * h * s;
+      const hipY = 0.80 * s;
+      const bellyY = (1.08 + bob) * s, bellyF = fwd(0.30);
+      const chestY = (1.40 + bob) * s, chestF = fwd(0.62);
+      const shY = (1.66 + bob) * s, shF = fwd(0.88);
+      const headY = (2.08 + bob) * s;
+      const headF = shF + 0.09 * s;
+      const hyaw = walk2 * 0.14 + e.headTilt * 0.5;
+      const bone = [skin[0] * 0.9, skin[1] * 0.88, skin[2] * 0.84];
+
+      /* ---- trunk: pelvis, belly, ribcage ---- */
+      const shirtLo = [shirt[0] * 0.78, shirt[1] * 0.78, shirt[2] * 0.80];
+      const shirtHi = [shirt[0] * 1.12, shirt[1] * 1.12, shirt[2] * 1.14];
+      B(0, hipY, 0, 0.62 * g * s, 0.40 * s, 0.44 * g * s, pants, lean * 0.5);
+      // waist is narrower than the chest, so the silhouette tapers
+      B(0, bellyY, bellyF, 0.66 * g * s, 0.54 * s, 0.44 * g * s, shirtLo, lean * 0.8);
+      B(0, chestY, chestF, 0.82 * g * s, 0.60 * s, 0.52 * g * s, shirt, lean);
+      // collar line and the shoulder caps that carry the arms
+      B(0, shY, shF, 0.88 * g * s, 0.20 * s, 0.48 * g * s, shirtHi, lean);
       if (!far) {
-        // ribs poking through / bloodstain on the shirt
+        for (const side of [1, -1]) {
+          JOINT([side * 0.41 * g * s, shY - 0.02 * s, shF], 0.29 * s, shirtHi);
+        }
         if (e.gore) {
-          B(0.08 * s, (1.22 + bob) * s, 0.28 * g * s, 0.42 * s, 0.5 * s, 0.06 * s,
-            [0.42, 0.05, 0.07], lean);
-          B(-0.14 * s, (1.34 + bob) * s, 0.28 * g * s, 0.3 * s, 0.1 * s, 0.05 * s, skin, lean);
-          B(-0.14 * s, (1.16 + bob) * s, 0.28 * g * s, 0.3 * s, 0.1 * s, 0.05 * s, skin, lean);
+          // ribs showing through a torn shirt
+          for (let i = 0; i < 3; i++) {
+            B(0, chestY + (0.16 - i * 0.16) * s, chestF + 0.27 * g * s,
+              0.46 * s, 0.07 * s, 0.05 * s, bone, lean);
+          }
+          B(0.02 * s, chestY - 0.02 * s, chestF + 0.26 * g * s,
+            0.50 * s, 0.52 * s, 0.03 * s, [0.34, 0.04, 0.06], lean);
         }
       }
 
-      /* ---- head ---- */
-      const headY = (1.88 + bob) * s;
-      const hyaw = walk2 * 0.14;
-      B(0, headY, 0.06 * s, 0.50 * s, 0.52 * s, 0.48 * s, [skin[0] * 1.1, skin[1] * 1.06, skin[2] * 1.02], lean * 1.5, walk * 0.09, hyaw);
-      B(0, headY - 0.22 * s, 0.26 * s, 0.32 * s, 0.17 * s, 0.22 * s, [0.72, 0.32, 0.32], lean * 1.5, 0, hyaw);  // jaw
+      /* ---- head: skull, brow, hanging jaw, sunken eyes ---- */
+      const neckTop = [0, headY - 0.20 * s, headF - 0.02 * s];
+      LIMB([0, shY - 0.02 * s, shF], neckTop, 0.19 * s,
+        [skin[0] * 0.86, skin[1] * 0.84, skin[2] * 0.82]);
+      const headSkin = [skin[0] * 1.08, skin[1] * 1.04, skin[2] * 1.0];
+      B(0, headY, headF, 0.48 * s, 0.46 * s, 0.46 * s, headSkin, lean * 1.4, walk * 0.09, hyaw);
+      if (!far) {
+        // brow ridge and cheekbones give it a face at speed
+        B(0, headY + 0.11 * s, headF + 0.22 * s, 0.46 * s, 0.11 * s, 0.10 * s,
+          [headSkin[0] * 0.82, headSkin[1] * 0.80, headSkin[2] * 0.78], lean * 1.4, 0, hyaw);
+        B(0, headY - 0.05 * s, headF + 0.21 * s, 0.40 * s, 0.16 * s, 0.06 * s,
+          [headSkin[0] * 0.88, headSkin[1] * 0.86, headSkin[2] * 0.84], lean * 1.4, 0, hyaw);
+      }
+      // jaw hangs slack and open
+      const gape = 0.16 + Math.abs(walk) * 0.06;
+      B(0, headY - (0.22 + gape) * s, headF + 0.20 * s, 0.34 * s, 0.17 * s, 0.26 * s,
+        [0.62, 0.26, 0.26], lean * 1.4, 0, hyaw);
+      if (!far) {
+        // teeth
+        B(0, headY - (0.13 + gape * 0.4) * s, headF + 0.26 * s, 0.28 * s, 0.06 * s, 0.06 * s,
+          [0.86, 0.84, 0.74], lean * 1.4, 0, hyaw);
+      }
       for (const side of [1, -1]) {
-        const p = P(side * 0.13 * s, headY + 0.06 * s, 0.26 * s);
-        R.push('box', 'glow', p[0], p[1], p[2], yaw + hyaw, 0, 0, 0.11 * s, 0.10 * s, 0.06 * s,
+        const sk = P(side * 0.13 * s, headY + 0.04 * s, headF + 0.20 * s);
+        R.push('box', 'opaque', sk[0], sk[1], sk[2], yaw + hyaw, 0, 0,
+          0.15 * s, 0.13 * s, 0.06 * s, 0.06, 0.04, 0.04, 0);
+        const p = P(side * 0.13 * s, headY + 0.04 * s, headF + 0.24 * s);
+        R.push('box', 'glow', p[0], p[1], p[2], yaw + hyaw, 0, 0, 0.10 * s, 0.09 * s, 0.05 * s,
           1.1, 0.42, 0.14, 1);
       }
       if (!far) {
         switch (e.hat) {
           case 1:  // cap
-            B(0, headY + 0.30 * s, 0.02 * s, 0.54 * s, 0.13 * s, 0.52 * s, mix3(e.shirt, 0.7), lean * 1.5, 0, hyaw);
-            B(0, headY + 0.25 * s, 0.36 * s, 0.5 * s, 0.06 * s, 0.24 * s, mix3(e.shirt, 0.7), lean * 1.5, 0, hyaw);
+            B(0, headY + 0.28 * s, headF, 0.52 * s, 0.13 * s, 0.50 * s, mix3(e.shirt, 0.7), lean * 1.4, 0, hyaw);
+            B(0, headY + 0.23 * s, headF + 0.34 * s, 0.48 * s, 0.06 * s, 0.24 * s, mix3(e.shirt, 0.7), lean * 1.4, 0, hyaw);
             break;
           case 2:  // hard hat
-            B(0, headY + 0.32 * s, 0.02 * s, 0.58 * s, 0.24 * s, 0.58 * s, [0.95, 0.72, 0.10], lean * 1.5, 0, hyaw);
-            B(0, headY + 0.22 * s, 0.04 * s, 0.68 * s, 0.08 * s, 0.68 * s, [0.85, 0.62, 0.08], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.30 * s, headF, 0.56 * s, 0.24 * s, 0.56 * s, [0.95, 0.72, 0.10], lean * 1.4, 0, hyaw);
+            B(0, headY + 0.20 * s, headF + 0.02 * s, 0.66 * s, 0.08 * s, 0.66 * s, [0.85, 0.62, 0.08], lean * 1.4, 0, hyaw);
             break;
           case 3:  // matted hair
-            B(0, headY + 0.27 * s, -0.05 * s, 0.54 * s, 0.20 * s, 0.52 * s, [0.14, 0.11, 0.10], lean * 1.5, 0, hyaw);
-            B(0, headY + 0.02 * s, -0.27 * s, 0.44 * s, 0.44 * s, 0.14 * s, [0.14, 0.11, 0.10], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.25 * s, headF - 0.05 * s, 0.52 * s, 0.20 * s, 0.50 * s, [0.14, 0.11, 0.10], lean * 1.4, 0, hyaw);
+            B(0, headY, headF - 0.26 * s, 0.42 * s, 0.44 * s, 0.14 * s, [0.14, 0.11, 0.10], lean * 1.4, 0, hyaw);
             break;
           case 4:  // riot helmet
-            B(0, headY + 0.27 * s, 0.02 * s, 0.62 * s, 0.28 * s, 0.62 * s, [0.20, 0.21, 0.24], lean * 1.5, 0, hyaw);
-            B(0, headY + 0.05 * s, 0.27 * s, 0.54 * s, 0.26 * s, 0.09 * s, [0.10, 0.16, 0.20], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.25 * s, headF, 0.60 * s, 0.28 * s, 0.60 * s, [0.20, 0.21, 0.24], lean * 1.4, 0, hyaw);
+            B(0, headY + 0.03 * s, headF + 0.25 * s, 0.52 * s, 0.26 * s, 0.09 * s, [0.10, 0.16, 0.20], lean * 1.4, 0, hyaw);
             break;
           case 5:  // bandages
-            B(0, headY + 0.14 * s, 0.02 * s, 0.55 * s, 0.19 * s, 0.53 * s, [0.78, 0.75, 0.66], lean * 1.5, 0, hyaw);
-            B(0.09 * s, headY + 0.14 * s, 0.27 * s, 0.21 * s, 0.17 * s, 0.05 * s, [0.55, 0.10, 0.10], lean * 1.5, 0, hyaw);
+            B(0, headY + 0.12 * s, headF, 0.53 * s, 0.19 * s, 0.51 * s, [0.78, 0.75, 0.66], lean * 1.4, 0, hyaw);
+            B(0.09 * s, headY + 0.12 * s, headF + 0.25 * s, 0.21 * s, 0.17 * s, 0.05 * s, [0.55, 0.10, 0.10], lean * 1.4, 0, hyaw);
             break;
         }
       }
 
-      /* ---- arms: shoulder + elbow, reaching forward ---- */
+      /* ---- arms: reaching, elbows bent, fingers hooked ---- */
       for (const side of [1, -1]) {
+        const shoulder = [side * 0.41 * g * s, shY - 0.04 * s, shF];
         if (e.armless === side) {
-          // ripped-off arm leaves a bloody stump
-          const p = P(side * 0.52 * g * s, (1.42 + bob) * s, 0);
-          R.push('sphere', 'opaque', p[0], p[1], p[2], 0, 0, 0, 0.3 * s, 0.3 * s, 0.3 * s,
-            0.45, 0.05, 0.07, em);
+          JOINT(shoulder, 0.32 * s, [0.45, 0.05, 0.07]);
           continue;
         }
-        const swing = walk * side * 0.20;
-        const a1 = -1.32 + swing;
-        const a2 = a1 - 0.35 - Math.abs(walk) * 0.2;
-        const shX = side * 0.46 * g * s, shY = (1.46 + bob) * s;
-        const l1 = 0.52 * s, l2 = 0.48 * s;
-        // upper arm
-        const e1x = shX, e1y = shY - Math.cos(a1) * l1, e1z = -Math.sin(a1) * l1;
-        B(shX, (shY + e1y) / 2, e1z / 2, 0.23 * s, l1 + 0.12 * s, 0.23 * s, shirt, a1);
+        const swing = walk * side * 0.22;
+        const a1 = -1.28 + swing + e.limp * 0.12 * side;
+        const a2 = a1 - 0.42 - Math.abs(walk) * 0.22;
+        const l1 = 0.44 * s, l2 = 0.42 * s;
+        const elbow = [shoulder[0], shoulder[1] - Math.cos(a1) * l1, shoulder[2] - Math.sin(a1) * l1];
+        LIMB(shoulder, elbow, 0.24 * s, shirt);
         if (far) continue;
-        // forearm
-        const e2y = e1y - Math.cos(a2) * l2, e2z = e1z - Math.sin(a2) * l2;
-        B(shX, (e1y + e2y) / 2, (e1z + e2z) / 2, 0.21 * s, l2 + 0.08 * s, 0.21 * s,
-          [skin[0] * 0.98, skin[1] * 0.98, skin[2] * 0.98], a2);
-        // clawed hand
-        B(shX, e2y - 0.14 * s, e2z + 0.08 * s, 0.25 * s, 0.22 * s, 0.3 * s,
-          [skin[0] * 0.85, skin[1] * 0.85, skin[2] * 0.85], a2);
+        const hand = [elbow[0], elbow[1] - Math.cos(a2) * l2, elbow[2] - Math.sin(a2) * l2];
+        JOINT(elbow, 0.23 * s, shirt);
+        LIMB(elbow, hand, 0.20 * s, skin);
+        // palm plus three hooked fingers
+        const claw = [skin[0] * 0.82, skin[1] * 0.80, skin[2] * 0.78];
+        B(hand[0], hand[1] - 0.06 * s, hand[2] + 0.10 * s, 0.22 * s, 0.20 * s, 0.20 * s, claw, a2);
+        for (let fdx = -1; fdx <= 1; fdx++) {
+          const tip = [hand[0] + fdx * 0.07 * s, hand[1] - 0.20 * s, hand[2] + 0.26 * s];
+          LIMB([hand[0] + fdx * 0.07 * s, hand[1] - 0.08 * s, hand[2] + 0.16 * s], tip, 0.06 * s, claw);
+        }
       }
 
-      /* ---- legs: hip + knee ---- */
+      /* ---- legs: one drags, giving every walker a limp ---- */
       for (const side of [1, -1]) {
-        const a1 = walk * side * 0.62;
-        const a2 = a1 + Math.max(0, -walk * side) * 0.7;
-        const hX = side * 0.26 * s, hY = 0.72 * s;
+        const stiff = side === (e.limp > 0 ? 1 : -1) ? 0.35 : 1;
+        const a1 = walk * side * 0.62 * (0.5 + stiff * 0.5);
+        const a2 = a1 + Math.max(0, -walk * side) * 0.75 * stiff;
+        const hip = [side * 0.24 * g * s, hipY - 0.14 * s, 0];
         const l1 = 0.42 * s, l2 = 0.42 * s;
-        const k1y = hY - Math.cos(a1) * l1, k1z = -Math.sin(a1) * l1;
-        B(hX, (hY + k1y) / 2, k1z / 2, 0.28 * s, l1 + 0.1 * s, 0.28 * s, pants, a1);
+        const knee = [hip[0], hip[1] - Math.cos(a1) * l1, hip[2] - Math.sin(a1) * l1];
+        LIMB(hip, knee, 0.30 * s, pants);
         if (far) continue;
-        const k2y = k1y - Math.cos(a2) * l2, k2z = k1z - Math.sin(a2) * l2;
-        B(hX, (k1y + k2y) / 2, (k1z + k2z) / 2, 0.25 * s, l2 + 0.08 * s, 0.25 * s,
-          [pants[0] * 0.85, pants[1] * 0.85, pants[2] * 0.85], a2);
-        B(hX, k2y - 0.06 * s, k2z + 0.08 * s, 0.27 * s, 0.16 * s, 0.42 * s, [0.12, 0.11, 0.11], 0);
+        const ankle = [knee[0], knee[1] - Math.cos(a2) * l2, knee[2] - Math.sin(a2) * l2];
+        JOINT(knee, 0.27 * s, pants);
+        LIMB(knee, ankle, 0.25 * s, [pants[0] * 0.85, pants[1] * 0.85, pants[2] * 0.85]);
+        // boot, flat on the floor and pointing where it walks
+        B(ankle[0], ankle[1] - 0.04 * s, ankle[2] + 0.10 * s,
+          0.28 * s, 0.16 * s, 0.44 * s, [0.12, 0.11, 0.11], 0);
       }
 
       /* ---- type extras ---- */

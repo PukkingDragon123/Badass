@@ -79,6 +79,7 @@
       this.fogDensity = 0.0040;
       this.time = 0;
       this.groundMode = 3;
+      this.drawGround = true;   // off underground, where there is no horizon
 
       this.post = { bloom: 1.0, aberration: 0.0, vignette: 1.0, flash: 0, flashCol: [1, 1, 1], speedBlur: 0, hurt: 0 };
 
@@ -312,6 +313,7 @@
       gl.depthMask(true);
 
       // ground
+      if (this.drawGround) {
       gl.useProgram(this.progGround);
       gl.uniformMatrix4fv(this.progGround.u.uViewProj, false, this.viewProj);
       gl.uniform3fv(this.progGround.u.uCam, this.camPos);
@@ -324,6 +326,7 @@
       const gq = this.meshes.groundQuad;
       gl.bindVertexArray(gq.vao);
       gl.drawElements(gl.TRIANGLES, gq.count, gq.type, 0);
+      }
 
       // decals (alpha)
       gl.enable(gl.BLEND);

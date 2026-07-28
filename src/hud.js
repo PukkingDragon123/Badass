@@ -13,7 +13,7 @@
   class Hud {
     constructor() {
       this.el = {
-        hud: $('hud'), xp: $('xpbar'), lvl: $('lvlnum'),
+        hud: $('hud'),
         hp: $('hpbar'), hpGhost: $('hpghost'), hpText: $('hptext'),
         clock: $('clock'), kills: $('killn'), speed: $('stSpeed'),
         scrap: $('stScrap'), score: $('stScore'),
@@ -21,12 +21,12 @@
         weapons: $('weapons'), boost: $('boostbar'), boostLbl: $('boostlbl'),
         bossWrap: $('bosswrap'), bossBar: $('bossbar'),
         banner: $('banner'), bannerT: $('bannerT'), bannerS: $('bannerS'),
-        toast: $('toast'), cards: $('cards'), luLevel: $('luLevel'),
+        toast: $('toast'),
         fuelWrap: $('fuelwrap'), fuelBar: $('fuelbar'), fuelLbl: $('fuellbl'),
         obj: $('objectives'), haul: $('haulbar'),
         distFill: $('distfill'), distGar: $('distgar'), distTxt: $('disttxt'),
         screens: {
-          title: $('scTitle'), levelup: $('scLevel'),
+          title: $('scTitle'),
           pause: $('scPause'), over: $('scOver'),
         },
       };
@@ -62,32 +62,6 @@
       this.toastT = 1.4;
     }
 
-    showLevelUp(choices, level, onPick) {
-      this.el.luLevel.textContent = level;
-      const wrap = this.el.cards;
-      wrap.innerHTML = '';
-      const game = window.GAME;
-      choices.forEach((u, i) => {
-        const lv = BA.upgrades.levelOf(game, u);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.setProperty('--c', u.color);
-        card.tabIndex = 0;
-        const isNew = lv === 0 && u.id !== 'repair';
-        card.innerHTML =
-          `<div class="num">${i + 1}</div>` +
-          (isNew ? `<div class="tag">NEW</div>` : (u.id !== 'repair' ? `<div class="tag">LV ${lv + 1}</div>` : '')) +
-          `<div class="cic">${BA.icons.img(u.icon, 56)}</div>` +
-          `<div class="cnm">${u.name}</div>` +
-          `<div class="clv">${u.id === 'repair' ? 'EMERGENCY' : (isNew ? (game.weaponLevels[u.id] !== undefined ? 'NEW WEAPON' : 'NEW PERK') : 'UPGRADE')}</div>` +
-          `<div class="cds">${u.desc(lv)}</div>`;
-        card.addEventListener('click', () => onPick(u));
-        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') onPick(u); });
-        wrap.appendChild(card);
-      });
-      this.setScreen('levelup');
-    }
-
     showResults(game, success, gained, people) {
       const M = BA.meta;
       $('overT').textContent = success ? 'EXTRACTED' : 'WASTED';
@@ -95,16 +69,16 @@
       $('ovScore').textContent = game.score.toLocaleString();
       $('ovKills').textContent = game.kills.toLocaleString();
       $('ovTime').textContent = fmtTime(game.time);
-      $('ovLevel').textContent = game.level;
+      $('ovLevel').textContent = game.meta.deepestFloor() + 1;
       $('ovCombo').textContent = game.bestCombo;
       const haulTxt = M.RES.filter((r) => gained[r.id]).map((r) =>
         `<div class="hgain">${BA.icons.img(r.icon, 26)}<b style="color:${r.color}">+${gained[r.id]}</b></div>`).join('');
       $('newbest').innerHTML =
         `<div class="hauline">${people > 0 ? `<div class="hgain">${BA.icons.img('res_people', 26)}<b style="color:#7fd4ff">+${people}</b></div>` : ''}${haulTxt || '<span style="opacity:.6">NOTHING HAULED BACK</span>'}</div>` +
         (success ? '' : '<div class="lostwarn">HALF THE HAUL AND EVERY PASSENGER LOST</div>') +
-        (game.meta.res.people >= game.meta.housing
-          ? '<div class="lostwarn" style="color:#ffd23a">NO SPARE BEDS - BUILD A BUNKHOUSE OR NEW ARRIVALS TURN AWAY</div>' : '');
-      $('againBtn').textContent = 'RETURN TO SETTLEMENT';
+        (game.meta.roster.length >= game.meta.housing
+          ? '<div class="lostwarn" style="color:#ffd23a">NO SPARE BUNKS - EXPAND CREW QUARTERS OR NEW ARRIVALS TURN AWAY</div>' : '');
+      $('againBtn').textContent = 'RETURN TO THE BUNKER';
       setTimeout(() => this.setScreen('over'), success ? 500 : 900);
     }
 
@@ -112,7 +86,7 @@
       $('ovScore').textContent = game.score.toLocaleString();
       $('ovKills').textContent = game.kills.toLocaleString();
       $('ovTime').textContent = fmtTime(game.time);
-      $('ovLevel').textContent = game.level;
+      $('ovLevel').textContent = game.meta.deepestFloor() + 1;
       $('ovCombo').textContent = game.bestCombo;
       $('newbest').textContent = game.score >= game.best && game.score > 0 ? 'NEW PERSONAL BEST!' : `BEST: ${game.best.toLocaleString()}`;
       setTimeout(() => this.setScreen('over'), 900);
@@ -130,12 +104,10 @@
       this.el.hp.style.width = hp01 + '%';
       this.el.hpGhost.style.width = hp01 + '%';
       this.el.hpText.textContent = `${Math.max(0, Math.ceil(car.hp))} / ${car.maxHp}`;
-      this.el.xp.style.width = clamp01(game.xp / game.xpNext) * 100 + '%';
-      this.el.lvl.textContent = game.level;
       this.el.clock.textContent = fmtTime(game.time);
       this.el.kills.textContent = game.kills.toLocaleString();
       this.el.speed.textContent = Math.round(Math.abs(car.vf) * 3.6 * 1.6) + ' KM/H';
-      this.el.scrap.textContent = Math.floor(game.xp) + '/' + game.xpNext + ' SCRAP';
+      this.el.scrap.textContent = Math.floor(game.run ? (game.run.haul.scrap || 0) : 0) + ' SCRAP';
       this.el.score.textContent = game.score.toLocaleString() + ' PTS';
 
       const showCombo = game.combo >= 3;
@@ -198,20 +170,20 @@
       if (boss && !boss.dead) this.el.bossBar.style.width = clamp01(boss.hp / boss.maxHp) * 100 + '%';
 
       // weapon chips
-      const key = Object.entries(game.weaponLevels).map(([k, v]) => k + v).join('') +
-        Object.entries(game.passiveLevels).map(([k, v]) => k + v).join('');
+      const M2 = BA.meta;
+      const key = Object.entries(game.weaponLevels).map(([k, v]) => k + v).join('|');
       if (key !== this.chipCache) {
         this.chipCache = key;
         const parts = [];
-        for (const w of BA.upgrades.WEAPONS) {
-          const l = game.weaponLevels[w.id] || 0;
+        for (const c of M2.WEAPON_COMPONENTS) {
+          const l = game.weaponLevels[c.w] || 0;
           if (!l) continue;
-          parts.push(chip(w, l));
+          parts.push(chip(c, l));
         }
-        for (const p of BA.upgrades.PASSIVES) {
-          const l = game.passiveLevels[p.id] || 0;
+        for (const c of M2.PERK_COMPONENTS) {
+          const l = game.meta.compLevel(c.id);
           if (!l) continue;
-          parts.push(chip(p, l));
+          parts.push(chip(c, l));
         }
         this.el.weapons.innerHTML = parts.join('');
       }

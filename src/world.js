@@ -194,7 +194,7 @@
       p.hp -= 20 + speed * 3;
       this.fx.shard(p.x, 0.8, p.z, 4, 0.42, 0.40, 0.36);
       this.fx.smoke(p.x, 0.7, p.z, 2, 0.7, 0.34, 0.31, 0.28, 0.8);
-      const res = p.kind < 0.55 ? 'scrap' : p.kind < 0.85 ? 'steel' : 'meds';
+      const res = p.kind < 0.55 ? 'scrap' : p.kind < 0.85 ? 'ore' : 'wood';
       game.dropLoot(p.x + rand(-1.5, 1.5), p.z + rand(-1.5, 1.5), res, 1);
       if (p.hp <= 0) {
         p.dead = true;
@@ -239,9 +239,9 @@
         this.fx.wave(p.x, 0.1, p.z, 1, 12, 0.5, 0.9, 0.7, 0.4, 1.2);
         game.shake(0.55);
         const table = isSilo ? [['food', 5], ['scrap', 2]]
-          : p.kind < 0.4 ? [['steel', 4], ['scrap', 3]]
-            : p.kind < 0.7 ? [['scrap', 5], ['meds', 1]]
-              : [['meds', 3], ['food', 2]];
+          : p.kind < 0.4 ? [['ore', 4], ['scrap', 3]]
+            : p.kind < 0.7 ? [['scrap', 5], ['stone', 2]]
+              : [['wood', 3], ['food', 2]];
         for (const [res, n] of table) {
           for (let i = 0; i < n; i++) game.dropLoot(p.x + rand(-3, 3), p.z + rand(-3, 3), res, 2);
         }

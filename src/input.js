@@ -42,6 +42,15 @@
       return false;
     }
 
+    down(code) { return !!this.keys[code]; }
+
+    /* let the on-screen pads drive the same key names as the keyboard */
+    setKey(code, on) {
+      if (on && !this.keys[code]) this.pressed[code] = true;
+      this.keys[code] = !!on;
+      if (on) this.anyPress = true;
+    }
+
     update() {
       const k = this.keys;
       let steer = 0, thr = 0, brake = 0;

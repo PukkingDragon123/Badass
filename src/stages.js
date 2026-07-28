@@ -143,7 +143,7 @@
       landmark: 'supermarket', landmarkName: 'SUPERMARKET',
       streets: true, gen: genSuburb, exitZ: 1240, garageZ: 620,
       fog: [0.38, 0.26, 0.28], fogDensity: 0.0042, ground: 0,
-      reward: { food: 1.6, meds: 1.3, scrap: 1.0, steel: 0.8 },
+      reward: { food: 1.6, wood: 1.3, scrap: 1.2, stone: 0.9, ore: 0.7 },
       unlockRank: 1,
     },
     {
@@ -152,7 +152,7 @@
       landmark: 'mall', landmarkName: 'MALL ATRIUM',
       streets: true, gen: genMall, exitZ: 1420, garageZ: 700,
       fog: [0.30, 0.26, 0.34], fogDensity: 0.0038, ground: 1,
-      reward: { scrap: 1.7, steel: 1.5, meds: 1.2, food: 0.8 },
+      reward: { scrap: 1.7, ore: 1.5, stone: 1.1, food: 0.8, wood: 0.6 },
       unlockRank: 2,
     },
     {
@@ -161,7 +161,7 @@
       landmark: 'ranger', landmarkName: 'RANGER STATION',
       streets: false, gen: genForest, exitZ: 1120, garageZ: 560,
       fog: [0.16, 0.22, 0.20], fogDensity: 0.0060, ground: 2,
-      reward: { food: 2.0, fuel: 1.3, scrap: 0.9, steel: 0.6 },
+      reward: { wood: 2.2, food: 1.6, fuel: 1.1, scrap: 0.8, stone: 0.5 },
       unlockRank: 3,
     },
     {
@@ -170,7 +170,7 @@
       landmark: 'depot', landmarkName: 'FUEL DEPOT',
       streets: false, gen: genWaste, exitZ: 1240, garageZ: 620,
       fog: [0.40, 0.22, 0.19], fogDensity: 0.0040, ground: 3,
-      reward: { fuel: 1.8, scrap: 1.2, steel: 1.0, meds: 0.6 },
+      reward: { fuel: 1.8, scrap: 1.3, ore: 1.1, stone: 1.0, wood: 0.5 },
       unlockRank: 1,
     },
   ];

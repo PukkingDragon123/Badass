@@ -121,7 +121,7 @@
     <div class="viz-row">
       <section class="panel viz-3d-panel">
         <h2 class="panel-title">LAUNCH RANGE — LIVE 3D
-          <span class="title-hint">KSC LC-39A satellite terrain · drag to orbit · scroll to zoom</span>
+          <span class="title-hint"><span id="viz3d-site">launch range</span> satellite terrain · drag to orbit · scroll to zoom</span>
         </h2>
         <div id="viz3d-wrap" class="viz-wrap">
           <canvas id="viz3d"></canvas>
@@ -176,18 +176,30 @@
 
     <div class="bottom-row">
       <section class="panel" id="gps-panel">
-        <h2 class="panel-title">GPS TRACKING — KSC RANGE
-          <button id="btn-center" class="mini-btn">CENTER POSITION</button>
+        <h2 class="panel-title">GPS TRACKING
+          <span class="title-hint" id="gps-site">live map tiles · drag to pan · scroll to zoom</span>
+          <span class="map-tools">
+            <span class="layer-btns" id="layer-btns">
+              <button class="mini-btn active" data-layer="sat">SATELLITE</button>
+              <button class="mini-btn" data-layer="street">STREET</button>
+              <button class="mini-btn" data-layer="topo">TOPO</button>
+            </span>
+            <button id="btn-center" class="mini-btn">CENTER POSITION</button>
+          </span>
         </h2>
         <div class="viz-wrap">
           <canvas id="gpsmap"></canvas>
+          <div class="map-zoom">
+            <button id="btn-zin" class="zoom-btn" title="Zoom in">+</button>
+            <button id="btn-zout" class="zoom-btn" title="Zoom out">−</button>
+          </div>
           <div class="gps-readout mono">
             <span>LAT <b id="gps-lat">--</b></span>
             <span>LON <b id="gps-lon">--</b></span>
             <span>DIST <b id="gps-dist">0</b> m</span>
           </div>
         </div>
-        <div class="map-credit" id="map-credit" hidden>Imagery © Esri — Maxar, Earthstar Geographics</div>
+        <div class="map-credit" id="map-credit">Imagery © Esri — Maxar, Earthstar Geographics</div>
       </section>
 
       <section class="panel" id="imagery-panel">

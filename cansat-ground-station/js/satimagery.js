@@ -1,16 +1,20 @@
 /* ============================================================
-   SatImagery — real satellite imagery of Kennedy Space Center
-   (Launch Complex 39A), loaded from the public Esri World
-   Imagery tile service (no API key). Shared by the 3D terrain
-   and the GPS tracking map. Falls back to a procedurally
-   painted coastal scene when offline.
+   SatImagery — real satellite imagery of the launch site,
+   loaded from the public Esri World Imagery tile service (no
+   API key). This object owns the site coordinates: the flight
+   simulation, the GPS map and the 3D terrain all read LAT/LON
+   from here, so moving the launch site is a one-line change.
+   Falls back to a procedurally painted scene when offline.
    ============================================================ */
 "use strict";
 
 const SatImagery = {
-  /* Launch Complex 39A, Kennedy Space Center, Florida */
-  LAT: 28.60839,
-  LON: -80.60433,
+  /* Launch site — open field near Pathum Thani, Thailand.
+     Change these two numbers to fly from anywhere; the imagery,
+     the GPS map, the 3D terrain and the telemetry all follow. */
+  NAME: "PATHUM THANI RANGE",
+  LAT: 14.07940,
+  LON: 100.60270,
   ZOOM: 15,
   GRID: 4,                      // 4x4 tiles = ~4.3 km square
   TILE_URL: (z, y, x) =>
@@ -62,7 +66,7 @@ const SatImagery = {
     return this;
   },
 
-  /* Painted stand-in: Florida coast — marsh, beach, Atlantic, pad, crawlerway */
+  /* Painted stand-in: farmland — scrub, ponds, canal, paddy grid, pad */
   _paintFallback(g, w) {
     /* scrubland */
     g.fillStyle = "#43502e"; g.fillRect(0, 0, w, w);
@@ -81,22 +85,23 @@ const SatImagery = {
       g.ellipse(rnd(i, 6) * w * 0.7, rnd(i, 7) * w, 8 + rnd(i, 8) * 34, 6 + rnd(i, 9) * 22, rnd(i, 10) * 3, 0, Math.PI * 2);
       g.fill();
     }
-    /* Atlantic ocean on the east side */
-    const coast = w * 0.78;
-    g.fillStyle = "#123246";
-    g.beginPath();
-    g.moveTo(coast, 0);
-    for (let y = 0; y <= w; y += 32) g.lineTo(coast + Math.sin(y * 0.012) * 26, y);
-    g.lineTo(w, w); g.lineTo(w, 0); g.closePath(); g.fill();
-    /* beach line */
-    g.strokeStyle = "#cfc39b"; g.lineWidth = 9;
+    /* irrigation canal running north-south */
+    const canal = w * 0.74;
+    g.strokeStyle = "#2a4a52"; g.lineWidth = 13;
     g.beginPath();
     for (let y = 0; y <= w; y += 32) {
-      const x = coast + Math.sin(y * 0.012) * 26;
+      const x = canal + Math.sin(y * 0.012) * 26;
       y === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
     }
     g.stroke();
-    /* crawlerway */
+    /* paddy field grid */
+    g.strokeStyle = "rgba(96,110,66,.55)"; g.lineWidth = 2;
+    for (let i = 0; i < 14; i++) {
+      const t = i / 14 * w;
+      g.beginPath(); g.moveTo(0, t); g.lineTo(canal, t); g.stroke();
+      g.beginPath(); g.moveTo(t * 0.74, 0); g.lineTo(t * 0.74, w); g.stroke();
+    }
+    /* access track */
     const px = this.padU * w, py = this.padV * w;
     g.strokeStyle = "#8b8574"; g.lineWidth = 14;
     g.beginPath(); g.moveTo(px, py); g.lineTo(px - w * 0.4, py + w * 0.18); g.stroke();

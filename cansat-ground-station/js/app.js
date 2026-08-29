@@ -17,11 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const viz3d = new CanSat3D($("viz3d"), $("viz3d-wrap"));
   if (!viz3d.ok) $("viz3d-fallback").hidden = false;
 
-  /* reveal the imagery credit once real tiles have landed */
-  {
-    const prev = SatImagery.onUpdate;
-    SatImagery.onUpdate = s => { if (prev) prev(s); $("map-credit").hidden = false; };
-  }
+  /* the launch site is owned by SatImagery, so the headings follow it */
+  $("gps-site").textContent = SatImagery.NAME + " · live map tiles · drag to pan · scroll to zoom";
+  $("viz3d-site").textContent = SatImagery.NAME.toLowerCase();
 
   const charts = {
     alt:   new StripChart($("chart-alt"),   { label: "Altitude vs Time",       unit: "m",   color: "#6ea8dc" }),
@@ -257,8 +255,22 @@ document.addEventListener("DOMContentLoaded", () => {
     Sfx.click();
   });
 
-  /* ---------------- GPS center + sound toggle ---------------- */
+  /* ---------------- GPS map controls ---------------- */
   $("btn-center").addEventListener("click", () => { gps.center(); Sfx.click(); });
+  $("btn-zin").addEventListener("click", () => { gps.zoomBy(1); Sfx.click(); });
+  $("btn-zout").addEventListener("click", () => { gps.zoomBy(-1); Sfx.click(); });
+
+  for (const b of $("layer-btns").querySelectorAll("[data-layer]")) {
+    b.addEventListener("click", () => {
+      gps.setLayer(b.dataset.layer);
+      for (const o of $("layer-btns").querySelectorAll("[data-layer]")) {
+        o.classList.toggle("active", o === b);
+      }
+      $("map-credit").textContent = gps.layer.credit;
+      Sfx.click();
+    });
+  }
+  $("map-credit").textContent = gps.layer.credit;
   $("btn-sound").addEventListener("click", () => {
     Sfx.enabled = !Sfx.enabled;
     $("btn-sound").classList.toggle("muted", !Sfx.enabled);
@@ -290,7 +302,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let clock = 0;
 
   function frame(ts) {
-    const dtReal = Math.min(0.1, (ts - lastTs) / 1000);
+    /* the rAF timestamp can predate the performance.now() we seeded lastTs
+       with, so clamp low as well as high — a negative dt would run the
+       simulation backwards and hand every view a negative clock */
+    const dtReal = Math.max(0, Math.min(0.1, (ts - lastTs) / 1000));
     lastTs = ts;
     clock += dtReal;
 
@@ -324,10 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
       paused,
     };
 
-    if (!paused) {
-      viz2d.draw(state, clock);
-      gps.draw(state, clock);
-    }
+    if (!paused) viz2d.draw(state, clock);
+    /* the map keeps drawing while paused so pan and zoom stay live */
+    gps.draw(state, clock);
     viz3d.update(state, dtReal, clock);
 
     requestAnimationFrame(frame);

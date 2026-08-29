@@ -25,6 +25,13 @@ npx http-server -p 8080 .
 ```
 
 Three.js is vendored in `js/vendor/`, so the 3D view works offline too.
+
+### Moving the launch site
+
+`SatImagery.LAT` / `SatImagery.LON` in `js/satimagery.js` own the pad
+coordinates. The simulation's telemetry, the GPS map, the 3D terrain and the
+panel headings all read from there, so those two numbers move the whole
+mission. It ships pointed at an open field near **Pathum Thani, Thailand**.
 The only thing that needs internet is the optional "Real CanSat Imagery"
 panel, which pulls real photos live from the Wikimedia Commons public API
 (CORS, no key) — when offline it simply shows a note.
@@ -73,10 +80,18 @@ Pick one **before** launch:
   needles, tick marks, red/amber arcs, digital readouts).
 - **2D flight profile** — sky/ground scene with an altitude ruler, trail,
   max-altitude marker, motion arrow, thrust flame, parachute and phase label.
-- **GPS tracking** — procedural map (no Google Maps, no API key) with launch
-  marker, breadcrumb trail, pulsing live position, north compass, scale bar,
-  drag-to-pan and a **⌖ Center Position** button. The position drifts
-  continuously with the wind during the whole mission.
+- **GPS tracking — a real slippy map.** Live Web-Mercator tiles streamed from
+  keyless public services, with three switchable layers: **SATELLITE** (Esri
+  World Imagery), **STREET** (OpenStreetMap) and **TOPO** (Esri World Topo).
+  Drag to pan, scroll or `+`/`−` to zoom (z3–z19), and while a tile is in
+  flight its parent is scaled up so the map never flashes empty. On top of it:
+  launch marker, breadcrumb trail in true lat/lon, pulsing live position with
+  a heading tick, a lat/lon graticule that picks a round arc-minute step for
+  the zoom, north compass, a scale bar computed from the real ground
+  resolution, and a **CENTER POSITION** button that re-locks the follow camera
+  after you pan away. No Leaflet, no Google Maps, no API key — just the
+  standard `{z}/{x}/{y}` scheme and a 2D canvas. With no network it falls back
+  to the painted terrain, georeferenced to the same coordinates, and says so.
 - **Mission event log** — timestamped, newest on top, color-coded severity,
   and consecutive duplicates are never re-logged.
 - **Control panel** — Start Demo · Pause · Resume · Reset Mission ·
@@ -103,10 +118,10 @@ cansat-ground-station/
     ├── sim.js          mission simulation engine (phases, scenarios, telemetry)
     ├── charts.js       raw-canvas real-time strip charts
     ├── flightviz.js    2D flight profile view
-    ├── gpsmap.js       procedural GPS tracking map
+    ├── gpsmap.js       real slippy map: tile cache, projection, tracking
     ├── cansat3d.js     Three.js 3D launch range (rocket, crew, terrain, particles)
     ├── gauges.js       analog flight instruments
-    ├── satimagery.js   KSC satellite tiles (Esri, keyless) + fallback
+    ├── satimagery.js   launch-site coords + site tiles (Esri, keyless) + fallback
     ├── sfx.js          WebAudio sound effects
     ├── imagery.js      live real-photo panel (Wikimedia Commons API)
     ├── app.js          UI glue: controls, log, cards, CSV export

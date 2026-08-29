@@ -28,9 +28,10 @@ const STATUS = {
   COMPLETE: "MISSION COMPLETED",
 };
 
-/* Launch site: open field near Pathum Thani, Thailand */
-const LAUNCH_LAT = 14.07940;
-const LAUNCH_LON = 100.60270;
+/* Launch site — owned by SatImagery so the map, the 3D terrain and the
+   telemetry can never disagree about where the pad is. */
+const LAUNCH_LAT = SatImagery.LAT;
+const LAUNCH_LON = SatImagery.LON;
 const M_PER_DEG_LAT = 111320;
 
 function rand(a, b) { return a + Math.random() * (b - a); }

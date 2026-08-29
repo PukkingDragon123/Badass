@@ -127,6 +127,7 @@
 
     closePanel() {
       this.panel = null;
+      this.deployOpen = false;
       if (this.elPanel) { this.elPanel.classList.remove('on'); this.elPanel.innerHTML = ''; }
     }
 
@@ -252,6 +253,89 @@
           }
         });
       }
+    }
+
+    /* ------------------------------------------------------- deploy panel */
+    /* Q opens the sortie board. Four places to drive, each with its own
+       generator, weather and loot bias; the deeper the bunker, the more of
+       them the crew will sign off on. */
+    openDeployPanel() {
+      const m = this.meta;
+      const g = this.game;
+      this.game.audio.ui();
+      const rank = m.rank;
+
+      const cards = BA.stages.STAGES.map((st, i) => {
+        const open = m.stageUnlocked(st);
+        const clears = m.stageClearCount(st.id);
+        const bias = Object.entries(st.reward)
+          .sort((a, b) => b[1] - a[1]).slice(0, 3)
+          .map(([k, v]) => {
+            const r = M.RESBY[k];
+            return `<span class="sbias">${BA.icons.img(r.icon, 15)}` +
+              `<b style="color:${r.color}">x${v.toFixed(1)}</b></span>`;
+          }).join('');
+        const badge = clears
+          ? `<span class="stag done">EXTRACTED x${clears}</span>`
+          : '<span class="stag">NEVER RUN</span>';
+        return `<div class="brm stagecard${open ? '' : ' poor locked'}" data-s="${st.id}"
+            style="--c:${st.color}">
+          <div class="brmi">${BA.icons.img(st.icon, 34)}<span class="skey">${i + 1}</span></div>
+          <div class="brmb">
+            <div class="brmn" style="color:${st.color}">${st.name}
+              ${badge}</div>
+            <div class="brmd">${st.blurb}</div>
+            <div class="brmc">${bias}
+              <span class="sbias dim">${st.landmarkName}</span>
+              <span class="sbias dim">${st.exitZ}m TO THE GATE</span></div>
+          </div>
+          ${open
+            ? '<div class="bbtn go small roll">ROLL OUT</div>'
+            : `<div class="bbtn x small dead">NEEDS RANK ${st.unlockRank}</div>`}
+        </div>`;
+      }).join('');
+
+      const T = m.truckStats();
+      const brief = `<div class="bdim brief">RANK <b style="color:#ffd23a">${rank}</b> ` +
+        `· RESCUE <b style="color:#8dff3a">${Math.min(2 + rank, T.cargo)}</b> ` +
+        `· CLEAR <b style="color:#8dff3a">3</b> WAVES ` +
+        `· ${T.canJump ? 'JUMP READY' : 'NO JUMP - FIT HYDRAULIC RAMS'} ` +
+        `· ${T.canNitro ? 'NOS READY' : 'NO NOS - FIT THE INJECTOR'}</div>`;
+
+      this.showPanel(`
+        <div class="bph"><div class="bpt" style="color:#ff5a36">DEPLOY
+          <em>PICK A PLACE TO DRIVE</em></div>
+          <div class="bbtn x" id="bpx">STAY HOME</div></div>
+        <div class="bpbody deploy">
+          ${brief}
+          <div class="bcat"><div class="bcath" style="color:#ffd23a">SORTIE BOARD
+            <em>rank climbs as you dig deeper and build more</em></div>
+            ${cards}</div>
+        </div>`);
+
+      this.deployOpen = true;
+      for (const el of this.elPanel.querySelectorAll('.stagecard')) {
+        const id = el.dataset.s;
+        const btn = el.querySelector('.roll');
+        if (!btn) {
+          el.addEventListener('click', () => {
+            g.audio.hurt();
+            g.hud.toast('DIG DEEPER FIRST');
+          });
+          continue;
+        }
+        btn.addEventListener('click', () => this.launch(id));
+      }
+    }
+
+    launch(id) {
+      const st = BA.stages.byId[id];
+      if (!st || !this.meta.stageUnlocked(st)) { this.game.audio.hurt(); return; }
+      this.meta.lastStage = id;
+      this.meta.save();
+      this.closePanel();
+      this.game.stage = st;
+      this.game.startRun();
     }
 
     /* --------------------------------------------------------- room panel */
@@ -452,7 +536,14 @@
           if (this.panel) this.closePanel(); else this.interact();
         }
         if (inp.consume('Escape')) this.closePanel();
-        if (inp.consume('KeyQ')) this.game.startRun();
+        if (inp.consume('KeyQ')) {
+          if (this.deployOpen) this.closePanel(); else this.openDeployPanel();
+        }
+        if (this.deployOpen) {
+          for (let i = 0; i < BA.stages.STAGES.length; i++) {
+            if (inp.consume('Digit' + (i + 1))) this.launch(BA.stages.STAGES[i].id);
+          }
+        }
       }
       this.updatePrompt();
 

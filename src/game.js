@@ -26,7 +26,7 @@
       this.survivors = [];
       this.loot = [];
       this.allies = new BA.Allies(this.fx, this.audio);
-      this.stage = BA.stages.byId.suburb;
+      this.stage = BA.stages.byId[this.meta.lastStage] || BA.stages.byId.suburb;
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -216,7 +216,7 @@
       this.state = 'playing';
       this.hud.setScreen(null);
       this.hud.el.hud.classList.add('on');
-      this.hud.flashBanner('ROLL OUT', 'RESCUE · CLEAR · EXTRACT');
+      this.hud.flashBanner(this.stage.name, 'RESCUE · CLEAR · EXTRACT');
       this.meta.runs++;
       this.meta.save();
     }
@@ -238,6 +238,7 @@
       }
       const people = success ? this.run.aboard : 0;
       if (people > 0) { m.add('people', people); m.totalRescued += people; }
+      if (success) m.clearedStage(this.stage.id);
       m.totalKills += this.kills;
       this.score += Math.floor(this.time * 10) + this.run.aboard * 400 + this.run.waveIdx * 250;
       if (success) this.score = Math.floor(this.score * 1.4);

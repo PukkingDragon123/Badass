@@ -388,6 +388,8 @@
       this.totalRescued = 0;
       this.lastTick = Date.now();
       this.seen = {};
+      this.stageClears = {};      // stage id -> runs extracted from it
+      this.lastStage = 'suburb';
       this.load();
     }
 
@@ -409,6 +411,8 @@
           this.roster = d.roster || [];
           this.lastTick = d.lastTick || Date.now();
           this.seen = d.seen || {};
+          this.stageClears = d.stageClears || {};
+          this.lastStage = d.lastStage || 'suburb';
         } catch (_) { /* corrupt save, start fresh */ }
       }
       for (const p of this.roster) if (!p.look) p.look = makePerson().look;
@@ -423,6 +427,7 @@
           roster: this.roster, runs: this.runs, bestScore: this.bestScore,
           totalKills: this.totalKills, totalRescued: this.totalRescued,
           lastTick: this.lastTick, seen: this.seen,
+          stageClears: this.stageClears, lastStage: this.lastStage,
         }));
       } catch (_) { /* nothing we can do about a full quota */ }
     }
@@ -831,6 +836,17 @@
     get rank() {
       // how far the bunker has got, used to scale run difficulty and rewards
       return 1 + this.deepestFloor() + Math.floor(this.rooms.length / 4);
+    }
+
+    /* Stages open up as the bunker grows - the road is gated on the base,
+       the same way every other upgrade is. */
+    stageUnlocked(st) { return this.rank >= (st.unlockRank || 1); }
+
+    stageClearCount(id) { return this.stageClears[id] || 0; }
+
+    clearedStage(id) {
+      this.stageClears[id] = (this.stageClears[id] || 0) + 1;
+      this.save();
     }
 
     truckStats() {

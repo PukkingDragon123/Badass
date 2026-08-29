@@ -49,6 +49,7 @@
             <button class="tkey" data-k="KeyW"><span>&#9650;</span></button>
             <button class="tkey" data-k="KeyS"><span>&#9660;</span></button>
             <button class="tkey use" data-k="KeyE"><span>USE</span></button>
+            <button class="tkey go" data-k="KeyQ"><span>DEPLOY</span></button>
           </div>
         </div>`;
       document.getElementById('ui').appendChild(root);

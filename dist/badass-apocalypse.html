@@ -199,6 +199,8 @@
     transition:transform .06s,box-shadow .06s}
   .tkey.use{background:linear-gradient(180deg,#ffb03a,#c46a00);font-size:min(15px,3.2vw);
     letter-spacing:.08em}
+  .tkey.go{background:linear-gradient(180deg,#ff6a3a,#b52a08);font-size:min(13px,2.8vw);
+    letter-spacing:.06em}
   .tkey.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.5);filter:brightness(1.3)}
 
   #tright{position:absolute;right:max(16px,2.6vw);bottom:max(14px,2.4vh);
@@ -373,6 +375,18 @@
   .brmd{font-size:10.5px;line-height:1.5;color:#c9bdbf;font-weight:700;letter-spacing:0;margin:3px 0}
   .brmc{font-size:10.5px;color:#cfc4c6}
 
+  .bpbody.deploy{padding-bottom:46px}
+  .bdim.brief{padding:0 0 12px;border-bottom:2px solid rgba(255,255,255,.08);margin-bottom:14px}
+  .brm.locked{cursor:not-allowed}
+  .stagecard .brmi{position:relative}
+  .skey{position:absolute;top:-6px;left:-8px;background:#ffd23a;color:#150c0e;
+    font-size:10px;line-height:1;padding:3px 5px;border-radius:6px;letter-spacing:0}
+  .stag{font-size:9px;letter-spacing:.18em;color:#8b8083;margin-left:10px;vertical-align:middle}
+  .stag.done{color:#8dff3a}
+  .sbias{display:inline-flex;align-items:center;gap:4px;margin-right:11px;vertical-align:middle}
+  .sbias.dim{color:#8b8083;font-size:9.5px;letter-spacing:.14em}
+  .bbtn.small.dead{opacity:.75;font-size:10px}
+
   .rchip{display:flex;align-items:center;gap:5px;background:rgba(20,12,15,.85);
     border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 9px 4px 6px;font-size:13px}
   .rchip i{font-style:normal;opacity:.45;font-size:10px}
@@ -455,7 +469,7 @@
       <div id="hpblock">
         <div id="hpouter"><div id="hpghost"></div><div id="hpbar"></div><div id="hptext" class="sh">100 / 100</div></div>
         <div id="statrow" class="sh">
-          <span id="stSpeed">0 KM/H</span><span id="stScrap">LV 1</span><span id="stScore">0 PTS</span>
+          <span id="stSpeed">0 KM/H</span><span id="stScrap">0 SCRAP</span><span id="stScore">0 PTS</span>
         </div>
       </div>
     </div>
@@ -511,13 +525,13 @@
         <div class="key"><b>SHIFT</b> DRIFT → TURBO</div>
         <div class="key"><b>SPACE</b> JUMP / SLAM</div>
         <div class="key"><b>X / CTRL</b> NITRO (BURNS GAS)</div>
-        <div class="key"><b>1 2 3</b> PICK UPGRADE</div>
+        <div class="key"><b>E</b> USE (IN THE BUNKER)</div>
+        <div class="key"><b>Q</b> DEPLOY (IN THE BUNKER)</div>
         <div class="key"><b>P</b> PAUSE</div>
         <div class="key"><b>M</b> MUTE</div>
         <div class="key"><b>T</b> TOUCH PAD</div>
-        <div class="key"><b>G</b> GARAGE (AT BASE)</div>
       </div>
-      <div class="cta" id="startCta">PRESS SPACE TO ENTER THE SETTLEMENT</div>
+      <div class="cta" id="startCta">PRESS SPACE TO ENTER THE BUNKER</div>
     </div>
   </div>
 
@@ -8052,6 +8066,8 @@ void main(){
       this.totalRescued = 0;
       this.lastTick = Date.now();
       this.seen = {};
+      this.stageClears = {};      // stage id -> runs extracted from it
+      this.lastStage = 'suburb';
       this.load();
     }
 
@@ -8073,6 +8089,8 @@ void main(){
           this.roster = d.roster || [];
           this.lastTick = d.lastTick || Date.now();
           this.seen = d.seen || {};
+          this.stageClears = d.stageClears || {};
+          this.lastStage = d.lastStage || 'suburb';
         } catch (_) { /* corrupt save, start fresh */ }
       }
       for (const p of this.roster) if (!p.look) p.look = makePerson().look;
@@ -8087,6 +8105,7 @@ void main(){
           roster: this.roster, runs: this.runs, bestScore: this.bestScore,
           totalKills: this.totalKills, totalRescued: this.totalRescued,
           lastTick: this.lastTick, seen: this.seen,
+          stageClears: this.stageClears, lastStage: this.lastStage,
         }));
       } catch (_) { /* nothing we can do about a full quota */ }
     }
@@ -8497,6 +8516,17 @@ void main(){
       return 1 + this.deepestFloor() + Math.floor(this.rooms.length / 4);
     }
 
+    /* Stages open up as the bunker grows - the road is gated on the base,
+       the same way every other upgrade is. */
+    stageUnlocked(st) { return this.rank >= (st.unlockRank || 1); }
+
+    stageClearCount(id) { return this.stageClears[id] || 0; }
+
+    clearedStage(id) {
+      this.stageClears[id] = (this.stageClears[id] || 0) + 1;
+      this.save();
+    }
+
     truckStats() {
       const L = (id) => this.compLevel(id);
       const garage = this.roomLevel('garage');
@@ -8666,6 +8696,7 @@ void main(){
 
     closePanel() {
       this.panel = null;
+      this.deployOpen = false;
       if (this.elPanel) { this.elPanel.classList.remove('on'); this.elPanel.innerHTML = ''; }
     }
 
@@ -8791,6 +8822,89 @@ void main(){
           }
         });
       }
+    }
+
+    /* ------------------------------------------------------- deploy panel */
+    /* Q opens the sortie board. Four places to drive, each with its own
+       generator, weather and loot bias; the deeper the bunker, the more of
+       them the crew will sign off on. */
+    openDeployPanel() {
+      const m = this.meta;
+      const g = this.game;
+      this.game.audio.ui();
+      const rank = m.rank;
+
+      const cards = BA.stages.STAGES.map((st, i) => {
+        const open = m.stageUnlocked(st);
+        const clears = m.stageClearCount(st.id);
+        const bias = Object.entries(st.reward)
+          .sort((a, b) => b[1] - a[1]).slice(0, 3)
+          .map(([k, v]) => {
+            const r = M.RESBY[k];
+            return `<span class="sbias">${BA.icons.img(r.icon, 15)}` +
+              `<b style="color:${r.color}">x${v.toFixed(1)}</b></span>`;
+          }).join('');
+        const badge = clears
+          ? `<span class="stag done">EXTRACTED x${clears}</span>`
+          : '<span class="stag">NEVER RUN</span>';
+        return `<div class="brm stagecard${open ? '' : ' poor locked'}" data-s="${st.id}"
+            style="--c:${st.color}">
+          <div class="brmi">${BA.icons.img(st.icon, 34)}<span class="skey">${i + 1}</span></div>
+          <div class="brmb">
+            <div class="brmn" style="color:${st.color}">${st.name}
+              ${badge}</div>
+            <div class="brmd">${st.blurb}</div>
+            <div class="brmc">${bias}
+              <span class="sbias dim">${st.landmarkName}</span>
+              <span class="sbias dim">${st.exitZ}m TO THE GATE</span></div>
+          </div>
+          ${open
+            ? '<div class="bbtn go small roll">ROLL OUT</div>'
+            : `<div class="bbtn x small dead">NEEDS RANK ${st.unlockRank}</div>`}
+        </div>`;
+      }).join('');
+
+      const T = m.truckStats();
+      const brief = `<div class="bdim brief">RANK <b style="color:#ffd23a">${rank}</b> ` +
+        `· RESCUE <b style="color:#8dff3a">${Math.min(2 + rank, T.cargo)}</b> ` +
+        `· CLEAR <b style="color:#8dff3a">3</b> WAVES ` +
+        `· ${T.canJump ? 'JUMP READY' : 'NO JUMP - FIT HYDRAULIC RAMS'} ` +
+        `· ${T.canNitro ? 'NOS READY' : 'NO NOS - FIT THE INJECTOR'}</div>`;
+
+      this.showPanel(`
+        <div class="bph"><div class="bpt" style="color:#ff5a36">DEPLOY
+          <em>PICK A PLACE TO DRIVE</em></div>
+          <div class="bbtn x" id="bpx">STAY HOME</div></div>
+        <div class="bpbody deploy">
+          ${brief}
+          <div class="bcat"><div class="bcath" style="color:#ffd23a">SORTIE BOARD
+            <em>rank climbs as you dig deeper and build more</em></div>
+            ${cards}</div>
+        </div>`);
+
+      this.deployOpen = true;
+      for (const el of this.elPanel.querySelectorAll('.stagecard')) {
+        const id = el.dataset.s;
+        const btn = el.querySelector('.roll');
+        if (!btn) {
+          el.addEventListener('click', () => {
+            g.audio.hurt();
+            g.hud.toast('DIG DEEPER FIRST');
+          });
+          continue;
+        }
+        btn.addEventListener('click', () => this.launch(id));
+      }
+    }
+
+    launch(id) {
+      const st = BA.stages.byId[id];
+      if (!st || !this.meta.stageUnlocked(st)) { this.game.audio.hurt(); return; }
+      this.meta.lastStage = id;
+      this.meta.save();
+      this.closePanel();
+      this.game.stage = st;
+      this.game.startRun();
     }
 
     /* --------------------------------------------------------- room panel */
@@ -8991,7 +9105,14 @@ void main(){
           if (this.panel) this.closePanel(); else this.interact();
         }
         if (inp.consume('Escape')) this.closePanel();
-        if (inp.consume('KeyQ')) this.game.startRun();
+        if (inp.consume('KeyQ')) {
+          if (this.deployOpen) this.closePanel(); else this.openDeployPanel();
+        }
+        if (this.deployOpen) {
+          for (let i = 0; i < BA.stages.STAGES.length; i++) {
+            if (inp.consume('Digit' + (i + 1))) this.launch(BA.stages.STAGES[i].id);
+          }
+        }
       }
       this.updatePrompt();
 
@@ -10004,6 +10125,7 @@ void main(){
             <button class="tkey" data-k="KeyW"><span>&#9650;</span></button>
             <button class="tkey" data-k="KeyS"><span>&#9660;</span></button>
             <button class="tkey use" data-k="KeyE"><span>USE</span></button>
+            <button class="tkey go" data-k="KeyQ"><span>DEPLOY</span></button>
           </div>
         </div>`;
       document.getElementById('ui').appendChild(root);
@@ -10396,7 +10518,7 @@ void main(){
       this.survivors = [];
       this.loot = [];
       this.allies = new BA.Allies(this.fx, this.audio);
-      this.stage = BA.stages.byId.suburb;
+      this.stage = BA.stages.byId[this.meta.lastStage] || BA.stages.byId.suburb;
 
       this.state = 'title';
       this.renderScale = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -10586,7 +10708,7 @@ void main(){
       this.state = 'playing';
       this.hud.setScreen(null);
       this.hud.el.hud.classList.add('on');
-      this.hud.flashBanner('ROLL OUT', 'RESCUE · CLEAR · EXTRACT');
+      this.hud.flashBanner(this.stage.name, 'RESCUE · CLEAR · EXTRACT');
       this.meta.runs++;
       this.meta.save();
     }
@@ -10608,6 +10730,7 @@ void main(){
       }
       const people = success ? this.run.aboard : 0;
       if (people > 0) { m.add('people', people); m.totalRescued += people; }
+      if (success) m.clearedStage(this.stage.id);
       m.totalKills += this.kills;
       this.score += Math.floor(this.time * 10) + this.run.aboard * 400 + this.run.waveIdx * 250;
       if (success) this.score = Math.floor(this.score * 1.4);

@@ -31,7 +31,7 @@ npm run build      # -> dist/badass-apocalypse.html (opens straight off the file
 | `A` `D` / `←` `→` | Walk |
 | `W` `S` / `↑` `↓` | Up and down the stairwell (stand in the shaft) |
 | `E` | Use whatever you're standing in front of — a room, an empty bay, bare rock |
-| `Q` | Deploy on a run |
+| `Q` | Open the sortie board · `1`-`4` picks a stage |
 
 **On the road:**
 
@@ -50,7 +50,7 @@ npm run build      # -> dist/badass-apocalypse.html (opens straight off the file
 **Touch**: a full on-screen rig appears automatically on any touch device (or press `T`).
 Driving gets a real steering wheel you grab and rotate — self-centring when you let go —
 plus GAS, BRAKE, NOS, DRIFT and JUMP under your right thumb. The bunker swaps that out for
-a walk pad and a USE button.
+a walk pad with USE and DEPLOY.
 
 ## The bunker
 
@@ -115,9 +115,21 @@ Halfway up the road there is a **roadside workshop** where you can fit parts mid
 what you have hauled so far. Reach the extraction and everything banks. Die and you lose
 every passenger and half the haul.
 
-Four stages, each with its own ground shader, fog, prop mix and loot bias: **Pinewood Estate**
-(streets, houses, a supermarket at the end), **Crestview Mall**, **Blackpine Woods** (pays in
-wood and food), **The Outer Waste** (pays in fuel).
+### The sortie board
+
+`Q` in the bunker opens the board and you pick where to drive. Every stage has its own
+generator, ground shader, fog, prop mix, loot bias and a named landmark at the top of the
+road, and each one shows you its bias and how many times you have extracted from it.
+
+| Stage | Landmark | Pays in | Opens at |
+| --- | --- | --- | --- |
+| **Pinewood Estate** | Supermarket | food, wood, scrap | rank 1 |
+| **Crestview Mall** | Mall atrium | scrap, ore | rank 2 |
+| **Blackpine Woods** | Ranger station | wood, food | rank 3 |
+| **The Outer Waste** | Fuel depot | fuel, scrap | rank 1 |
+
+**Rank** is the bunker, not the driver: `1 + deepest floor + rooms/4`. The road opens up
+because the base grew, the same way everything else in the game does.
 
 **Friendlies.** Every survivor you rescue grabs a rifle and fights alongside you for the rest
 of the run. Stray dogs join up and charge the horde; cats bolt from everything.

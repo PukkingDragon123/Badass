@@ -8,7 +8,12 @@ Everything runs locally in the browser.
 
 ## Run it
 
-Just open the file — no build step, no dependencies to install:
+**In the browser, right now** — served with the right content types by
+[githack](https://raw.githack.com/):
+
+<https://raw.githack.com/PukkingDragon123/Badass/claude/cansat-ground-station-simulator-icvzjv/cansat-ground-station/index.html>
+
+Or locally — no build step, no dependencies to install:
 
 ```bash
 # option 1: double-click

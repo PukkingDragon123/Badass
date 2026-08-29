@@ -12,6 +12,17 @@ texture, sound and note is generated procedurally at runtime.
 
 ## Play
 
+**In the browser, right now** - the single-file build served with the right
+content type by [githack](https://raw.githack.com/):
+
+<https://raw.githack.com/PukkingDragon123/Badass/claude/cansat-ground-station-simulator-icvzjv/dist/badass-apocalypse.html>
+
+(A plain `raw.githubusercontent.com` link hands the file back as `text/plain`,
+so the browser shows you the source instead of the game. githack re-serves the
+exact same bytes as `text/html`.)
+
+Or locally:
+
 ```bash
 npm start          # serves on http://localhost:8080
 ```

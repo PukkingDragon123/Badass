@@ -71,48 +71,17 @@ class GpsMap {
     const toSX = wx => w / 2 + (wx - this.camX) / this.mpp;
     const toSY = wy => h / 2 - (wy - this.camY) / this.mpp;
 
-    /* ---- base ground ---- */
-    ctx.fillStyle = "#0b1a10";
+    /* ---- satellite imagery backdrop (real KSC tiles, painted fallback) ---- */
+    ctx.fillStyle = "#26301f";
     ctx.fillRect(0, 0, w, h);
-
-    /* field patches */
-    for (let i = 0; i < 26; i++) {
-      const fx = (this._feature(i, 1) - 0.5) * 1600;
-      const fy = (this._feature(i, 2) - 0.5) * 1600;
-      const fw = 90 + this._feature(i, 3) * 260;
-      const fh = 80 + this._feature(i, 4) * 220;
-      const sx = toSX(fx), sy = toSY(fy);
-      const shade = this._feature(i, 5);
-      ctx.fillStyle = shade > 0.6 ? "rgba(48,92,52,.5)" : shade > 0.3 ? "rgba(36,74,44,.55)" : "rgba(58,84,38,.4)";
-      ctx.fillRect(sx, sy, fw / this.mpp, fh / this.mpp);
-      ctx.strokeStyle = "rgba(20,40,24,.8)";
-      ctx.strokeRect(sx, sy, fw / this.mpp, fh / this.mpp);
-    }
-    /* a road */
-    ctx.strokeStyle = "rgba(90,96,110,.85)";
-    ctx.lineWidth = 9 / this.mpp * 1.35;
-    ctx.beginPath();
-    ctx.moveTo(toSX(-900), toSY(-260));
-    ctx.quadraticCurveTo(toSX(-100), toSY(-180), toSX(300), toSY(-320));
-    ctx.quadraticCurveTo(toSX(700), toSY(-460), toSX(1000), toSY(-380));
-    ctx.stroke();
-    ctx.setLineDash([10, 12]);
-    ctx.strokeStyle = "rgba(240,220,120,.5)";
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(toSX(-900), toSY(-260));
-    ctx.quadraticCurveTo(toSX(-100), toSY(-180), toSX(300), toSY(-320));
-    ctx.quadraticCurveTo(toSX(700), toSY(-460), toSX(1000), toSY(-380));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    /* trees */
-    for (let i = 0; i < 60; i++) {
-      const tx = (this._feature(i, 7) - 0.5) * 1700;
-      const ty = (this._feature(i, 8) - 0.5) * 1700;
-      ctx.fillStyle = "rgba(30,90,50,.7)";
-      ctx.beginPath();
-      ctx.arc(toSX(tx), toSY(ty), (2.2 + this._feature(i, 9) * 3) / this.mpp * 1.3, 0, Math.PI * 2);
-      ctx.fill();
+    if (typeof SatImagery !== "undefined" && SatImagery.canvas) {
+      const Wm = SatImagery.widthMeters;
+      const left = -SatImagery.padU * Wm;          // world metres, x east
+      const top = SatImagery.padV * Wm;            // world metres, y north
+      const dx = toSX(left), dy = toSY(top);
+      const dwm = Wm / this.mpp;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(SatImagery.canvas, dx, dy, dwm, dwm);
     }
 
     /* grid overlay (100 m squares) */
@@ -141,9 +110,9 @@ class GpsMap {
       ctx.save();
       ctx.lineWidth = 2.2;
       ctx.lineJoin = "round";
-      ctx.shadowColor = "#22d3ee"; ctx.shadowBlur = 6;
+      
       for (let i = 1; i < this.trail.length; i++) {
-        ctx.strokeStyle = `rgba(34,211,238,${0.15 + 0.8 * (i / this.trail.length)})`;
+        ctx.strokeStyle = `rgba(255,210,63,${0.2 + 0.75 * (i / this.trail.length)})`;
         ctx.beginPath();
         ctx.moveTo(toSX(this.trail[i - 1].x), toSY(this.trail[i - 1].y));
         ctx.lineTo(toSX(this.trail[i].x), toSY(this.trail[i].y));
@@ -155,14 +124,14 @@ class GpsMap {
     /* ---- launch marker ---- */
     const lx = toSX(0), ly = toSY(0);
     ctx.save();
-    ctx.strokeStyle = "#34d399";
-    ctx.fillStyle = "rgba(52,211,153,.22)";
+    ctx.strokeStyle = "#7fd08a";
+    ctx.fillStyle = "rgba(127,208,138,.25)";
     ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.arc(lx, ly, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(lx - 5, ly); ctx.lineTo(lx + 5, ly);
     ctx.moveTo(lx, ly - 5); ctx.lineTo(lx, ly + 5); ctx.stroke();
-    ctx.font = "10px 'Share Tech Mono', monospace";
-    ctx.fillStyle = "#6ee7b7";
+    ctx.font = "10px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#c9ecd2";
     ctx.textAlign = "center";
     ctx.fillText("LAUNCH", lx, ly + 22);
     ctx.restore();
@@ -173,21 +142,21 @@ class GpsMap {
     ctx.save();
     if (state.signalLost) {
       /* last-known ghost */
-      ctx.strokeStyle = "rgba(248,113,113,.9)";
+      ctx.strokeStyle = "rgba(224,104,92,.95)";
       ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.arc(px, py, 10 + pulse * 8, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#f87171";
-      ctx.font = "700 10px Orbitron, sans-serif";
+      ctx.fillStyle = "#e0685c";
+      ctx.font = "600 11px 'Barlow Condensed', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("LAST KNOWN", px, py - 18);
     } else {
-      ctx.strokeStyle = `rgba(34,211,238,${1 - pulse})`;
+      ctx.strokeStyle = `rgba(255,220,90,${1 - pulse})`;
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(px, py, 6 + pulse * 16, 0, Math.PI * 2); ctx.stroke();
     }
-    ctx.fillStyle = state.signalLost ? "#f87171" : "#22d3ee";
-    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
+    ctx.fillStyle = state.signalLost ? "#e0685c" : "#ffd23f";
+    
     ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#04121a";
@@ -199,10 +168,10 @@ class GpsMap {
     ctx.translate(w - 26, 26);
     ctx.strokeStyle = "rgba(180,210,250,.7)";
     ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = "#f87171";
+    ctx.fillStyle = "#e0685c";
     ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(-4, 2); ctx.lineTo(4, 2); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "rgba(210,230,255,.9)";
-    ctx.font = "9px 'Share Tech Mono', monospace";
+    ctx.font = "9px 'IBM Plex Mono', monospace";
     ctx.textAlign = "center";
     ctx.fillText("N", 0, -17);
     ctx.restore();
@@ -215,7 +184,7 @@ class GpsMap {
     ctx.moveTo(w - 16 - barPx, h - 20); ctx.lineTo(w - 16 - barPx, h - 12);
     ctx.moveTo(w - 16, h - 20); ctx.lineTo(w - 16, h - 12);
     ctx.stroke();
-    ctx.font = "10px 'Share Tech Mono', monospace";
+    ctx.font = "10px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "rgba(210,230,255,.8)";
     ctx.textAlign = "right";
     ctx.fillText(barM + " m", w - 16, h - 24);

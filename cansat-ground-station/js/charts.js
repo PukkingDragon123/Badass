@@ -51,19 +51,19 @@ class StripChart {
     const pw = w - padL - padR, ph = h - padT - padB;
 
     /* title */
-    ctx.font = "700 11px Orbitron, sans-serif";
+    ctx.font = "600 12px 'Barlow Condensed', sans-serif";
     ctx.fillStyle = this.color;
     ctx.textAlign = "left"; ctx.textBaseline = "top";
     ctx.fillText(this.label.toUpperCase(), padL, 6);
     const labelW = ctx.measureText(this.label.toUpperCase()).width;
-    ctx.font = "10px 'Share Tech Mono', monospace";
+    ctx.font = "10px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "rgba(160,185,220,.75)";
     ctx.fillText("(" + this.unit + ")", padL + labelW + 8, 7);
 
     /* current value, top-right */
     if (this.data.length) {
       const cur = this.data[this.data.length - 1].v;
-      ctx.font = "13px 'Share Tech Mono', monospace";
+      ctx.font = "13px 'IBM Plex Mono', monospace";
       ctx.fillStyle = this.color;
       ctx.textAlign = "right";
       ctx.fillText(cur.toFixed(1) + " " + this.unit, w - padR, 5);
@@ -83,7 +83,7 @@ class StripChart {
 
     /* grid + y labels */
     ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    ctx.font = "9.5px 'Share Tech Mono', monospace";
+    ctx.font = "9.5px 'IBM Plex Mono', monospace";
     const rows = 4;
     for (let i = 0; i <= rows; i++) {
       const v = min + (i / rows) * (max - min);
@@ -110,7 +110,7 @@ class StripChart {
     } else {
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillStyle = "rgba(140,165,200,.5)";
-      ctx.font = "11px Rajdhani, sans-serif";
+      ctx.font = "11px 'IBM Plex Sans', sans-serif";
       ctx.fillText("waiting for telemetry…", padL + pw / 2, padT + ph / 2);
     }
 
@@ -124,7 +124,7 @@ class StripChart {
         ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = this.threshold.color;
-        ctx.font = "9px 'Share Tech Mono', monospace";
+        ctx.font = "9px 'IBM Plex Mono', monospace";
         ctx.textAlign = "left"; ctx.textBaseline = "bottom";
         ctx.fillText(this.threshold.label, padL + 4, y - 2);
         ctx.restore();
@@ -143,17 +143,15 @@ class StripChart {
       ctx.lineTo(xOf(0), padT + ph);
       ctx.closePath();
       const g = ctx.createLinearGradient(0, padT, 0, padT + ph);
-      g.addColorStop(0, this._alpha(this.color, 0.28));
+      g.addColorStop(0, this._alpha(this.color, 0.16));
       g.addColorStop(1, this._alpha(this.color, 0.0));
       ctx.fillStyle = g;
       ctx.fill();
     }
     ctx.restore();
 
-    /* glow line */
+    /* trace line */
     ctx.save();
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 8;
     ctx.strokeStyle = this.color;
     ctx.lineWidth = 2;
     ctx.lineJoin = "round";
@@ -167,10 +165,8 @@ class StripChart {
     const li = this.data.length - 1;
     ctx.beginPath();
     ctx.arc(xOf(li), yOf(this.data[li].v), 3.4, 0, Math.PI * 2);
-    ctx.fillStyle = "#fff";
-    ctx.shadowColor = this.color; ctx.shadowBlur = 10;
+    ctx.fillStyle = "#e8ecef";
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   _fmt(v) {

@@ -1,5 +1,5 @@
 /* ============================================================
-   app.js — wires the simulation engine to the dashboard UI.
+   app.js — wires the simulation engine to the console UI.
    ONE requestAnimationFrame loop drives everything; simulation
    speed is a dt multiplier, so timers can never stack.
    ============================================================ */
@@ -10,18 +10,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const $ = id => document.getElementById(id);
 
   /* ---------------- modules ---------------- */
+  SatImagery.init();
   const sim = new CanSatSim();
   const viz2d = new FlightViz($("viz2d"));
   const gps = new GpsMap($("gpsmap"));
   const viz3d = new CanSat3D($("viz3d"), $("viz3d-wrap"));
   if (!viz3d.ok) $("viz3d-fallback").hidden = false;
 
+  /* reveal the imagery credit once real tiles have landed */
+  {
+    const prev = SatImagery.onUpdate;
+    SatImagery.onUpdate = s => { if (prev) prev(s); $("map-credit").hidden = false; };
+  }
+
   const charts = {
-    alt:   new StripChart($("chart-alt"),   { label: "Altitude vs Time",       unit: "m",   color: "#22d3ee" }),
-    temp:  new StripChart($("chart-temp"),  { label: "Temperature vs Time",    unit: "°C",  color: "#fb923c" }),
-    press: new StripChart($("chart-press"), { label: "Pressure vs Time",       unit: "hPa", color: "#a78bfa" }),
-    vs:    new StripChart($("chart-vs"),    { label: "Vertical Speed vs Time", unit: "m/s", color: "#34d399",
-                                              threshold: { value: -12, label: "SAFE LIMIT −12 m/s", color: "#f87171" } }),
+    alt:   new StripChart($("chart-alt"),   { label: "Altitude vs Time",       unit: "m",   color: "#6ea8dc" }),
+    temp:  new StripChart($("chart-temp"),  { label: "Temperature vs Time",    unit: "°C",  color: "#cf9352" }),
+    press: new StripChart($("chart-press"), { label: "Pressure vs Time",       unit: "hPa", color: "#9b8fc0" }),
+    vs:    new StripChart($("chart-vs"),    { label: "Vertical Speed vs Time", unit: "m/s", color: "#7fb98a",
+                                              threshold: { value: -12, label: "SAFE LIMIT −12 m/s", color: "#c94c3f" } }),
+  };
+
+  const gauges = {
+    alt:   new AnalogGauge($("g-alt"),   { label: "Altitude", unit: "m", min: 0, max: 600, ticks: 12, fmt: v => v.toFixed(0) }),
+    vs:    new AnalogGauge($("g-vs"),    { label: "Vert Speed", unit: "m/s", min: -30, max: 40, ticks: 14, redLow: -12,
+                                           fmt: v => (v > 0 ? "+" : "") + v.toFixed(1) }),
+    temp:  new AnalogGauge($("g-temp"),  { label: "Temp", unit: "°C", min: 20, max: 40, ticks: 10, fmt: v => v.toFixed(1) }),
+    press: new AnalogGauge($("g-press"), { label: "Pressure", unit: "hPa", min: 940, max: 1020, ticks: 8, fmt: v => v.toFixed(0) }),
+    batt:  new AnalogGauge($("g-batt"),  { label: "Battery", unit: "V", min: 3.4, max: 4.3, ticks: 9, redLow: 3.8, amberLow: 3.95,
+                                           fmt: v => v.toFixed(2) }),
+    rssi:  new AnalogGauge($("g-rssi"),  { label: "RSSI", unit: "dBm", min: -120, max: -40, ticks: 8, redLow: -100, amberLow: -85,
+                                           fmt: v => v.toFixed(0) }),
+    sats:  new AnalogGauge($("g-sats"),  { label: "GPS Sats", unit: "count", min: 0, max: 14, ticks: 14, redLow: 4, amberLow: 6,
+                                           fmt: v => String(Math.round(v)) }),
   };
 
   Imagery.load($("imagery-strip"));
@@ -76,56 +97,24 @@ document.addEventListener("DOMContentLoaded", () => {
     el.className = "phase-chip " + (PHASE_CLASS[p] || "ph-ready");
   }
 
-  /* ---------------- warning banner ---------------- */
   function setWarning(text) {
     const b = $("warn-banner");
-    if (text) {
-      $("warn-banner-text").textContent = text;
-      b.hidden = false;
-    } else {
-      b.hidden = true;
-    }
+    if (text) { $("warn-banner-text").textContent = text; b.hidden = false; }
+    else b.hidden = true;
   }
 
-  /* ---------------- telemetry cards ---------------- */
-  const cardDefs = [
-    { key: "alt",   card: "card-alt",   out: "tv-alt",   bar: "tb-alt",   fmt: v => v.toFixed(1),  pct: v => v / 500,
-      cls: () => "" },
-    { key: "temp",  card: "card-temp",  out: "tv-temp",  bar: "tb-temp",  fmt: v => v.toFixed(1),  pct: v => (v - 25) / 10,
-      cls: () => "" },
-    { key: "pressure", card: "card-press", out: "tv-press", bar: "tb-press", fmt: v => v.toFixed(1), pct: v => (v - 950) / 65,
-      cls: () => "" },
-    { key: "vs",    card: "card-vs",    out: "tv-vs",    bar: "tb-vs",    fmt: v => (v > 0 ? "+" : "") + v.toFixed(1), pct: v => Math.abs(v) / 25,
-      cls: v => v < -12 ? "crit" : v < -9 ? "warn" : "" },
-    { key: "batt",  card: "card-batt",  out: "tv-batt",  bar: "tb-batt",  fmt: v => v.toFixed(2),  pct: v => (v - 3.4) / 0.8,
-      cls: v => v < 3.8 ? "crit" : v < 3.95 ? "warn" : "good" },
-    { key: "rssi",  card: "card-rssi",  out: "tv-rssi",  bar: "tb-rssi",  fmt: v => v.toFixed(0),  pct: v => (v + 110) / 70,
-      cls: v => v < -100 ? "crit" : v < -85 ? "warn" : "good" },
-    { key: "sats",  card: "card-sats",  out: "tv-sats",  bar: "tb-sats",  fmt: v => String(v),     pct: v => v / 12,
-      cls: v => v < 4 ? "crit" : v < 6 ? "warn" : "good" },
-  ];
-
-  function updateCards(pkt, silent) {
-    for (const d of cardDefs) {
-      const v = pkt[d.key];
-      const out = $(d.out);
-      const txt = d.fmt(v);
-      const card = $(d.card);
-      if (out.textContent !== txt) {
-        out.textContent = txt;
-        if (!silent) {
-          card.classList.remove("bump");
-          void card.offsetWidth;               // restart the animation
-          card.classList.add("bump");
-        }
-      }
-      $(d.bar).style.width = (Math.max(0, Math.min(1, d.pct(v))) * 100).toFixed(1) + "%";
-      card.classList.remove("warn", "crit", "good");
-      const c = d.cls(v);
-      if (c) card.classList.add(c);
-    }
+  /* ---------------- instruments ---------------- */
+  function updateInstruments(pkt) {
+    gauges.alt.set(pkt.alt);
+    gauges.vs.set(pkt.vs);
+    gauges.temp.set(pkt.temp);
+    gauges.press.set(pkt.pressure);
+    gauges.batt.set(pkt.batt);
+    gauges.rssi.set(pkt.rssi);
+    gauges.sats.set(pkt.sats);
     $("tv-lat").textContent = pkt.lat.toFixed(6) + "°";
     $("tv-lon").textContent = pkt.lon.toFixed(6) + "°";
+    $("tv-range").textContent = Math.hypot(pkt.x, pkt.y).toFixed(0);
     $("gps-lat").textContent = pkt.lat.toFixed(6);
     $("gps-lon").textContent = pkt.lon.toFixed(6);
     $("gps-dist").textContent = Math.hypot(pkt.x, pkt.y).toFixed(0);
@@ -147,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
   sim.onStatus = setStatus;
   sim.onWarning = setWarning;
   sim.onPacket = pkt => {
-    updateCards(pkt);
+    updateInstruments(pkt);
     charts.alt.push(pkt.t, pkt.alt);
     charts.temp.push(pkt.t, pkt.temp);
     charts.press.push(pkt.t, pkt.pressure);
@@ -174,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const t of s.warnings) {
       const div = document.createElement("div");
       div.className = "sw";
-      div.textContent = "⚠ " + t;
+      div.textContent = "CAUTION — " + t;
       w.appendChild(div);
     }
     $("summary-modal").hidden = false;
@@ -227,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setWarning(null);
     $("summary-modal").hidden = true;
     $("hdr-time").textContent = "T+00:00";
-    updateCards(sim._makePacket(), true);
+    updateInstruments(sim._makePacket());
     $("hdr-packet").textContent = "#0000";
     lastLogMsg = "";
     log("Mission reset — all systems nominal", "info");
@@ -241,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const n = Number(btn.dataset.speed);
       sim.setSpeed(n);
       document.querySelectorAll(".spd").forEach(b => b.classList.toggle("active", b === btn));
-      log("Simulation speed set to x" + n, "info");
+      log("Simulation rate set to x" + n, "info");
       Sfx.click();
     });
   });
@@ -272,7 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-center").addEventListener("click", () => { gps.center(); Sfx.click(); });
   $("btn-sound").addEventListener("click", () => {
     Sfx.enabled = !Sfx.enabled;
-    $("btn-sound").textContent = Sfx.enabled ? "🔊" : "🔇";
     $("btn-sound").classList.toggle("muted", !Sfx.enabled);
     if (Sfx.enabled) Sfx.click();
   });
@@ -316,13 +304,12 @@ document.addEventListener("DOMContentLoaded", () => {
     disp.x += (rx.x - disp.x) * k;
     disp.y += (rx.y - disp.y) * k;
 
-    /* header clock (ground-side, keeps counting during blackout) */
-    if (sim.started && !sim.landed) $("hdr-time").textContent = fmtTime(sim.t);
-    else if (sim.landed) $("hdr-time").textContent = fmtTime(sim.t);
+    if (sim.started) $("hdr-time").textContent = fmtTime(sim.t);
 
-    /* HUD */
     $("hud-alt").textContent = disp.alt.toFixed(1);
     $("hud-vs").textContent = (disp.vs > 0 ? "+" : "") + disp.vs.toFixed(1);
+
+    for (const g of Object.values(gauges)) g.tick(dtReal);
 
     const paused = sim.started && !sim.running && !sim.landed;
     const state = {
@@ -332,6 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
       chute: rx.chute,
       fast: sim.scenario === "fast",
       signalLost: sim.signal === "lost",
+      burn: sim.started && !sim.landed && sim.phase === "ASCENDING" && sim.t < sim.ascentTime * 0.35,
       maxAlt: sim.maxAlt,
       paused,
     };
@@ -346,8 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------------- boot ---------------- */
-  log("Simulator initialized — software-only demo, no hardware attached", "info");
-  updateCards(sim._makePacket(), true);
+  log("Simulator initialized — software-only demo, no flight hardware attached", "info");
+  updateInstruments(sim._makePacket());
   setStatus("SIMULATION READY");
   setPhase("READY");
   refreshButtons();

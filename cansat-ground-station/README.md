@@ -54,11 +54,18 @@ Pick one **before** launch:
   vs time, drawn on **raw HTML canvas (no Chart.js)**: latest ~50 points,
   grid, autoscale, glow line, safe-limit threshold on the V/S chart,
   no errors when empty, fully cleared on reset.
-- **Live 3D model** — a real-time Three.js CanSat (soda-can satellite with
-  label, antenna, blinking beacon LED, fins, camera window) that flies with
-  the telemetry: elastic parachute deploy, pendulum sway, fluttering
-  partial chute in Fast Descent, clouds, stars and terrain.
-  **Drag to orbit, scroll to zoom.**
+- **Live 3D launch range** — real satellite terrain of Kennedy Space Center
+  LC-39A (public Esri World Imagery tiles, no API key, painted fallback when
+  offline), an uploaded rocket model (CC-BY "ROCKET" by Ret.ouchs) that
+  carries the CanSat up with engine fire, smoke and pad dust, camera shake
+  at liftoff, separation at apogee with the spent booster tumbling back
+  under gravity, elastic parachute deploy with pendulum sway (fluttering
+  partial chute in Fast Descent), a ground crew of astronauts (CC-BY
+  "USA NASA Astronaut" by Chenzoss) who track the flight and walk out to
+  recover the payload, plus swaying instanced trees, a mountain range and
+  drifting clouds that part around the vehicle. **Drag to orbit, scroll to zoom.**
+- **Analog flight instruments** — seven aircraft-style gauges (canvas-drawn
+  needles, tick marks, red/amber arcs, digital readouts).
 - **2D flight profile** — sky/ground scene with an altitude ruler, trail,
   max-altitude marker, motion arrow, thrust flame, parachute and phase label.
 - **GPS tracking** — procedural map (no Google Maps, no API key) with launch
@@ -92,9 +99,12 @@ cansat-ground-station/
     ├── charts.js       raw-canvas real-time strip charts
     ├── flightviz.js    2D flight profile view
     ├── gpsmap.js       procedural GPS tracking map
-    ├── cansat3d.js     Three.js 3D CanSat model + scene
+    ├── cansat3d.js     Three.js 3D launch range (rocket, crew, terrain, particles)
+    ├── gauges.js       analog flight instruments
+    ├── satimagery.js   KSC satellite tiles (Esri, keyless) + fallback
     ├── sfx.js          WebAudio sound effects
     ├── imagery.js      live real-photo panel (Wikimedia Commons API)
     ├── app.js          UI glue: controls, log, cards, CSV export
-    └── vendor/three.min.js
+    ├── vendor/  three.min.js + GLTFLoader.js
+└── assets/  rocket.glb, astronaut.glb (CC-BY-4.0, credits in footer)
 ```

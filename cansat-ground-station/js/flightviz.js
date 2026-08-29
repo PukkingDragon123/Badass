@@ -47,9 +47,9 @@ class FlightViz {
     /* ---- sky gradient (darkens with altitude) ---- */
     const hi = Math.min(1, alt / 500);
     const g = ctx.createLinearGradient(0, 0, 0, skyH);
-    g.addColorStop(0, this._mix([10, 20, 44], [3, 6, 18], hi));
-    g.addColorStop(0.6, this._mix([22, 48, 92], [10, 22, 48], hi));
-    g.addColorStop(1, this._mix([58, 106, 160], [30, 60, 100], hi));
+    g.addColorStop(0, this._mix([96, 133, 172], [38, 62, 96], hi));
+    g.addColorStop(0.6, this._mix([148, 178, 205], [78, 108, 142], hi));
+    g.addColorStop(1, this._mix([196, 213, 226], [128, 154, 180], hi));
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, skyH);
 
@@ -95,7 +95,7 @@ class FlightViz {
     for (let i = 0; i < 4; i++) ctx.fillRect(padX - 26 + i * 14, skyH - 4, 7, 5);
 
     /* ---- altitude ruler (left) ---- */
-    ctx.font = "10px 'Share Tech Mono', monospace";
+    ctx.font = "10px 'IBM Plex Mono', monospace";
     ctx.textAlign = "left"; ctx.textBaseline = "middle";
     for (let a = 0; a <= this.maxScale - 20; a += 50) {
       const y = yOfAlt(a);
@@ -118,7 +118,7 @@ class FlightViz {
     for (let i = 0; i < this.trail.length; i++) {
       const p = this.trail[i];
       ctx.globalAlpha = (i / this.trail.length) * 0.5;
-      ctx.fillStyle = "#67e8f9";
+      ctx.fillStyle = "#c9d4de";
       ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
     }
     ctx.globalAlpha = 1;
@@ -127,12 +127,12 @@ class FlightViz {
     if (state.maxAlt > 30 && state.phase !== "READY") {
       const my = yOfAlt(state.maxAlt);
       ctx.save();
-      ctx.strokeStyle = "rgba(167,139,250,.6)";
+      ctx.strokeStyle = "rgba(200,195,235,.55)";
       ctx.setLineDash([6, 5]);
       ctx.beginPath(); ctx.moveTo(26, my); ctx.lineTo(w - 8, my); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "rgba(196,181,253,.95)";
-      ctx.font = "10px 'Share Tech Mono', monospace";
+      ctx.fillStyle = "rgba(214,208,240,.95)";
+      ctx.font = "10px 'IBM Plex Mono', monospace";
       ctx.textAlign = "right"; ctx.textBaseline = "bottom";
       ctx.fillText("MAX " + state.maxAlt.toFixed(0) + " m", w - 10, my - 2);
       ctx.restore();
@@ -141,7 +141,7 @@ class FlightViz {
     /* ---- current-altitude dashed line to ruler ---- */
     if (alt > 2) {
       ctx.save();
-      ctx.strokeStyle = "rgba(34,211,238,.4)";
+      ctx.strokeStyle = "rgba(210,225,240,.35)";
       ctx.setLineDash([3, 5]);
       ctx.beginPath(); ctx.moveTo(28, sy); ctx.lineTo(sx - 20, sy); ctx.stroke();
       ctx.setLineDash([]);
@@ -165,9 +165,7 @@ class FlightViz {
       ctx.quadraticCurveTo(cx2 + cw * .5, topY + 13, cx2, topY + 9);
       ctx.quadraticCurveTo(cx2 - cw * .5, topY + 13, cx2 - cw, topY + 8);
       ctx.closePath();
-      ctx.shadowColor = "rgba(251,146,60,.7)"; ctx.shadowBlur = 12;
       ctx.fill();
-      ctx.shadowBlur = 0;
       /* shroud lines */
       ctx.strokeStyle = "rgba(230,240,255,.75)";
       ctx.lineWidth = 1;
@@ -185,12 +183,12 @@ class FlightViz {
     const cg = ctx.createLinearGradient(-7, 0, 7, 0);
     cg.addColorStop(0, "#8fa8c8"); cg.addColorStop(.5, "#e8f2ff"); cg.addColorStop(1, "#5f7896");
     ctx.fillStyle = cg;
-    ctx.strokeStyle = "#22d3ee";
+    ctx.strokeStyle = "#4b5866";
     ctx.lineWidth = 1.2;
     this._roundRect(-7, -12, 14, 22, 3);
     ctx.fill(); ctx.stroke();
     /* label stripe */
-    ctx.fillStyle = "#ef4444";
+    ctx.fillStyle = "#c8342a";
     ctx.fillRect(-7, -4, 14, 5);
     /* antenna */
     ctx.strokeStyle = "#cbd5e1";
@@ -224,47 +222,43 @@ class FlightViz {
     if (Math.abs(state.vs) > 0.5 && state.phase !== "LANDED") {
       const up = state.vs > 0;
       const ax = sx + 26;
-      const col = up ? "#34d399" : (state.vs < -12 ? "#f87171" : "#fbbf24");
+      const col = up ? "#7fd08a" : (state.vs < -12 ? "#e0685c" : "#e8c35a");
       ctx.save();
       ctx.fillStyle = col;
-      ctx.shadowColor = col; ctx.shadowBlur = 8;
+      
       const bounce = Math.sin(time * 5) * 3;
       const ay = sy + (up ? -6 - bounce : 6 + bounce);
       ctx.beginPath();
       if (up) { ctx.moveTo(ax, ay - 10); ctx.lineTo(ax - 6, ay + 2); ctx.lineTo(ax + 6, ay + 2); }
       else { ctx.moveTo(ax, ay + 10); ctx.lineTo(ax - 6, ay - 2); ctx.lineTo(ax + 6, ay - 2); }
       ctx.closePath(); ctx.fill();
-      ctx.font = "11px 'Share Tech Mono', monospace";
+      ctx.font = "11px 'IBM Plex Mono', monospace";
       ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      ctx.shadowBlur = 0;
       ctx.fillText(state.vs.toFixed(1) + " m/s", ax + 10, sy);
       ctx.restore();
     }
 
     /* ---- phase label ---- */
     ctx.save();
-    ctx.font = "700 13px Orbitron, sans-serif";
+    ctx.font = "600 15px 'Barlow Condensed', sans-serif";
     ctx.textAlign = "right"; ctx.textBaseline = "top";
-    const phc = { READY: "#7d92b5", ASCENDING: "#22d3ee", APOGEE: "#a78bfa", "PARACHUTE DEPLOYED": "#fb923c", DESCENDING: "#fbbf24", LANDED: "#34d399" };
+    const phc = { READY: "#e8ecef", ASCENDING: "#dce8f4", APOGEE: "#d9d2f0", "PARACHUTE DEPLOYED": "#f0cfa8", DESCENDING: "#f0dfa8", LANDED: "#c9ecd2" };
     ctx.fillStyle = phc[state.phase] || "#7d92b5";
-    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10;
     ctx.fillText(state.phase, w - 12, 10);
     ctx.restore();
 
     /* altitude readout under the phase */
-    ctx.font = "12px 'Share Tech Mono', monospace";
+    ctx.font = "12px 'IBM Plex Mono', monospace";
     ctx.textAlign = "right"; ctx.textBaseline = "top";
     ctx.fillStyle = "rgba(210,230,255,.9)";
     ctx.fillText(alt.toFixed(1) + " m", w - 12, 28);
 
     /* landed flag */
     if (state.phase === "LANDED") {
-      ctx.font = "700 15px Orbitron, sans-serif";
+      ctx.font = "600 16px 'Barlow Condensed', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillStyle = "#34d399";
-      ctx.shadowColor = "#34d399"; ctx.shadowBlur = 14;
-      ctx.fillText("✔ TOUCHDOWN", sx, sy - 44);
-      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#7fd08a";
+      ctx.fillText("TOUCHDOWN", sx, sy - 44);
     }
   }
 
